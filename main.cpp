@@ -1,6 +1,7 @@
 #include <SDL.h>
 
 #include <memory>
+#include <vector>
 
 #include "externals/imgui/backends/imgui_impl_sdl.h"
 #include "externals/imgui/backends/imgui_impl_sdlrenderer.h"
@@ -44,31 +45,30 @@ class GameRenderer {
   }
 
   void Render() {
-    ImGui_ImplSDLRenderer_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
-    ImGui::Render();
-
+    SDL_RenderPresent(renderer.get());
     SDL_SetRenderDrawColor(renderer.get(), 0, 0, 100, 0);
     SDL_RenderClear(renderer.get());
-
-    ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
-    SDL_RenderPresent(renderer.get());
   }
 
   std::shared_ptr<SDL_Renderer> get() { return renderer; }
 };
 
-class GameLoop {
-  GameWindow window;
-  GameRenderer renderer;
-
-  bool shouldQuit = false;
-  SDL_Event event{};
-
+class GameLoopStrategy {
  public:
-  GameLoop() : renderer(window.get()) {
+  virtual void Init(GameWindow& window, GameRenderer& renderer) = 0;
+  virtual void HandleEvent(SDL_Event& event) = 0;
+  virtual void OnRender(GameWindow& window, GameRenderer& renderer) = 0;
+};
+
+class GUIStrategy : public GameLoopStrategy {
+ public:
+  ~GUIStrategy() {
+    ImGui_ImplSDLRenderer_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+  }
+
+  void Init(GameWindow& window, GameRenderer& renderer) override {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
@@ -76,30 +76,62 @@ class GameLoop {
     ImGui_ImplSDLRenderer_Init(renderer.get().get());
   }
 
-  ~GameLoop() {
-    ImGui_ImplSDLRenderer_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_Quit();
+  void HandleEvent(SDL_Event& event) override {
+    ImGui_ImplSDL2_ProcessEvent(&event);
   }
+
+  void OnRender(GameWindow& window, GameRenderer& renderer) override {
+    ImGui_ImplSDLRenderer_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
+
+    ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+  }
+};
+
+class GameLoop {
+  GameWindow window;
+  GameRenderer renderer;
+
+  std::vector<GameLoopStrategy*> strategies;
+
+  bool shouldQuit = false;
+  SDL_Event event{};
+
+ public:
+  explicit GameLoop(std::vector<GameLoopStrategy*> strategies)
+      : renderer(window.get()), strategies(std::move(strategies)) {
+    for (auto strategy : this->strategies) {
+      strategy->Init(window, renderer);
+    }
+  }
+
+  ~GameLoop() { SDL_Quit(); }
 
   void run() {
     while (!shouldQuit) {
       while (SDL_PollEvent(&event)) {
-        ImGui_ImplSDL2_ProcessEvent(&event);
+        for (auto& strategy : strategies) {
+          strategy->HandleEvent(event);
+        }
 
         if (event.type == SDL_QUIT) {
           shouldQuit = true;
         }
       }
 
+      for (auto& strategy : strategies) {
+        strategy->OnRender(window, renderer);
+      }
       renderer.Render();
     }
   }
 };
 
 int main() {
-  GameLoop gameLoop;
+  GUIStrategy gui;
+  GameLoop gameLoop({&gui});
   gameLoop.run();
 }
