@@ -1,64 +1,105 @@
 #include <SDL.h>
 
+#include <memory>
+
 #include "externals/imgui/backends/imgui_impl_sdl.h"
 #include "externals/imgui/backends/imgui_impl_sdlrenderer.h"
 #include "externals/imgui/imgui.h"
 
-int main() {
-  SDL_Window* window;
+class GameWindow {
+  std::shared_ptr<SDL_Window> window;
 
-  SDL_Init(SDL_INIT_EVERYTHING);
+ public:
+  GameWindow() {
+    SDL_Init(SDL_INIT_EVERYTHING);
 
-  SDL_DisplayMode displayMode;
-  SDL_GetCurrentDisplayMode(0, &displayMode);
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(0, &displayMode);
 
-  window = SDL_CreateWindow(
-      nullptr,
-      SDL_WINDOWPOS_CENTERED,
-      SDL_WINDOWPOS_CENTERED,
-      800,
-      600,
-      0
-  );
+    window = std::shared_ptr<SDL_Window>(
+        SDL_CreateWindow(
+            "Automation Engine",
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
+            displayMode.w / 2,
+            displayMode.h / 2,
+            SDL_WINDOW_RESIZABLE
+        ),
+        SDL_DestroyWindow
+    );
+  }
 
-  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+  std::shared_ptr<SDL_Window> get() { return window; }
+};
 
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
+class GameRenderer {
+  std::shared_ptr<SDL_Renderer> renderer;
 
-  ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
-  ImGui_ImplSDLRenderer_Init(renderer);
+ public:
+  explicit GameRenderer(const std::shared_ptr<SDL_Window>& window) {
+    renderer = std::shared_ptr<SDL_Renderer>(
+        SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED),
+        SDL_DestroyRenderer
+    );
+  }
 
-  bool shouldQuit = false;
-  SDL_Event event;
-
-  while (!shouldQuit) {
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-
-      if (event.type == SDL_QUIT) {
-        shouldQuit = true;
-      }
-    }
-
+  void Render() {
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     ImGui::ShowDemoWindow();
     ImGui::Render();
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 100, 0);
-    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer.get(), 0, 0, 100, 0);
+    SDL_RenderClear(renderer.get());
 
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(renderer.get());
   }
 
-  ImGui_ImplSDLRenderer_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
+  std::shared_ptr<SDL_Renderer> get() { return renderer; }
+};
 
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+class GameLoop {
+  GameWindow window;
+  GameRenderer renderer;
+
+  bool shouldQuit = false;
+  SDL_Event event{};
+
+ public:
+  GameLoop() : renderer(window.get()) {
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui_ImplSDL2_InitForSDLRenderer(window.get().get(), renderer.get().get());
+    ImGui_ImplSDLRenderer_Init(renderer.get().get());
+  }
+
+  ~GameLoop() {
+    ImGui_ImplSDLRenderer_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    SDL_Quit();
+  }
+
+  void run() {
+    while (!shouldQuit) {
+      while (SDL_PollEvent(&event)) {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+
+        if (event.type == SDL_QUIT) {
+          shouldQuit = true;
+        }
+      }
+
+      renderer.Render();
+    }
+  }
+};
+
+int main() {
+  GameLoop gameLoop;
+  gameLoop.run();
 }
