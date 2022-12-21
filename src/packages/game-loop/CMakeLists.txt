@@ -1,12 +1,13 @@
 set(LIB_NAME Loop)
 
 add_library(${LIB_NAME} STATIC
-        ./src/Test.cpp
+        src/GameLoop.cpp
         ./src/GameLoop.h
+        src/GameRenderer.cpp
         ./src/GameRenderer.h
         ./src/GameStrategy.h
-        ./src/GameWindow.h
-        )
+        src/GameWindow.cpp
+        ./src/GameWindow.h)
 
 target_include_directories(${LIB_NAME} INTERFACE .)
 
