@@ -11,3 +11,4 @@
 
 # External submodules
 /externals/imgui
+/externals/googletest

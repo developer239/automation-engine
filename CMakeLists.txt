@@ -4,6 +4,10 @@ project(CMake_SDL2_ImGui)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
+# Find GoogleTest
+add_subdirectory(externals/googletest)
+enable_testing()
+
 # Find ImGui
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/imgui/")
 find_package(Imgui REQUIRED)
