@@ -7,5 +7,5 @@ set(SOURCES
 
 add_executable(${APP_NAME} ${SOURCES})
 
-target_link_libraries(${APP_NAME} Loop)
-target_link_libraries(${APP_NAME} GameLoopImgui)
+target_link_libraries(${APP_NAME} Core)
+target_link_libraries(${APP_NAME} CoreImgui)

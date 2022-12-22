@@ -1,13 +1,15 @@
-#include "./GameLoop.h"
+#include "./Loop.h"
 
-GameLoop::GameLoop(std::vector<GameLoopStrategy*> strategies)
+namespace Core {
+
+Loop::Loop(std::vector<IStrategy*> strategies)
     : renderer(window.get()), strategies(std::move(strategies)) {
   for (auto strategy : this->strategies) {
     strategy->Init(window, renderer);
   }
 }
 
-void GameLoop::run() {
+void Loop::run() {
   while (!shouldQuit) {
     while (SDL_PollEvent(&event)) {
       for (auto& strategy : strategies) {
@@ -26,4 +28,6 @@ void GameLoop::run() {
   }
 }
 
-GameLoop::~GameLoop() { SDL_Quit(); }
+Loop::~Loop() { SDL_Quit(); }
+
+}  // namespace Core

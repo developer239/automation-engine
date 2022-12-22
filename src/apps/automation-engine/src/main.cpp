@@ -1,14 +1,11 @@
-#include <iostream>
-
-#include "src/GameLoop.h"
-#include "src/GUIStrategy.h"
+#include "core/Loop.h"
+#include "core-imgui/Strategy.h"
 
 int main() {
-  GUIStrategy strategy;
-  auto loop = GameLoop({
-    &strategy
+  CoreImGui::Strategy gui;
+
+  auto loop = Core::Loop({
+    &gui
   });
   loop.run();
-
-  std::cout << "hello" << std::endl;
 }

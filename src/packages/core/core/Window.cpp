@@ -1,6 +1,8 @@
-#include "./GameWindow.h"
+#include "./Window.h"
 
-GameWindow::GameWindow() {
+namespace Core {
+
+Window::Window() {
   SDL_Init(SDL_INIT_EVERYTHING);
 
   SDL_DisplayMode displayMode;
@@ -19,4 +21,6 @@ GameWindow::GameWindow() {
   );
 }
 
-std::shared_ptr<SDL_Window> GameWindow::get() { return window; }
+std::shared_ptr<SDL_Window> Window::get() { return window; }
+
+}  // namespace Core
