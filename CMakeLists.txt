@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Find ImGui
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/imgui/")
-find_package(ImGui REQUIRED)
+find_package(Imgui REQUIRED)
 
 # Find SDL2
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/sdl2/")
