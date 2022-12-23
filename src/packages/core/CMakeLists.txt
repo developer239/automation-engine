@@ -24,7 +24,6 @@ target_link_libraries(${LIB_NAME} PUBLIC
 add_test(AllTests${LIB_NAME} ${LIB_NAME})
 
 set(SOURCES_TEST
-        ./core/IStrategy.test.cpp
         core/Loop.cpp
         core/Loop.h
         core/Renderer.cpp

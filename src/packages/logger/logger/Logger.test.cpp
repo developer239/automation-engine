@@ -1,63 +1,35 @@
 #include "Logger.h"
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <sstream>
-
-TEST(LogTypeTest, ComparisonOperators) {
-  const LogType info(0);
-  const LogType warning(1);
-  const LogType error(2);
-
-  EXPECT_TRUE(info < warning);
-  EXPECT_FALSE(warning < info);
-
-  EXPECT_TRUE(info <= warning);
-  EXPECT_TRUE(info <= info);
-  EXPECT_FALSE(warning <= info);
-
-  EXPECT_FALSE(info > warning);
-  EXPECT_TRUE(error > warning);
-
-  EXPECT_FALSE(info >= warning);
-  EXPECT_TRUE(warning >= info);
-  EXPECT_TRUE(info >= info);
-
-  EXPECT_TRUE(info == info);
-  EXPECT_FALSE(info == warning);
-}
-
-class LoggerTest : public testing::Test {
-  protected:
-    LoggerTest() : logger_(output_stream_) {}
-
-    std::stringstream output_stream_;
-    Logger logger_;
+class LoggerTest : public ::testing::Test {
+ protected:
+  void SetUp() override { Logger::messages.clear(); }
 };
 
-TEST_F(LoggerTest, Log) {
-  logger_.LogError("error message");
+TEST(LoggerTest, Log) {
+  testing::internal::CaptureStdout();
+  Logger::Log("This is the first log message");
+  std::string output = testing::internal::GetCapturedStdout();
 
-  std::string output;
-  std::getline(output_stream_, output, '\n');
-  EXPECT_THAT(output, testing::HasSubstr("error message"));
-  EXPECT_THAT(output, testing::HasSubstr("\x1B[91m"));
+  EXPECT_THAT(output, ::testing::HasSubstr("This is the first log message"));
+  EXPECT_THAT(output, ::testing::HasSubstr("\x1B[32m"));
+}
+TEST(LoggerTest, Warn) {
+  testing::internal::CaptureStdout();
+  Logger::Warn("This is warning message");
+  std::string output = testing::internal::GetCapturedStdout();
+
+  EXPECT_THAT(output, ::testing::HasSubstr("This is warning message"));
+  EXPECT_THAT(output, ::testing::HasSubstr("\x1B[33m"));
 }
 
-TEST_F(LoggerTest, SetLogLevel) {
-  logger_.SetLogLevel(LOG_WARNING);
+TEST(LoggerTest, Err) {
+  testing::internal::CaptureStderr();
+  Logger::Err("This is an error message");
+  std::string output = testing::internal::GetCapturedStderr();
 
-  logger_.LogError("error message");
-  EXPECT_THAT(output_stream_.str(), testing::HasSubstr("error message"));
-  EXPECT_THAT(output_stream_.str(), testing::HasSubstr("\x1B[91m"));
-  output_stream_.str(std::string());
-
-  logger_.LogWarning("warning message");
-  EXPECT_THAT(output_stream_.str(), testing::HasSubstr("warning message"));
-  EXPECT_THAT(output_stream_.str(), testing::HasSubstr("\x1B[93m"));
-  output_stream_.str(std::string());
-
-  logger_.LogInfo("info message");
-  EXPECT_THAT(output_stream_.str(), testing::Not(testing::HasSubstr("info message")));
-  EXPECT_THAT(output_stream_.str(), testing::Not(testing::HasSubstr("\x1B[32m")));
+  EXPECT_THAT(output, ::testing::HasSubstr("This is an error message"));
+  EXPECT_THAT(output, ::testing::HasSubstr("\x1B[91m"));
 }
