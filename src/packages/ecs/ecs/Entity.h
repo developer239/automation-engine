@@ -1,5 +1,7 @@
 #pragma once
 
+namespace ECS {
+
 class Entity {
  private:
   int id;
@@ -19,3 +21,5 @@ class Entity {
 
   bool operator<(const Entity& other) const { return id < other.id; }
 };
+
+}  // namespace ECS

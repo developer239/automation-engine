@@ -5,7 +5,7 @@ set(LIB_NAME ECS)
 set(LIB_NAME_TEST ${LIB_NAME}Test)
 
 add_library(${LIB_NAME} STATIC
-        ./ecs/ECSComponent.h
+        ecs/Component.h
         ./ecs/Entity.cpp
         ./ecs/Entity.h
         ./ecs/IComponent.cpp
@@ -26,7 +26,7 @@ target_link_libraries(${LIB_NAME} PUBLIC Imgui)
 add_test(AllTests${LIB_NAME} ${LIB_NAME})
 
 set(SOURCES_TEST
-        ./ecs/ECSComponent.h
+        ecs/Component.h
         ./ecs/Entity.cpp
         ./ecs/Entity.h
         ./ecs/IComponent.cpp

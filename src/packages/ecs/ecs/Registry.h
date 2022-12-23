@@ -7,11 +7,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ECSComponent.h"
+#include "Component.h"
 #include "Entity.h"
 #include "Pool.h"
 #include "Signature.h"
 #include "System.h"
+
+namespace ECS {
 
 class Registry {
  private:
@@ -118,7 +120,7 @@ class Registry {
     auto groupEntities = entitiesPerGroup.at(group);
     // TODO: fix
     return true;
-//    return groupEntities.find(entity.GetId()) != groupEntities.end();
+    //    return groupEntities.find(entity.GetId()) != groupEntities.end();
   }
 
   std::vector<Entity> GetEntitiesByGroup(const std::string& group) const {
@@ -194,7 +196,7 @@ class Registry {
 
   template <typename TComponent, typename... TArgs>
   void AddComponent(Entity entity, TArgs&&... args) {
-    const auto componentId = ECSComponent<TComponent>::GetId();
+    const auto componentId = Component<TComponent>::GetId();
     const auto entityId = entity.GetId();
 
     if (componentId >= componentPools.size()) {
@@ -219,7 +221,7 @@ class Registry {
 
   template <typename TComponent>
   void RemoveComponent(Entity entity) {
-    const auto componentId = ECSComponent<TComponent>::GetId();
+    const auto componentId = Component<TComponent>::GetId();
     const auto entityId = entity.GetId();
 
     std::shared_ptr<Pool<TComponent>> componentPool =
@@ -231,14 +233,14 @@ class Registry {
 
   template <typename TComponent>
   bool HasComponent(Entity entity) const {
-    const auto componentId = ECSComponent<TComponent>::GetId();
+    const auto componentId = Component<TComponent>::GetId();
     const auto entityId = entity.GetId();
     return entityComponentSignatures[entityId].test(componentId);
   }
 
   template <typename TComponent>
   TComponent& GetComponent(Entity entity) const {
-    const auto componentId = ECSComponent<TComponent>::GetId();
+    const auto componentId = Component<TComponent>::GetId();
     const auto entityId = entity.GetId();
     auto componentPool =
         std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
@@ -265,3 +267,5 @@ class Registry {
     return GetComponent<TComponent>(entity);
   }
 };
+
+}  // namespace ECS

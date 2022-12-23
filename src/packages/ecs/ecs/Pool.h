@@ -2,6 +2,8 @@
 
 #include "IPool.h"
 
+namespace ECS {
+
 template <typename TItem>
 class Pool : public IPool {
  private:
@@ -76,3 +78,5 @@ class Pool : public IPool {
 
   TItem& operator[](unsigned int index) { return data[index]; }
 };
+
+}  // namespace ECS

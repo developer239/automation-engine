@@ -2,6 +2,8 @@
 
 #include "Signature.h"
 
+namespace ECS {
+
 class System {
  private:
   Signature componentSignature;
@@ -35,7 +37,9 @@ class System {
 
   template <typename TComponent>
   void RequireComponent() {
-    const auto componentId = ECSComponent<TComponent>::GetId();
+    const auto componentId = ECS::Component<TComponent>::GetId();
     componentSignature.set(componentId);
   }
 };
+
+}  // namespace ECS

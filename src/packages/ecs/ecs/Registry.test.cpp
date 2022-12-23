@@ -1,20 +1,20 @@
 #include "Registry.h"
 
-#include "ECSComponent.h"
+#include "Component.h"
 #include "Entity.h"
 #include "System.h"
 #include "gtest/gtest.h"
 
-struct PositionComponent : public ECSComponent<PositionComponent> {
+struct PositionComponent : public ECS::Component<PositionComponent> {
   float x = 0;
   float y = 0;
 };
 
-class PositionSystem : public System {
+class PositionSystem : public ECS::System {
  public:
   PositionSystem() { RequireComponent<PositionComponent>(); }
 
-  void Update(Registry& registry) {
+  void Update(ECS::Registry& registry) {
     for (auto entity : GetSystemEntities()) {
       auto& component = registry.GetComponent<PositionComponent>(entity);
       component.x += 1;
@@ -25,8 +25,8 @@ class PositionSystem : public System {
 
 class ECSIntegrationTest : public testing::Test {
  protected:
-  Registry registry;
-  Entity entity;
+  ECS::Registry registry;
+  ECS::Entity entity;
   PositionSystem positionSystem;
 
   ECSIntegrationTest() : entity(registry.CreateEntity()) {
@@ -36,8 +36,7 @@ class ECSIntegrationTest : public testing::Test {
 };
 
 TEST_F(ECSIntegrationTest, TestPositionSystemUpdatesPosition) {
-  auto& position =
-      registry.GetComponent<PositionComponent>(entity);
+  auto& position = registry.GetComponent<PositionComponent>(entity);
 
   EXPECT_FLOAT_EQ(position.x, 0);
   EXPECT_FLOAT_EQ(position.y, 0);
