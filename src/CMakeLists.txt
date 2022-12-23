@@ -2,4 +2,5 @@ add_subdirectory(apps/automation-engine)
 
 add_subdirectory(packages/core)
 add_subdirectory(packages/core-imgui)
+add_subdirectory(packages/events)
 add_subdirectory(packages/logger)
