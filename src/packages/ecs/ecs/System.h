@@ -25,9 +25,13 @@ class System {
     );
   }
 
-  std::vector<Entity> GetSystemEntities() const { return entities; }
+  [[nodiscard]] std::vector<Entity> GetSystemEntities() const {
+    return entities;
+  }
 
-  const Signature& GetComponentSignature() const { return componentSignature; }
+  [[nodiscard]] const Signature& GetComponentSignature() const {
+    return componentSignature;
+  }
 
   template <typename TComponent>
   void RequireComponent() {

@@ -19,9 +19,9 @@ class Pool : public IPool {
 
   ~Pool() override = default;
 
-  bool IsEmpty() const { return size == 0; }
+  [[nodiscard]] bool IsEmpty() const { return size == 0; }
 
-  int GetSize() const { return size; }
+  [[nodiscard]] int GetSize() const { return size; }
 
   void Clear() {
     data.clear();

@@ -1,7 +1,7 @@
 # TODO: remove duplication between lib and tests
 # TODO: create function to generate package configuration
 
-set(LIB_NAME Events)
+set(LIB_NAME ECS)
 set(LIB_NAME_TEST ${LIB_NAME}Test)
 
 add_library(${LIB_NAME} STATIC
@@ -34,6 +34,7 @@ set(SOURCES_TEST
         ./ecs/IPool.h
         ./ecs/Pool.h
         ./ecs/Registry.h
+        ./ecs/Registry.test.cpp
         ./ecs/Signature.h
         ./ecs/System.h
         )

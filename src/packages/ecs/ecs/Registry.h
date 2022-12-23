@@ -49,7 +49,6 @@ class Registry {
     }
 
     Entity entity(entityId);
-    entity.registry = this;
     entitiesToBeAdded.insert(entity);
 
     return entity;
@@ -117,7 +116,9 @@ class Registry {
       return false;
     }
     auto groupEntities = entitiesPerGroup.at(group);
-    return groupEntities.find(entity.GetId()) != groupEntities.end();
+    // TODO: fix
+    return true;
+//    return groupEntities.find(entity.GetId()) != groupEntities.end();
   }
 
   std::vector<Entity> GetEntitiesByGroup(const std::string& group) const {
@@ -214,10 +215,6 @@ class Registry {
     componentPool->Set(entityId, newComponent);
 
     entityComponentSignatures[entityId].set(componentId);
-
-    //        Logger::Log(
-    //            "Component id = " + std::to_string(componentId) + " was added
-    //            to entity id " + std::to_string(entityId));
   }
 
   template <typename TComponent>
@@ -247,25 +244,24 @@ class Registry {
         std::static_pointer_cast<Pool<TComponent>>(componentPools[componentId]);
     return componentPool->Get(entityId);
   }
+
+  template <typename TComponent, typename... TArgs>
+  void AddComponentToEntity(Entity& entity, TArgs&&... args) {
+    AddComponent<TComponent>(entity, std::forward<TArgs>(args)...);
+  }
+
+  template <typename TComponent>
+  void RemoveComponentFromEntity(Entity& entity) {
+    RemoveComponent<TComponent>(entity);
+  }
+
+  template <typename TComponent>
+  bool HasEntityComponent(Entity& entity) const {
+    return HasComponent<TComponent>(entity);
+  }
+
+  template <typename TComponent>
+  TComponent& GetEntityComponent(Entity& entity) const {
+    return GetComponent<TComponent>(entity);
+  }
 };
-
-// TODO: remove when Entity is refactored
-template <typename TComponent, typename... TArgs>
-void Entity::AddComponent(TArgs&&... args) {
-  registry->AddComponent<TComponent>(*this, std::forward<TArgs>(args)...);
-}
-
-template <typename TComponent>
-void Entity::RemoveComponent() {
-  registry->RemoveComponent<TComponent>(*this);
-}
-
-template <typename TComponent>
-bool Entity::HasComponent() const {
-  return registry->HasComponent<TComponent>(*this);
-}
-
-template <typename TComponent>
-TComponent& Entity::GetComponent() const {
-  return registry->GetComponent<TComponent>(*this);
-}

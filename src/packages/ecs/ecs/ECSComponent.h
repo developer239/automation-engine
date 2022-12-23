@@ -2,7 +2,7 @@
 
 #include "IComponent.h"
 
-template <typename T>
+template <typename TComponent>
 class ECSComponent : public IComponent {
  public:
   static int GetId() {
