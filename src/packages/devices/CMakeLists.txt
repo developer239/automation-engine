@@ -1,29 +1,31 @@
 # TODO: remove duplication between lib and tests
 # TODO: create function to generate package configuration
 
-set(LIB_NAME Logger)
+set(LIB_NAME Devices)
 set(LIB_NAME_TEST ${LIB_NAME}Test)
 
 add_library(${LIB_NAME} STATIC
-        ./logger/Logger.cpp
-        ./logger/Logger.h
+        ./devices/Keyboard.cpp
+        ./devices/Keyboard.h
         )
 
 target_include_directories(${LIB_NAME} INTERFACE .)
 
-target_link_libraries(${LIB_NAME} PRIVATE Core)
+target_link_libraries(${LIB_NAME} PRIVATE Utility)
 
 target_link_libraries(${LIB_NAME} PUBLIC Imgui)
 
 add_test(AllTests${LIB_NAME} ${LIB_NAME})
 
 set(SOURCES_TEST
-        ./logger/Logger.cpp
-        ./logger/Logger.h
-        ./logger/Logger.test.cpp)
+        ./devices/Keyboard.cpp
+        ./devices/Keyboard.h
+        ./devices/Keyboard.test.cpp)
 
 add_executable(${LIB_NAME_TEST} ${SOURCES_TEST})
+target_link_libraries(${LIB_NAME_TEST} PUBLIC "-framework Carbon")
 target_link_libraries(${LIB_NAME_TEST} PRIVATE
         gtest
         gmock
-        gmock_main)
+        gmock_main
+        Utility)

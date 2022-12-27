@@ -19,10 +19,6 @@ add_library(${LIB_NAME} STATIC
 
 target_include_directories(${LIB_NAME} INTERFACE .)
 
-target_link_libraries(${LIB_NAME} PRIVATE Core)
-
-target_link_libraries(${LIB_NAME} PUBLIC Imgui)
-
 add_test(AllTests${LIB_NAME} ${LIB_NAME})
 
 set(SOURCES_TEST
