@@ -7,6 +7,8 @@ set(LIB_NAME_TEST ${LIB_NAME}Test)
 add_library(${LIB_NAME} STATIC
         ./devices/Keyboard.cpp
         ./devices/Keyboard.h
+        ./devices/Mouse.cpp
+        ./devices/Mouse.h
         )
 
 target_include_directories(${LIB_NAME} INTERFACE .)
@@ -20,7 +22,11 @@ add_test(AllTests${LIB_NAME} ${LIB_NAME})
 set(SOURCES_TEST
         ./devices/Keyboard.cpp
         ./devices/Keyboard.h
-        ./devices/Keyboard.test.cpp)
+        ./devices/Keyboard.test.cpp
+        ./devices/Mouse.cpp
+        ./devices/Mouse.h
+        ./devices/Mouse.test.cpp
+        )
 
 add_executable(${LIB_NAME_TEST} ${SOURCES_TEST})
 target_link_libraries(${LIB_NAME_TEST} PUBLIC "-framework Carbon")
