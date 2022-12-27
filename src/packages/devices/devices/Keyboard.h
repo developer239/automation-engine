@@ -32,6 +32,7 @@ class Keyboard {
 
   void PressAndRelease(int key);
 
+  // TODO: support special characters
   int MapASCIIToVirtualKey(char key);
 
  private:

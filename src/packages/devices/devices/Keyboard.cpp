@@ -1,4 +1,4 @@
-#include "Keyboard.h"
+#include "./Keyboard.h"
 
 #include <ApplicationServices/ApplicationServices.h>
 
@@ -46,7 +46,6 @@ int Keyboard::MapASCIIToVirtualKey(char key) {
   return it->second;
 }
 
-// TODO: support special characters
 std::map<char, int> Keyboard::asciiToVirtualKey = {
     {'a', 0},
     {'s', 1},
