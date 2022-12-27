@@ -1,6 +1,3 @@
-# TODO: remove duplication between lib and tests
-# TODO: create function to generate package configuration
-
 set(LIB_NAME ECS)
 set(LIB_NAME_TEST ${LIB_NAME}Test)
 
