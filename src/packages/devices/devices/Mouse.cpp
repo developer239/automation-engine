@@ -2,6 +2,8 @@
 
 #include "utility/Delay.h"
 
+namespace Devices {
+
 void Mouse::move(float x, float y) {
   CGPoint location = CGPointMake(x, y);
   executeEvent(kCGMouseButtonLeft, kCGEventMouseMoved, location);
@@ -46,5 +48,7 @@ void Mouse::executeEvent(
   CGEventPost(kCGHIDEventTap, event);
   CFRelease(event);
 
-  delay(25);
+  Utility::delay(25);
 }
+
+}  // namespace Devices

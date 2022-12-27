@@ -8,7 +8,7 @@ using ::testing::Return;
 
 TEST(DelayTest, TestDelay) {
   auto start = std::chrono::high_resolution_clock::now();
-  delay(1000);
+  Utility::delay(1000);
   auto end = std::chrono::high_resolution_clock::now();
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();

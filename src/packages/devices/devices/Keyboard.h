@@ -3,12 +3,18 @@
 #include <map>
 #include <string>
 
+namespace Devices {
+
 class Keyboard {
  public:
   Keyboard() = default;
+
   Keyboard(const Keyboard&) = delete;
+
   Keyboard(Keyboard&&) = delete;
+
   Keyboard& operator=(const Keyboard&) = delete;
+
   Keyboard& operator=(Keyboard&&) = delete;
 
   static Keyboard& GetInstance() {
@@ -38,3 +44,5 @@ class Keyboard {
  private:
   static std::map<char, int> asciiToVirtualKey;
 };
+
+}  // namespace Devices

@@ -2,21 +2,29 @@
 
 #include <ApplicationServices/ApplicationServices.h>
 
-class Mouse {
-  public:
-    Mouse() = default;
-    Mouse(const Mouse&) = delete;
-    Mouse& operator=(const Mouse&) = delete;
+namespace Devices {
 
-    static Mouse& getInstance() {
-      static Mouse instance;
-      return instance;
-    }
+  class Mouse {
+    public:
+      Mouse() = default;
 
-    void move(float x, float y);
-    void click(CGMouseButton button, bool shouldPress);
-    CGPoint getLocation();
+      Mouse(const Mouse&) = delete;
 
-  private:
-    virtual void executeEvent(CGMouseButton button, CGEventType type, CGPoint location);
-};
+      Mouse& operator=(const Mouse&) = delete;
+
+      static Mouse& getInstance() {
+        static Mouse instance;
+        return instance;
+      }
+
+      void move(float x, float y);
+
+      void click(CGMouseButton button, bool shouldPress);
+
+      CGPoint getLocation();
+
+    private:
+      virtual void executeEvent(CGMouseButton button, CGEventType type, CGPoint location);
+  };
+
+} // namespace Devices

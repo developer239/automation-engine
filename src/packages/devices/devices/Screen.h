@@ -4,6 +4,9 @@
 
 #include <opencv2/opencv.hpp>
 
+namespace Devices {
+
+// TODO: only use smart pointers
 class Screen {
  public:
   int* width;
@@ -25,3 +28,5 @@ class Screen {
   CGContextRef contextRef;
   CGImageRef screenshotRef;
 };
+
+}  // namespace Devices

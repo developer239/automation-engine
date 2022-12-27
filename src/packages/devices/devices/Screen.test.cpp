@@ -13,7 +13,7 @@ TEST(ScreenTest, TestScreenshotMethodManually) {
   int windowX = 0;
   int windowY = 0;
 
-  Screen screen(&width, &height, &windowX, &windowY);
+  Devices::Screen screen(&width, &height, &windowX, &windowY);
 
   screen.Screenshot();
 

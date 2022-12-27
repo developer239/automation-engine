@@ -3,7 +3,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-class MockKeyboard : public Keyboard {
+class MockKeyboard : public Devices::Keyboard {
  public:
   MOCK_METHOD(void, Click, (char keyASCII)), (override);
   MOCK_METHOD(void, Type, (const std::string& query));

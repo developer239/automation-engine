@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 TEST(MouseTest, MoveTest) {
-  auto& mouse = Mouse::getInstance();
+  auto& mouse = Devices::Mouse::getInstance();
 
   mouse.move(100, 100);
 

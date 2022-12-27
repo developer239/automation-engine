@@ -2,6 +2,8 @@
 
 #include <ApplicationServices/ApplicationServices.h>
 
+namespace Devices {
+
 void Keyboard::Type(const std::string& query) {
   for (char c : query) {
     Click(c);
@@ -97,3 +99,5 @@ std::map<char, int> Keyboard::asciiToVirtualKey = {
     {' ', 49},
     {'`', 50},
 };
+
+}  // namespace Devices
