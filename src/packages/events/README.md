@@ -12,7 +12,7 @@ class CustomEvent : public Events::EventBase {
   int value;
 
   explicit CustomEvent(std::string message, int value)
-      : message(std::move(message)), value(value) {}
+      : message(std::Move(message)), value(value) {}
 };
 
 class EventReceiver {

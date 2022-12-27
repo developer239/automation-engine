@@ -25,7 +25,7 @@ class Loop {
 
   ~Loop();
 
-  void run();
+  void Run();
 };
 
 }  // namespace Core

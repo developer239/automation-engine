@@ -3,10 +3,10 @@
 #include "gtest/gtest.h"
 
 TEST(MouseTest, MoveTest) {
-  auto& mouse = Devices::Mouse::getInstance();
+  auto& mouse = Devices::Mouse::GetInstance();
 
-  mouse.move(100, 100);
+  mouse.Move(100, 100);
 
-  EXPECT_EQ(mouse.getLocation().x, 100);
-  EXPECT_EQ(mouse.getLocation().y, 100);
+  EXPECT_EQ(mouse.GetLocation().x, 100);
+  EXPECT_EQ(mouse.GetLocation().y, 100);
 }

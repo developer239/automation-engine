@@ -11,6 +11,6 @@ int main() {
   auto loop = Core::Loop({
     &gui
   });
-  loop.run();
+  loop.Run();
 }
 ```

@@ -12,7 +12,7 @@ class Window {
  public:
   Window();
 
-  std::shared_ptr<SDL_Window> get();
+  std::shared_ptr<SDL_Window> Get();
 };
 
 }  // namespace Core

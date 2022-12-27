@@ -24,6 +24,6 @@ int main() {
   CustomStrategy strategy;
 
   auto loop = Core::Loop({&strategy});
-  loop.run();
+  loop.Run();
 }
 ```

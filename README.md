@@ -23,4 +23,4 @@ It is goal is to provide a simple way to automate tasks on a computer by writing
 
 ### Tests
 
-You can use CMake to run [googletest](https://github.com/google/googletest).
+You can use CMake to Run [googletest](https://github.com/google/googletest).

@@ -3,13 +3,13 @@
 namespace Core {
 
 Loop::Loop(std::vector<IStrategy*> strategies)
-    : renderer(window.get()), strategies(std::move(strategies)) {
+    : renderer(window.Get()), strategies(std::move(strategies)) {
   for (auto strategy : this->strategies) {
     strategy->Init(window, renderer);
   }
 }
 
-void Loop::run() {
+void Loop::Run() {
   while (!shouldQuit) {
     while (SDL_PollEvent(&event)) {
       for (auto& strategy : strategies) {

@@ -2,7 +2,7 @@
 
 namespace Utility {
 
-void MatrixAsTexture(SDL_Renderer* renderer, cv::Mat* screenshot) {
+void matrixAsTexture(SDL_Renderer* renderer, cv::Mat* screenshot) {
   SDL_Texture* texture = SDL_CreateTexture(
       renderer,
       SDL_PIXELFORMAT_BGR24,

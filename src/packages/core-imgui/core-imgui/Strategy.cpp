@@ -12,8 +12,8 @@ void Strategy::Init(Core::Window& window, Core::Renderer& renderer) {
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
 
-  ImGui_ImplSDL2_InitForSDLRenderer(window.get().get(), renderer.get().get());
-  ImGui_ImplSDLRenderer_Init(renderer.get().get());
+  ImGui_ImplSDL2_InitForSDLRenderer(window.Get().get(), renderer.Get().get());
+  ImGui_ImplSDLRenderer_Init(renderer.Get().get());
 }
 
 void Strategy::HandleEvent(SDL_Event& event) {

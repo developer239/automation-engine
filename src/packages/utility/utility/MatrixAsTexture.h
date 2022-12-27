@@ -6,6 +6,6 @@
 
 namespace Utility {
 
-void MatrixAsTexture(SDL_Renderer* renderer, cv::Mat* screenshot);
+void matrixAsTexture(SDL_Renderer* renderer, cv::Mat* screenshot);
 
 }

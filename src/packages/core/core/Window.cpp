@@ -21,6 +21,6 @@ Window::Window() {
   );
 }
 
-std::shared_ptr<SDL_Window> Window::get() { return window; }
+std::shared_ptr<SDL_Window> Window::Get() { return window; }
 
 }  // namespace Core

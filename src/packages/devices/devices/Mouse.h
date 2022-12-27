@@ -12,19 +12,19 @@ namespace Devices {
 
       Mouse& operator=(const Mouse&) = delete;
 
-      static Mouse& getInstance() {
+      static Mouse& GetInstance() {
         static Mouse instance;
         return instance;
       }
 
-      void move(float x, float y);
+      void Move(float x, float y);
 
-      void click(CGMouseButton button, bool shouldPress);
+      void Click(CGMouseButton button, bool shouldPress);
 
-      CGPoint getLocation();
+      CGPoint GetLocation();
 
     private:
-      virtual void executeEvent(CGMouseButton button, CGEventType type, CGPoint location);
+      virtual void ExecuteEvent(CGMouseButton button, CGEventType type, CGPoint location);
   };
 
 } // namespace Devices

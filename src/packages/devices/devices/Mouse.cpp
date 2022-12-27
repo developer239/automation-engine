@@ -4,13 +4,13 @@
 
 namespace Devices {
 
-void Mouse::move(float x, float y) {
+void Mouse::Move(float x, float y) {
   CGPoint location = CGPointMake(x, y);
-  executeEvent(kCGMouseButtonLeft, kCGEventMouseMoved, location);
+  ExecuteEvent(kCGMouseButtonLeft, kCGEventMouseMoved, location);
 }
 
-void Mouse::click(CGMouseButton button, bool shouldPress) {
-  CGPoint location = getLocation();
+void Mouse::Click(CGMouseButton button, bool shouldPress) {
+  CGPoint location = GetLocation();
   CGEventType typePress;
   CGEventType typeRelease;
 
@@ -29,11 +29,11 @@ void Mouse::click(CGMouseButton button, bool shouldPress) {
       break;
   };
 
-  executeEvent(button, typePress, location);
-  executeEvent(button, typeRelease, location);
+  ExecuteEvent(button, typePress, location);
+  ExecuteEvent(button, typeRelease, location);
 }
 
-CGPoint Mouse::getLocation() {
+CGPoint Mouse::GetLocation() {
   CGEventRef event = CGEventCreate(nullptr);
   CGPoint cursor = CGEventGetLocation(event);
   CFRelease(event);
@@ -41,7 +41,7 @@ CGPoint Mouse::getLocation() {
   return CGPointMake(cursor.x, cursor.y);
 }
 
-void Mouse::executeEvent(
+void Mouse::ExecuteEvent(
     CGMouseButton button, CGEventType type, CGPoint location
 ) {
   CGEventRef event = CGEventCreateMouseEvent(nullptr, type, location, button);

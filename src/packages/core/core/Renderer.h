@@ -14,7 +14,7 @@ class Renderer {
 
   void Render();
 
-  std::shared_ptr<SDL_Renderer> get() { return renderer; }
+  std::shared_ptr<SDL_Renderer> Get() { return renderer; }
 };
 
 }  // namespace Core
