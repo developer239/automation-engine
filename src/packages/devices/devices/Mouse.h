@@ -4,6 +4,10 @@
 
 class Mouse {
   public:
+    Mouse() = default;
+    Mouse(const Mouse&) = delete;
+    Mouse& operator=(const Mouse&) = delete;
+
     static Mouse& getInstance() {
       static Mouse instance;
       return instance;
@@ -14,9 +18,5 @@ class Mouse {
     CGPoint getLocation();
 
   private:
-    Mouse() = default;
-    Mouse(const Mouse&) = delete;
-    Mouse& operator=(const Mouse&) = delete;
-
     virtual void executeEvent(CGMouseButton button, CGEventType type, CGPoint location);
 };

@@ -5,23 +5,34 @@
 
 class Keyboard {
  public:
-  static void Type(const std::string& query);
+  Keyboard() = default;
+  Keyboard(const Keyboard&) = delete;
+  Keyboard(Keyboard&&) = delete;
+  Keyboard& operator=(const Keyboard&) = delete;
+  Keyboard& operator=(Keyboard&&) = delete;
 
-  static void Click(char keyASCII);
+  static Keyboard& GetInstance() {
+    static Keyboard instance;
+    return instance;
+  }
 
-  static void ClickEnter();
+  void Type(const std::string& query);
 
-  static void ArrowUp();
+  virtual void Click(char keyASCII);
 
-  static void ArrowDown();
+  void ClickEnter();
 
-  static void ArrowLeft();
+  void ArrowUp();
 
-  static void ArrowRight();
+  void ArrowDown();
 
-  static void PressAndRelease(int key);
+  void ArrowLeft();
 
-  static int MapASCIIToVirtualKey(char key);
+  void ArrowRight();
+
+  void PressAndRelease(int key);
+
+  int MapASCIIToVirtualKey(char key);
 
  private:
   static std::map<char, int> asciiToVirtualKey;

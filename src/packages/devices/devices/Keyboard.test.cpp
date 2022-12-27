@@ -5,7 +5,7 @@
 
 class MockKeyboard : public Keyboard {
  public:
-  MOCK_METHOD(void, Click, (char keyASCII));
+  MOCK_METHOD(void, Click, (char keyASCII)), (override);
   MOCK_METHOD(void, Type, (const std::string& query));
 };
 
@@ -19,7 +19,7 @@ TEST(KeyboardTest, TypeSimulatesTypingEachCharacterInString) {
   std::vector<int> typedCharacters;
   EXPECT_CALL(mockKeyboard, Click(::testing::_))
       .WillRepeatedly(::testing::Invoke([&](char c) {
-        int key = MockKeyboard::MapASCIIToVirtualKey(c);
+        int key = mockKeyboard.MapASCIIToVirtualKey(c);
         typedCharacters.push_back(key);
       }));
 
