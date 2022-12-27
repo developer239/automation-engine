@@ -3,7 +3,8 @@
 #include "gtest/gtest.h"
 
 TEST(ScreenTest, TestScreenshotMethodManually) {
-  bool wasManuallyEnabled = false;
+  // TODO: make the test work in CLI
+  bool wasManuallyEnabled = true;
   if (!wasManuallyEnabled) {
     GTEST_SKIP();
   }

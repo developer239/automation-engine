@@ -19,6 +19,7 @@ namespace Devices {
 
       void Move(float x, float y);
 
+      // TODO: expose custom type
       void Click(CGMouseButton button, bool shouldPress);
 
       CGPoint GetLocation();

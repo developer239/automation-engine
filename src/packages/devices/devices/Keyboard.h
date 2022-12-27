@@ -36,6 +36,8 @@ class Keyboard {
 
   void ArrowRight();
 
+  void ClickEscape();
+
   void PressAndRelease(int key);
 
   // TODO: support special characters

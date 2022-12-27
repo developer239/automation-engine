@@ -100,4 +100,8 @@ std::map<char, int> Keyboard::asciiToVirtualKey = {
     {'`', 50},
 };
 
+  void Keyboard::ClickEscape() {
+    PressAndRelease(53);
+  }
+
 }  // namespace Devices

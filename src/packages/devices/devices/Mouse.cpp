@@ -9,6 +9,7 @@ void Mouse::Move(float x, float y) {
   ExecuteEvent(kCGMouseButtonLeft, kCGEventMouseMoved, location);
 }
 
+// TODO: refactor this doesn't make much sense second param should be optional
 void Mouse::Click(CGMouseButton button, bool shouldPress) {
   CGPoint location = GetLocation();
   CGEventType typePress;

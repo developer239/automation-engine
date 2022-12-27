@@ -7,6 +7,7 @@ It is goal is to provide a simple way to automate tasks on a computer by writing
 ### Requirements:
 
 - `$ brew install cmake`
+- `$ brew install opencv`
 - `$ brew install sdl2`
 - `$ brew install sdl2_ttf`
 - `$ brew install sdl2_image`
@@ -23,4 +24,4 @@ It is goal is to provide a simple way to automate tasks on a computer by writing
 
 ### Tests
 
-You can use CMake to Run [googletest](https://github.com/google/googletest).
+You can use CMake to Run [googletest](https://github.com/google/googletest). (note: running all tests doesn't seem to work at the mean time)
