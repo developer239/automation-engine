@@ -22,6 +22,7 @@ void Loop::Run() {
     }
 
     for (auto& strategy : strategies) {
+      strategy->OnUpdate(window, renderer);
       strategy->OnRender(window, renderer);
     }
     renderer.Render();

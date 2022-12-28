@@ -27,6 +27,8 @@ class Strategy : public Core::IStrategy {
   void HandleEvent(SDL_Event& event) override;
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override;
+
+  void OnUpdate(Core::Window& window, Core::Renderer& renderer) override;
 };
 
 }  // namespace CoreImGui

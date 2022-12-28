@@ -4,7 +4,7 @@ set(APP_FOLDER_NAME automation-engine)
 set(SOURCES
         src/main.cpp
         src/strategies/ECSStrategy.h
-        src/strategies/ImguiImplement.h
+        src/strategies/ImguiStrategy.h
         src/components/PositionComponent.h
         src/systems/PositionSystem.h
         )

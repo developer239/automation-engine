@@ -14,6 +14,7 @@ class IStrategy {
   virtual void Init(Window& window, Renderer& renderer) = 0;
   virtual void HandleEvent(SDL_Event& event) = 0;
   virtual void OnRender(Window& window, Renderer& renderer) = 0;
+  virtual void OnUpdate(Window& window, Renderer& renderer) = 0;
 };
 
 }  // namespace Core

@@ -3,6 +3,8 @@
 namespace CoreImGui {
 
 Strategy::~Strategy() {
+  implement.release();
+
   ImGui_ImplSDLRenderer_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
@@ -35,5 +37,7 @@ void Strategy::OnRender(Core::Window& window, Core::Renderer& renderer) {
 
   ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
 }
+
+void Strategy::OnUpdate(Core::Window& window, Core::Renderer& renderer) {}
 
 }  // namespace CoreImGui
