@@ -1,6 +1,7 @@
 set(LIB_NAME CoreImgui)
 
 add_library(${LIB_NAME} STATIC
+        core-imgui/IImplementation.h
         core-imgui/Strategy.cpp
         core-imgui/Strategy.h)
 

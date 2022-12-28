@@ -3,7 +3,7 @@ set(APP_FOLDER_NAME automation-engine)
 
 set(SOURCES
         src/main.cpp
-        )
+        src/strategies/ImguiImplement.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 
