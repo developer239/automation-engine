@@ -1,10 +1,13 @@
 #include "./strategies/ImguiImplement.h"
+#include "./strategies/ECSStrategy.h"
 #include "core/Loop.h"
 
 int main() {
-  auto implement = ImguiImplement();
-  CoreImGui::Strategy gui(&implement);
+  auto guiImplement = ImguiImplement();
+  CoreImGui::Strategy gui(&guiImplement);
 
-  auto loop = Core::Loop({&gui});
+  ECSStrategy ecs;
+
+  auto loop = Core::Loop({&gui, &ecs});
   loop.Run();
 }
