@@ -84,43 +84,30 @@ void Strategy::OnRender(Core::Window& window, Core::Renderer& renderer) {
       );
       ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
-      // split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the
-      // following args in the following order
-      //   window ID to split, direction, fraction (between 0 and 1), the
-      //   final two setting let's us choose which id we want (which ever one
-      //   we DON'T set as NULL, will be returned by the function)
-      //                                                              out_id_at_dir
-      //                                                              is the
-      //                                                              id of
-      //                                                              the node
-      //                                                              in the
-      //                                                              direction
-      //                                                              we
-      //                                                              specified
-      //                                                              earlier,
-      //                                                              out_id_at_opposite_dir
-      //                                                              is in
-      //                                                              the
-      //                                                              opposite
-      //                                                              direction
-      auto dock_id_left = ImGui::DockBuilderSplitNode(
-          dockspace_id,
-          ImGuiDir_Left,
-          0.2f,
-          nullptr,
-          &dockspace_id
-      );
-      auto dock_id_down = ImGui::DockBuilderSplitNode(
-          dockspace_id,
-          ImGuiDir_Down,
-          0.25f,
-          nullptr,
-          &dockspace_id
+      //
+
+      ImGuiID leftDockID = 0, rightDockID = 0, topRightDockID = 0, bottomRightDockID = 0;
+
+      ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.33f, &leftDockID, &rightDockID);
+
+      ImGuiDockNode* pLeftNode = ImGui::DockBuilderGetNode(leftDockID);
+      pLeftNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe | ImGuiDockNodeFlags_NoDockingOverMe;
+
+      ImGuiDockNode* pRightNode = ImGui::DockBuilderGetNode(rightDockID);
+      pRightNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingOverMe;
+
+      ImGui::DockBuilderSplitNode(
+          pRightNode->ID, ImGuiDir_Up, 0.66f, &topRightDockID, &bottomRightDockID
       );
 
-      // we now dock our windows into the docking node we made above
-      ImGui::DockBuilderDockWindow("Down", dock_id_down);
-      ImGui::DockBuilderDockWindow("Left", dock_id_left);
+      ImGuiDockNode* pTopRightNode = ImGui::DockBuilderGetNode(topRightDockID);
+      pTopRightNode->LocalFlags |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe | ImGuiDockNodeFlags_NoDockingOverMe;
+
+      ImGui::DockBuilderDockWindow("LeftWindow", leftDockID);
+      ImGui::DockBuilderDockWindow("TopRightWindow", topRightDockID);
+      ImGui::DockBuilderDockWindow("BottomRightWindow", bottomRightDockID);
+
+      //
 
       ImGui::DockBuilderFinish(dockspace_id);
     }
@@ -128,16 +115,16 @@ void Strategy::OnRender(Core::Window& window, Core::Renderer& renderer) {
 
   ImGui::End();
 
-  ImGui::Begin("Left");
+  ImGui::Begin("LeftWindow");
   ImGui::Text("Hello, left!");
   ImGui::End();
 
-  ImGui::Begin("Down");
-  ImGui::Text("Hello, down!");
+  ImGui::Begin("TopRightWindow");
+  ImGui::Text("Hello, top!");
   ImGui::End();
 
-  ImGui::Begin("TopRight");
-  ImGui::Text("Hello, top right!");
+  ImGui::Begin("BottomRightWindow");
+  ImGui::Text("Hello, bottom!");
   ImGui::End();
 
   ImGui::Render();
