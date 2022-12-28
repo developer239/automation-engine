@@ -7,6 +7,7 @@
 [submodule "externals/imgui"]
 	path = externals/imgui
 	url = https://github.com/ocornut/imgui
+	branch = docking
 [submodule "externals/googletest"]
 	path = externals/googletest
 	url = https://github.com/google/googletest

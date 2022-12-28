@@ -9,8 +9,11 @@ Strategy::~Strategy() {
 }
 
 void Strategy::Init(Core::Window& window, Core::Renderer& renderer) {
+  IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
+
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   ImGui_ImplSDL2_InitForSDLRenderer(window.Get().get(), renderer.Get().get());
   ImGui_ImplSDLRenderer_Init(renderer.Get().get());
