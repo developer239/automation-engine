@@ -22,9 +22,18 @@ void Loop::Run() {
     }
 
     for (auto& strategy : strategies) {
+      strategy->OnBeforeRender(window, renderer);
+    }
+
+    for (auto& strategy : strategies) {
       strategy->OnUpdate(window, renderer);
       strategy->OnRender(window, renderer);
     }
+
+    for (auto& strategy : strategies) {
+      strategy->OnAfterRender(window, renderer);
+    }
+
     renderer.Render();
   }
 }

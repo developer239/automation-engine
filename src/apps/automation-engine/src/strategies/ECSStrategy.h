@@ -7,7 +7,9 @@
 #include "ecs/Entity.h"
 #include "ecs/Registry.h"
 #include "ecs/System.h"
+
 #include "../components/PositionComponent.h"
+#include "../systems/DebuggerSystem.h"
 #include "../systems/PositionSystem.h"
 
 class ECSStrategy : public Core::IStrategy {
@@ -16,7 +18,9 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Entity entity = registry.CreateEntity();
 
     registry.AddComponentToEntity<PositionComponent>(entity);
+
     registry.AddSystem<PositionSystem>();
+    registry.AddSystem<DebuggerSystem>();
   }
 
   void HandleEvent(SDL_Event& event) override {}
@@ -26,7 +30,14 @@ class ECSStrategy : public Core::IStrategy {
     registry.GetSystem<PositionSystem>().Update(registry);
   }
 
-  void OnRender(Core::Window& window, Core::Renderer& renderer) override {}
+  void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
+  }
+
+  void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override {}
+
+  void OnRender(Core::Window& window, Core::Renderer& renderer) override {
+    registry.GetSystem<DebuggerSystem>().Render();
+  }
 
  private:
   ECS::Registry registry;

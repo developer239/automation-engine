@@ -2,29 +2,28 @@
 
 #include <utility>
 
-#include "../../../../externals/imgui/backends/imgui_impl_sdl.h"
-#include "../../../../externals/imgui/backends/imgui_impl_sdlrenderer.h"
-#include "../../../../externals/imgui/imgui.h"
-#include "../../../../externals/imgui/imgui_internal.h"
 #include "./IImplementation.h"
+#include "backends/imgui_impl_sdl.h"
+#include "backends/imgui_impl_sdlrenderer.h"
 #include "core/IStrategy.h"
 #include "core/Renderer.h"
 #include "core/Window.h"
+#include "imgui.h"
+#include "imgui_internal.h"
 
 namespace CoreImGui {
 
 class Strategy : public Core::IStrategy {
  public:
-  std::unique_ptr<IImplementation> implement;
-
-  explicit Strategy(IImplementation* implement) {
-    this->implement = std::unique_ptr<IImplementation>(implement);
-  }
   ~Strategy();
 
   void Init(Core::Window& window, Core::Renderer& renderer) override;
 
   void HandleEvent(SDL_Event& event) override;
+
+  void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override;
+
+  void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override;
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override;
 
