@@ -2,6 +2,8 @@ set(LIB_NAME Core)
 set(LIB_NAME_TEST ${LIB_NAME}Test)
 
 add_library(${LIB_NAME} STATIC
+        core/AssetStore.cpp
+        core/AssetStore.h
         core/Loop.cpp
         core/Loop.h
         core/Renderer.cpp
@@ -17,10 +19,13 @@ target_link_libraries(${LIB_NAME} PUBLIC
         SDL2::TTF
         SDL2::Image
         SDL2::Mixer)
+target_link_libraries(${LIB_NAME} PRIVATE Logger)
 
 add_test(AllTests${LIB_NAME} ${LIB_NAME})
 
 set(SOURCES_TEST
+        core/AssetStore.cpp
+        core/AssetStore.h
         core/Loop.cpp
         core/Loop.h
         core/Renderer.cpp
@@ -37,3 +42,4 @@ target_link_libraries(${LIB_NAME_TEST} PRIVATE
         SDL2::TTF
         SDL2::Image
         SDL2::Mixer)
+target_link_libraries(${LIB_NAME_TEST} PRIVATE Logger)

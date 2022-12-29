@@ -2,6 +2,7 @@
 
 #include "core/IStrategy.h"
 #include "core/Renderer.h"
+#include "core/AssetStore.h"
 #include "core/Window.h"
 #include "ecs/Component.h"
 #include "ecs/Entity.h"
@@ -15,6 +16,9 @@
 class ECSStrategy : public Core::IStrategy {
  public:
   void Init(Core::Window& window, Core::Renderer& renderer) override {
+    // TODO: load from the build folder
+    assetStore.AddFont("pico8-font-10", "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf", 24);
+
     ECS::Entity entity = registry.CreateEntity();
 
     registry.AddComponentToEntity<PositionComponent>(entity);
@@ -41,4 +45,5 @@ class ECSStrategy : public Core::IStrategy {
 
  private:
   ECS::Registry registry;
+  Core::AssetStore assetStore;
 };
