@@ -7,7 +7,7 @@ set(SOURCES
         src/strategies/ImguiStrategy.h
         src/components/PositionComponent.h
         src/systems/PositionSystem.h
-        src/systems/DebuggerSystem.h)
+        src/systems/GUISystem.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 

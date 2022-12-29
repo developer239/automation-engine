@@ -3,7 +3,7 @@
 #include "imgui.h"
 #include "ecs/System.h"
 
-class DebuggerSystem : public ECS::System {
+class GUISystem : public ECS::System {
  public:
   void Render() { ImGui::ShowDemoWindow(); }
 };
