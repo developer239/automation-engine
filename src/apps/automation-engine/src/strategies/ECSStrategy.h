@@ -4,6 +4,7 @@
 #include "core/Renderer.h"
 #include "core/AssetStore.h"
 #include "core/Window.h"
+#include "devices/Screen.h"
 #include "ecs/Component.h"
 #include "ecs/Entity.h"
 #include "ecs/Registry.h"
@@ -12,6 +13,7 @@
 #include "../components/PositionComponent.h"
 #include "../systems/GUISystem.h"
 #include "../systems/PositionSystem.h"
+#include "../systems/ScreenSystem.h"
 
 class ECSStrategy : public Core::IStrategy {
  public:
@@ -23,6 +25,7 @@ class ECSStrategy : public Core::IStrategy {
 
     registry.AddComponentToEntity<PositionComponent>(entity);
 
+    registry.AddSystem<ScreenSystem>();
     registry.AddSystem<PositionSystem>();
     registry.AddSystem<GUISystem>();
   }
@@ -31,7 +34,13 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     registry.Update();
+
+    registry.GetSystem<ScreenSystem>().Update(screen);
     registry.GetSystem<PositionSystem>().Update(registry);
+  }
+
+  void OnRender(Core::Window& window, Core::Renderer& renderer) override {
+    registry.GetSystem<GUISystem>().Render();
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
@@ -39,11 +48,9 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override {}
 
-  void OnRender(Core::Window& window, Core::Renderer& renderer) override {
-    registry.GetSystem<GUISystem>().Render();
-  }
-
  private:
   ECS::Registry registry;
   Core::AssetStore assetStore;
+
+  Devices::Screen screen = Devices::Screen(800, 600, 0, 0);
 };

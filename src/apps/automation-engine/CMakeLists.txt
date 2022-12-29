@@ -7,7 +7,7 @@ set(SOURCES
         src/strategies/ImguiStrategy.h
         src/components/PositionComponent.h
         src/systems/PositionSystem.h
-        src/systems/GUISystem.h)
+        src/systems/GUISystem.h src/systems/ScreenSystem.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 
@@ -16,3 +16,4 @@ file(COPY assets DESTINATION ${CMAKE_BINARY_DIR}/src/apps/${APP_FOLDER_NAME})
 target_link_libraries(${APP_NAME} Core)
 target_link_libraries(${APP_NAME} CoreImgui)
 target_link_libraries(${APP_NAME} ECS)
+target_link_libraries(${APP_NAME} Devices)
