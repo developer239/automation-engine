@@ -7,16 +7,54 @@
 #include "./core/Renderer.h"
 #include "./devices/Screen.h"
 
+struct IMessage {
+  std::string message;
+};
+
 class Toolbar1Window : public IGUISystemWindow {
  public:
+  std::vector<IMessage> messages = {
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+      {.message = "Hello, world!"}, {.message = "Hello, world!"},
+  };
+
   GUISystemLayoutNodePosition GetPosition() override {
     return GUISystemLayoutNodePosition::RIGHT_BOTTOM;
   }
 
-  std::string GetName() override { return "Toolbar 1"; }
+  std::string GetName() override { return "Debug"; }
 
   void Render(const Devices::Screen& screen, Core::Renderer& renderer)
       override {
-    ImGui::Text("Toolbar 1");
+    DrawImGuiLoggingWindow();
+  }
+
+  void DrawImGuiLoggingWindow() {
+    ImGui::Button("Clear");
+    ImGui::SameLine();
+    ImGui::Button("Copy");
+    ImGui::Separator();
+    ImGui::BeginChild(
+        "scrolling",
+        ImVec2(0, 0),
+        false,
+        ImGuiWindowFlags_HorizontalScrollbar
+    );
+    for (auto& message : messages) {
+      ImGui::TextUnformatted(message.message.c_str());
+    }
+
+    // scroll to bottom
+    ImGui::SetScrollHereY(1.0f);
+
+    ImGui::EndChild();
   }
 };
