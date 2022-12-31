@@ -2,12 +2,21 @@ set(APP_NAME AppAutomationEngine)
 set(APP_FOLDER_NAME automation-engine)
 
 set(SOURCES
-        src/main.cpp
+        src/components/PositionComponent.h
+        src/layout/ImageStreamWindow.h
+        src/layout/SidebarTab1Window.h
+        src/layout/SidebarTab2Window.h
+        src/layout/Toolbar1Window.h
+        src/layout/Toolbar2Window.h
         src/strategies/ECSStrategy.h
         src/strategies/ImguiStrategy.h
-        src/components/PositionComponent.h
+        src/systems/GUISystem/GUISystem.h
+        src/systems/GUISystem/GUISystem.structs.h
+        src/systems/GUISystem/IGUISystemWindow.h
         src/systems/PositionSystem.h
-        src/systems/GUISystem.h src/systems/ScreenSystem.h src/layout/ImageStreamWindow.h)
+        src/systems/ScreenSystem.h
+        src/main.cpp
+        )
 
 add_executable(${APP_NAME} ${SOURCES})
 

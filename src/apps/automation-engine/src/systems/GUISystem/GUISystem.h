@@ -6,10 +6,10 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#include "../layout/ImageStreamWindow.h"
+#include "../../layout/ImageStreamWindow.h"
+#include "./GUISystem.structs.h"
+#include "./IGUISystemWindow.h"
 #include "./ecs/System.h"
-
-
 
 class GUISystem : public ECS::System {
  public:
@@ -19,45 +19,37 @@ class GUISystem : public ECS::System {
     RenderWindows(screen, renderer);
   }
 
+  void AddWindow(std::unique_ptr<IGUISystemWindow> window) {
+    windows.push_back(std::move(window));
+  }
+
  private:
-  //
-  // Windows
+  std::vector<std::unique_ptr<IGUISystemWindow>> windows;
 
-  const char LEFT_WINDOW_NAME[15] = "Sidebar Tab";
-  const char LEFT_WINDOW_NAME_2[17] = "Sidebar Tab 2";
-
-  const char TOP_RIGHT_WINDOW_NAME[13] = "Image Stream";
-  const char BOTTOM_RIGHT_WINDOW_NAME[10] = "Tool Bar";
-
-  ImageStreamWindow imageStreamWindow;
-
-  // ImGui docking setup
   ImGuiWindowFlags windowFlags;
   ImGuiDockNodeFlags dockSpaceFlags;
 
+  std::map<GUISystemLayoutNodePosition, ImGuiID> layoutNodes = {
+      {GUISystemLayoutNodePosition::LEFT, 0},
+      {GUISystemLayoutNodePosition::RIGHT, 0},
+      {GUISystemLayoutNodePosition::RIGHT_TOP, 0},
+      {GUISystemLayoutNodePosition::RIGHT_BOTTOM, 0},
+  };
+
   void RenderWindows(const Devices::Screen& screen, Core::Renderer& renderer) {
-    ImGui::Begin(LEFT_WINDOW_NAME);
-    ImGui::Text("Hello, left!");
-    ImGui::End();
-
-    ImGui::Begin(LEFT_WINDOW_NAME_2);
-    ImGui::Text("Hello, left 2!");
-    ImGui::End();
-
-    ImGui::Begin(TOP_RIGHT_WINDOW_NAME);
-    imageStreamWindow.Render(screen, renderer);
-    ImGui::End();
-
-    ImGui::Begin(BOTTOM_RIGHT_WINDOW_NAME);
-    ImGui::Text("Hello, bottom!");
-    ImGui::End();
+    for (auto& window : windows) {
+      ImGui::Begin(window->GetName().c_str());
+      window->Render(screen, renderer);
+      ImGui::End();
+    }
   }
 
   void BuildNodes(ImGuiID dockSpaceId) {
-    ImGuiID leftDockID = 0;
-    ImGuiID rightDockID = 0;
-    ImGuiID topRightDockID = 0;
-    ImGuiID bottomRightDockID = 0;
+    auto& leftNode = layoutNodes[GUISystemLayoutNodePosition::LEFT];
+    auto& rightNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT];
+    auto& rightTopNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT_TOP];
+    auto& rightBottomNode =
+        layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM];
 
     //
     // Split base window into two
@@ -66,42 +58,44 @@ class GUISystem : public ECS::System {
         dockSpaceId,
         ImGuiDir_Left,
         0.33f,
-        &leftDockID,
-        &rightDockID
+        &leftNode,
+        &rightNode
     );
 
-    ImGui::DockBuilderGetNode(leftDockID)->LocalFlags |=
+    ImGui::DockBuilderGetNode(leftNode)->LocalFlags |=
         ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
-    ImGui::DockBuilderGetNode(rightDockID)->LocalFlags |=
-        ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingOverMe;
+    ImGui::DockBuilderGetNode(rightNode)->LocalFlags |=
+        ImGuiDockNodeFlags_NoDockingOverMe;
 
     //
     // Split right window into two
 
     ImGui::DockBuilderSplitNode(
-        ImGui::DockBuilderGetNode(rightDockID)->ID,
+        ImGui::DockBuilderGetNode(rightNode)->ID,
         ImGuiDir_Up,
         0.66f,
-        &topRightDockID,
-        &bottomRightDockID
+        &rightTopNode,
+        &rightBottomNode
     );
 
-    ImGui::DockBuilderGetNode(topRightDockID)->LocalFlags |=
+    ImGui::DockBuilderGetNode(rightTopNode)->LocalFlags |=
         ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
-    ImGui::DockBuilderGetNode(bottomRightDockID)->LocalFlags |=
-        ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe |
+    ImGui::DockBuilderGetNode(rightBottomNode)->LocalFlags |=
+        ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
 
     //
     // Dock windows
 
-    ImGui::DockBuilderDockWindow(LEFT_WINDOW_NAME, leftDockID);
-    ImGui::DockBuilderDockWindow(TOP_RIGHT_WINDOW_NAME, topRightDockID);
-    ImGui::DockBuilderDockWindow(BOTTOM_RIGHT_WINDOW_NAME, bottomRightDockID);
-
-    ImGui::DockBuilderDockWindow(LEFT_WINDOW_NAME_2, leftDockID);
+    for (auto& window : windows) {
+      auto position = window->GetPosition();
+      ImGui::DockBuilderDockWindow(
+          window->GetName().c_str(),
+          layoutNodes[position]
+      );
+    }
   }
 
   void RenderDockSpace() {

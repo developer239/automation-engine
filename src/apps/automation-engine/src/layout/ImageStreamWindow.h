@@ -2,14 +2,21 @@
 
 #include "imgui.h"
 
-#include "core/Renderer.h"
-#include "devices/Screen.h"
+#include "../systems/GUISystem/GUISystem.structs.h"
+#include "../systems/GUISystem/IGUISystemWindow.h"
+#include "./core/Renderer.h"
+#include "./devices/Screen.h"
 
-class ImageStreamWindow {
+class ImageStreamWindow : public IGUISystemWindow {
  public:
-  ~ImageStreamWindow() { SDL_DestroyTexture(texture); }
+  GUISystemLayoutNodePosition GetPosition() override {
+    return GUISystemLayoutNodePosition::RIGHT_TOP;
+  }
 
-  void Render(const Devices::Screen& screen, Core::Renderer& renderer) {
+  std::string GetName() override { return "Image Stream"; }
+
+  void Render(const Devices::Screen& screen, Core::Renderer& renderer)
+      override {
     cvMatrixAsSDLTexture(screen, renderer);
 
     ImGui::Image(
@@ -17,6 +24,9 @@ class ImageStreamWindow {
         ImVec2(screen.latestScreenshot.cols, screen.latestScreenshot.rows)
     );
   }
+
+ private:
+  SDL_Texture* texture{};
 
   void cvMatrixAsSDLTexture(
       const Devices::Screen& screen, Core::Renderer& renderer
@@ -35,7 +45,4 @@ class ImageStreamWindow {
         screen.latestScreenshot.step1()
     );
   }
-
- private:
-  SDL_Texture* texture;
 };

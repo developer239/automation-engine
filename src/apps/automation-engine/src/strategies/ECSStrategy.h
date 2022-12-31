@@ -1,8 +1,8 @@
 #pragma once
 
+#include "core/AssetStore.h"
 #include "core/IStrategy.h"
 #include "core/Renderer.h"
-#include "core/AssetStore.h"
 #include "core/Window.h"
 #include "devices/Screen.h"
 #include "ecs/Component.h"
@@ -11,7 +11,12 @@
 #include "ecs/System.h"
 
 #include "../components/PositionComponent.h"
-#include "../systems/GUISystem.h"
+#include "../layout/ImageStreamWindow.h"
+#include "../layout/SidebarTab1Window.h"
+#include "../layout/SidebarTab2Window.h"
+#include "../layout/Toolbar1Window.h"
+#include "../layout/Toolbar2Window.h"
+#include "../systems/GUISystem/GUISystem.h"
 #include "../systems/PositionSystem.h"
 #include "../systems/ScreenSystem.h"
 
@@ -19,15 +24,42 @@ class ECSStrategy : public Core::IStrategy {
  public:
   void Init(Core::Window& window, Core::Renderer& renderer) override {
     // TODO: load from the build folder
-    assetStore.AddFont("pico8-font-10", "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf", 24);
+    assetStore.AddFont(
+        "pico8-font-10",
+        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+        24
+    );
 
     ECS::Entity entity = registry.CreateEntity();
 
+    //
+    // Initialize components
+
     registry.AddComponentToEntity<PositionComponent>(entity);
+
+    //
+    // Initialize systems
 
     registry.AddSystem<ScreenSystem>();
     registry.AddSystem<PositionSystem>();
     registry.AddSystem<GUISystem>();
+
+    //
+    // Initialize windows
+
+    registry.GetSystem<GUISystem>().AddWindow(
+        std::make_unique<ImageStreamWindow>()
+    );
+    registry.GetSystem<GUISystem>().AddWindow(
+        std::make_unique<SidebarTab1Window>()
+    );
+    registry.GetSystem<GUISystem>().AddWindow(
+        std::make_unique<SidebarTab2Window>()
+    );
+    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<Toolbar1Window>()
+    );
+    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<Toolbar2Window>()
+    );
   }
 
   void HandleEvent(SDL_Event& event) override {}

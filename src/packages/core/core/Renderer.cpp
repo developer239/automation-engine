@@ -11,7 +11,7 @@ Renderer::Renderer(const std::shared_ptr<SDL_Window>& window) {
 
 void Renderer::Render() {
   SDL_RenderPresent(renderer.get());
-  SDL_SetRenderDrawColor(renderer.get(), 0, 0, 100, 0);
+  SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
   SDL_RenderClear(renderer.get());
 }
 
