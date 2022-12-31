@@ -22,6 +22,10 @@ class Screen {
 
   void Screenshot();
 
+  void SetSize(int w, int h);
+
+  void SetPosition(int x, int y);
+
  private:
   CGColorSpaceRef colorSpace;
   CGContextRef contextRef;

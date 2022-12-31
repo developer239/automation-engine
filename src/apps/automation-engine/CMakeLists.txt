@@ -5,6 +5,7 @@ set(SOURCES
         src/components/PositionComponent.h
         src/events/MessageEvent.h
         src/layout/ImageStreamWindow.h
+        src/layout/ImageStreamWindowControlsWindow.h
         src/layout/SidebarTab1Window.h
         src/layout/SidebarTab2Window.h
         src/layout/LoggingWindow.h

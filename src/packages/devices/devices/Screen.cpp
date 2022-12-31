@@ -14,9 +14,7 @@ Screen::Screen(int w, int h, int x, int y) {
   colorSpace = CGColorSpaceCreateDeviceRGB();
 }
 
-Screen::~Screen() {
-  CGColorSpaceRelease(colorSpace);
-}
+Screen::~Screen() { CGColorSpaceRelease(colorSpace); }
 
 void Screen::Screenshot() {
   if (imageOriginal.cols != width || imageOriginal.rows != height) {
@@ -47,6 +45,18 @@ void Screen::Screenshot() {
 
   CGImageRelease(screenshotRef);
   CGContextRelease(contextRef);
+}
+
+void Screen::SetSize(int w, int h) {
+  width = w;
+  height = h;
+
+  imageOriginal = cv::Mat(height, width, CV_8UC4);
+  latestScreenshot = cv::Mat(height, width, CV_8UC3);
+}
+void Screen::SetPosition(int x, int y) {
+  windowX = x;
+  windowY = y;
 }
 
 }  // namespace Devices

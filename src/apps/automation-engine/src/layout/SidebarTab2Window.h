@@ -15,7 +15,7 @@ class SidebarTab2Window : public IGUISystemWindow {
 
   std::string GetName() override { return "Sidebar Tab 2"; }
 
-  void Render(const Devices::Screen& screen, Core::Renderer& renderer)
+  void Render(Devices::Screen& screen, Core::Renderer& renderer)
       override {
     ImGui::Begin(GetName().c_str());
     ImGui::Text("Sidebar tab 2");

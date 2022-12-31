@@ -13,7 +13,7 @@
 
 class GUISystem : public ECS::System {
  public:
-  void Render(const Devices::Screen& screen, Core::Renderer& renderer) {
+  void Render(Devices::Screen& screen, Core::Renderer& renderer) {
     SetupDock();
     RenderDockSpace();
     RenderWindows(screen, renderer);
@@ -52,7 +52,7 @@ class GUISystem : public ECS::System {
       {GUISystemLayoutNodePosition::RIGHT_BOTTOM, 0},
   };
 
-  void RenderWindows(const Devices::Screen& screen, Core::Renderer& renderer) {
+  void RenderWindows(Devices::Screen& screen, Core::Renderer& renderer) {
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("Menu")) {
         if (ImGui::MenuItem("Exit")) {
@@ -85,7 +85,7 @@ class GUISystem : public ECS::System {
     ImGui::DockBuilderSplitNode(
         dockSpaceId,
         ImGuiDir_Left,
-        0.33f,
+        0.25f,
         &leftNode,
         &rightNode
     );
