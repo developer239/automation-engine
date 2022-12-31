@@ -19,10 +19,21 @@ class ImageStreamWindow : public IGUISystemWindow {
       override {
     cvMatrixAsSDLTexture(screen, renderer);
 
-    ImGui::Image(
-        (void*)(intptr_t)texture,
-        ImVec2(screen.latestScreenshot.cols, screen.latestScreenshot.rows)
+    ImVec2 windowSize = ImGui::GetWindowSize();
+
+    float scale = std::min(
+        windowSize.x / screen.latestScreenshot.cols,
+        windowSize.y / screen.latestScreenshot.rows
     );
+    int scaledWidth = screen.latestScreenshot.cols * scale;
+    int scaledHeight = screen.latestScreenshot.rows * scale;
+
+    ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
+    ImGui::SetCursorPos(ImVec2(
+        (windowSize.x - imageSize.x) / 2,
+        (windowSize.y - imageSize.y) / 2
+    ));
+    ImGui::Image((void*)(intptr_t)texture, ImVec2(scaledWidth, scaledHeight));
   }
 
  private:

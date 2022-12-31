@@ -13,8 +13,8 @@ Window::Window() {
           "Automation Engine",
           SDL_WINDOWPOS_CENTERED,
           SDL_WINDOWPOS_CENTERED,
-          displayMode.w / 2,
-          displayMode.h / 2,
+          displayMode.w / 4 * 3,
+          displayMode.h / 4 * 3,
           SDL_WINDOW_RESIZABLE
       ),
       SDL_DestroyWindow
