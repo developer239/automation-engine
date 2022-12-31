@@ -18,6 +18,7 @@ class FPSWindow : public IGUISystemWindow {
 
   void Render(const Devices::Screen& screen, Core::Renderer& renderer)
       override {
+    ImGui::Begin(GetName().c_str());
     HandleFPSChange();
 
     int lastFPSValue = 0;
@@ -43,6 +44,7 @@ class FPSWindow : public IGUISystemWindow {
         100.0f,
         ImVec2(windowSize.x - 15, windowSize.y - 35)
     );
+    ImGui::End();
   }
 
  private:

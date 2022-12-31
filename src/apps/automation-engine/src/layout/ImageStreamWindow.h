@@ -17,6 +17,7 @@ class ImageStreamWindow : public IGUISystemWindow {
 
   void Render(const Devices::Screen& screen, Core::Renderer& renderer)
       override {
+    ImGui::Begin(GetName().c_str());
     cvMatrixAsSDLTexture(screen, renderer);
 
     ImVec2 windowSize = ImGui::GetWindowSize();
@@ -37,6 +38,7 @@ class ImageStreamWindow : public IGUISystemWindow {
         (void*)(intptr_t)texture,
         ImVec2(scaledWidth, scaledHeight - 10)
     );
+    ImGui::End();
   }
 
   void Clear() override { SDL_DestroyTexture(texture); }

@@ -54,9 +54,7 @@ class GUISystem : public ECS::System {
     }
 
     for (auto& window : windows) {
-      ImGui::Begin(window->GetName().c_str());
       window->Render(screen, renderer);
-      ImGui::End();
     }
   }
 

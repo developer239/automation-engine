@@ -38,6 +38,7 @@ class Toolbar1Window : public IGUISystemWindow {
   }
 
   void DrawImGuiLoggingWindow() {
+    ImGui::Begin(GetName().c_str());
     ImGui::Button("Clear");
     ImGui::SameLine();
     ImGui::Button("Copy");
@@ -56,5 +57,6 @@ class Toolbar1Window : public IGUISystemWindow {
     ImGui::SetScrollHereY(1.0f);
 
     ImGui::EndChild();
+    ImGui::End();
   }
 };

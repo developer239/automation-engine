@@ -18,7 +18,6 @@ class MemoryWindow : public IGUISystemWindow {
 
   std::string GetName() override { return "Memory"; }
 
-  // memory value
   std::vector<float> values;
 
   void Render(const Devices::Screen& screen, Core::Renderer& renderer)
@@ -28,9 +27,26 @@ class MemoryWindow : public IGUISystemWindow {
   }
 
   void RenderMemoryGraph() {
+    bool isMemoryLeak = false;
+    int interestCount = 15;
+    if (values.size() > interestCount) {
+      for (int i = 0; i < interestCount; i++) {
+        if (values[values.size() - 1 - i] > values[values.size() - 2 - i]) {
+          isMemoryLeak = true;
+        }
+      }
+    }
+
+    if (isMemoryLeak) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+    }
+    ImGui::Begin(GetName().c_str());
+    if (isMemoryLeak) {
+      ImGui::PopStyleColor();
+    }
+
     float plotWidth = ImGui::GetContentRegionAvail().x;
 
-    // Set the width of the plot
     ImGui::SetNextItemWidth(plotWidth);
 
     float lastMemoryValue = values.back();
@@ -47,6 +63,11 @@ class MemoryWindow : public IGUISystemWindow {
         "Current memory consumption: " + std::to_string((int)lastMemoryValue) +
         " MB" + "  | min: " + std::to_string(minValue) +
         " MB | max: " + std::to_string(maxValue) + " MB";
+
+    if (isMemoryLeak) {
+      ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+    }
+
     ImGui::PlotLines(
         "",
         values.data(),
@@ -57,6 +78,11 @@ class MemoryWindow : public IGUISystemWindow {
         maxValue * 1.4,
         ImVec2(windowSize.x, windowSize.y)
     );
+
+    if (isMemoryLeak) {
+      ImGui::PopStyleColor();
+    }
+    ImGui::End();
   }
 
   int lastLoggedAt = 0;

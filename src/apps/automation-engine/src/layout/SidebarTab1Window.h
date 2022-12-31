@@ -17,6 +17,8 @@ class SidebarTab1Window : public IGUISystemWindow {
 
   void Render(const Devices::Screen& screen, Core::Renderer& renderer)
       override {
+    ImGui::Begin(GetName().c_str());
     ImGui::Text("Sidebar tab 1");
+    ImGui::End();
   }
 };
