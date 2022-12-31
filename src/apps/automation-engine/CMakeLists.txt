@@ -7,7 +7,7 @@ set(SOURCES
         src/strategies/ImguiStrategy.h
         src/components/PositionComponent.h
         src/systems/PositionSystem.h
-        src/systems/GUISystem.h src/systems/ScreenSystem.h)
+        src/systems/GUISystem.h src/systems/ScreenSystem.h src/layout/ImageStreamWindow.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 
@@ -17,3 +17,4 @@ target_link_libraries(${APP_NAME} Core)
 target_link_libraries(${APP_NAME} CoreImgui)
 target_link_libraries(${APP_NAME} ECS)
 target_link_libraries(${APP_NAME} Devices)
+target_link_libraries(${APP_NAME} Utility)
