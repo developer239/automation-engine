@@ -28,11 +28,14 @@ class MemoryWindow : public IGUISystemWindow {
 
   void RenderMemoryGraph() {
     bool isMemoryLeak = false;
-    int interestCount = 15;
+    int interestCount = 10;
     if (values.size() > interestCount) {
       for (int i = 0; i < interestCount; i++) {
         if (values[values.size() - 1 - i] > values[values.size() - 2 - i]) {
           isMemoryLeak = true;
+        } else {
+          isMemoryLeak = false;
+          break;
         }
       }
     }
@@ -59,10 +62,8 @@ class MemoryWindow : public IGUISystemWindow {
     }
 
     ImVec2 windowSize = ImGui::GetContentRegionAvail();
-    auto title =
-        "Memory consumption: " + std::to_string((int)lastMemoryValue) +
-        " MB" + "  | min: " + std::to_string(minValue) +
-        " MB | max: " + std::to_string(maxValue) + " MB";
+    auto title = "Current: " + std::to_string((int)lastMemoryValue) + " MB" +
+                 " | max: " + std::to_string(maxValue) + " MB";
 
     if (isMemoryLeak) {
       ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
@@ -93,11 +94,11 @@ class MemoryWindow : public IGUISystemWindow {
     task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&vm_info, &count);
 
     auto ticks = SDL_GetTicks();
-    if (ticks - lastLoggedAt > 100) {
+    if (ticks - lastLoggedAt > 500) {
       auto currentRAMMemoryUsageMB = vm_info.phys_footprint / 1024 / 1024;
       values.push_back(currentRAMMemoryUsageMB);
 
-      if (values.size() > 20) {
+      if (values.size() > 100) {
         values.erase(values.begin());
       }
 

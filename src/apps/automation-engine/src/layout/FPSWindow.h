@@ -31,7 +31,7 @@ class FPSWindow : public IGUISystemWindow {
     }
 
     ImVec2 windowSize = ImGui::GetWindowSize();
-    auto title = "Current FPS: " + std::to_string(lastFPSValue) +
+    auto title = "Current: " + std::to_string(lastFPSValue) +
                  " | min: " + std::to_string(minFPS) +
                  " | max: " + std::to_string(maxFPS);
     ImGui::PlotLines(

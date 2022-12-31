@@ -108,7 +108,7 @@ class GUISystem : public ECS::System {
     ImGui::DockBuilderSplitNode(
         ImGui::DockBuilderGetNode(rightBottomNode)->ID,
         ImGuiDir_Left,
-        0.50f,
+        0.66f,
         &rightBottomLeftNode,
         &rightBottomRightNode
     );

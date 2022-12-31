@@ -3,13 +3,13 @@ set(APP_FOLDER_NAME automation-engine)
 
 set(SOURCES
         src/components/PositionComponent.h
+        src/events/MessageEvent.h
         src/layout/ImageStreamWindow.h
         src/layout/SidebarTab1Window.h
         src/layout/SidebarTab2Window.h
-        src/layout/Toolbar1Window.h
+        src/layout/LoggingWindow.h
         src/layout/FPSWindow.h
         src/strategies/ECSStrategy.h
-        src/strategies/ImguiStrategy.h
         src/systems/GUISystem/GUISystem.h
         src/systems/GUISystem/GUISystem.structs.h
         src/systems/GUISystem/IGUISystemWindow.h
@@ -27,3 +27,4 @@ target_link_libraries(${APP_NAME} CoreImgui)
 target_link_libraries(${APP_NAME} ECS)
 target_link_libraries(${APP_NAME} Devices)
 target_link_libraries(${APP_NAME} Utility)
+target_link_libraries(${APP_NAME} Events)
