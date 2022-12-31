@@ -9,6 +9,7 @@
 #include "ecs/Entity.h"
 #include "ecs/Registry.h"
 #include "ecs/System.h"
+#include "events/Bus.h"
 
 #include "../components/PositionComponent.h"
 #include "../layout/FPSWindow.h"
@@ -66,6 +67,12 @@ class ECSStrategy : public Core::IStrategy {
   void HandleEvent(SDL_Event& event) override {}
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
+    if (eventBus != nullptr) {
+      registry.GetSystem<GUISystem>()
+          .GetWindow<LoggingWindow>()
+          .SubscribeToEvents(eventBus);
+    }
+
     registry.Update();
 
     registry.GetSystem<ScreenSystem>().Update(screen);
@@ -86,6 +93,7 @@ class ECSStrategy : public Core::IStrategy {
  private:
   ECS::Registry registry;
   Core::AssetStore assetStore;
+  std::unique_ptr<Events::Bus> eventBus = std::make_unique<Events::Bus>();
 
   Devices::Screen screen = Devices::Screen(800, 600, 0, 0);
 };

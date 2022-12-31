@@ -29,6 +29,16 @@ class GUISystem : public ECS::System {
     windows.push_back(std::move(window));
   }
 
+  template <typename TWindow>
+  TWindow& GetWindow() {
+    for (auto& window : windows) {
+      if (auto result = dynamic_cast<TWindow*>(window.get())) {
+        return *result;
+      }
+    }
+    throw std::runtime_error("Window not found");
+  }
+
  private:
   std::vector<std::unique_ptr<IGUISystemWindow>> windows;
 

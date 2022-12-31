@@ -28,10 +28,11 @@ class MemoryWindow : public IGUISystemWindow {
 
   void RenderMemoryGraph() {
     bool isMemoryLeak = false;
-    int interestCount = 10;
+    int interestCount = 50;
+    int step = 10;
     if (values.size() > interestCount) {
-      for (int i = 0; i < interestCount; i++) {
-        if (values[values.size() - 1 - i] > values[values.size() - 2 - i]) {
+      for (int i = 0; i < interestCount; i += step) {
+        if (values[values.size() - 1 - i] > values[values.size() - 1 - step - i]) {
           isMemoryLeak = true;
         } else {
           isMemoryLeak = false;

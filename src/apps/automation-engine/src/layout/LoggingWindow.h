@@ -10,57 +10,13 @@
 
 class LoggingWindow : public IGUISystemWindow {
  public:
-  std::vector<MessageEvent> messages = {
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Example info message.", .level = MessageLevel::INFO},
-      {.message = "Some warning message.", .level = MessageLevel::WARNING},
-      {.message = "Some error message.", .level = MessageLevel::ERROR},
-  };
+  std::vector<MessageEvent> messages = {};
+
+  void SubscribeToEvents(std::unique_ptr<Events::Bus>& eventBus) {
+    eventBus->SubscribeToEvent<MessageEvent>(this, &LoggingWindow::OnMessage);
+  }
+
+  void OnMessage(MessageEvent& event) { messages.push_back(event); }
 
   GUISystemLayoutNodePosition GetPosition() override {
     return GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT;
