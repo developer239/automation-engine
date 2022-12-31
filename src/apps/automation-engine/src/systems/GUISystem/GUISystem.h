@@ -19,6 +19,12 @@ class GUISystem : public ECS::System {
     RenderWindows(screen, renderer);
   }
 
+  void AfterRender() {
+    for (auto& window : windows) {
+      window->Clear();
+    }
+  }
+
   void AddWindow(std::unique_ptr<IGUISystemWindow> window) {
     windows.push_back(std::move(window));
   }

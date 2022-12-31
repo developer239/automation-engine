@@ -2,7 +2,6 @@
 
 #include <utility>
 
-#include "./IImplementation.h"
 #include "backends/imgui_impl_sdl.h"
 #include "backends/imgui_impl_sdlrenderer.h"
 #include "core/IStrategy.h"

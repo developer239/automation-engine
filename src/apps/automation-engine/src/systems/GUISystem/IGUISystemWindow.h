@@ -9,4 +9,6 @@ class IGUISystemWindow {
   virtual void Render(
       const Devices::Screen& screen, Core::Renderer& renderer
   ) = 0;
+
+  virtual void Clear(){};
 };

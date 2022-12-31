@@ -80,7 +80,9 @@ class ECSStrategy : public Core::IStrategy {
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
   }
 
-  void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override {}
+  void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override {
+    registry.GetSystem<GUISystem>().AfterRender();
+  }
 
  private:
   ECS::Registry registry;

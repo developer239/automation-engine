@@ -33,9 +33,13 @@ class ImageStreamWindow : public IGUISystemWindow {
         (windowSize.x - imageSize.x) / 2,
         (windowSize.y - imageSize.y) / 2
     ));
-    ImGui::Image((void*)(intptr_t)texture, ImVec2(scaledWidth, scaledHeight - 10));
-//    SDL_DestroyTexture(texture);
+    ImGui::Image(
+        (void*)(intptr_t)texture,
+        ImVec2(scaledWidth, scaledHeight - 10)
+    );
   }
+
+  void Clear() override { SDL_DestroyTexture(texture); }
 
  private:
   SDL_Texture* texture{};

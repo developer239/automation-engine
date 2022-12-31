@@ -1,7 +1,7 @@
+#include "core-imgui/Strategy.h"
 #include "core/Loop.h"
 
 #include "./strategies/ECSStrategy.h"
-#include "./strategies/ImguiStrategy.h"
 
 int main() {
   CoreImGui::Strategy gui;
