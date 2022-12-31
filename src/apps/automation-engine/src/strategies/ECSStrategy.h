@@ -13,6 +13,7 @@
 #include "../components/PositionComponent.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
+#include "../layout/MemoryConsumptionWindow.h"
 #include "../layout/SidebarTab1Window.h"
 #include "../layout/SidebarTab2Window.h"
 #include "../layout/Toolbar1Window.h"
@@ -58,8 +59,9 @@ class ECSStrategy : public Core::IStrategy {
     );
     registry.GetSystem<GUISystem>().AddWindow(std::make_unique<Toolbar1Window>()
     );
-    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>()
-    );
+    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>());
+
+    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<MemoryWindow>());
   }
 
   void HandleEvent(SDL_Event& event) override {}

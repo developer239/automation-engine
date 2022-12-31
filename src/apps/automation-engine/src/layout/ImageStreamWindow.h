@@ -34,6 +34,7 @@ class ImageStreamWindow : public IGUISystemWindow {
         (windowSize.y - imageSize.y) / 2
     ));
     ImGui::Image((void*)(intptr_t)texture, ImVec2(scaledWidth, scaledHeight - 10));
+//    SDL_DestroyTexture(texture);
   }
 
  private:
