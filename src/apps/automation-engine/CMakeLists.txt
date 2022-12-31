@@ -7,7 +7,7 @@ set(SOURCES
         src/layout/SidebarTab1Window.h
         src/layout/SidebarTab2Window.h
         src/layout/Toolbar1Window.h
-        src/layout/Toolbar2Window.h
+        src/layout/FPSWindow.h
         src/strategies/ECSStrategy.h
         src/strategies/ImguiStrategy.h
         src/systems/GUISystem/GUISystem.h

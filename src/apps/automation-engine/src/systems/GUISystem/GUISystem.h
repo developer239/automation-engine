@@ -37,6 +37,16 @@ class GUISystem : public ECS::System {
   };
 
   void RenderWindows(const Devices::Screen& screen, Core::Renderer& renderer) {
+    if (ImGui::BeginMainMenuBar()) {
+      if (ImGui::BeginMenu("Menu")) {
+        if (ImGui::MenuItem("Exit")) {
+          exit(0);
+        }
+        ImGui::EndMenu();
+      }
+      ImGui::EndMainMenuBar();
+    }
+
     for (auto& window : windows) {
       ImGui::Begin(window->GetName().c_str());
       window->Render(screen, renderer);

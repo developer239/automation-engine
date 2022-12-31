@@ -33,7 +33,7 @@ class ImageStreamWindow : public IGUISystemWindow {
         (windowSize.x - imageSize.x) / 2,
         (windowSize.y - imageSize.y) / 2
     ));
-    ImGui::Image((void*)(intptr_t)texture, ImVec2(scaledWidth, scaledHeight));
+    ImGui::Image((void*)(intptr_t)texture, ImVec2(scaledWidth, scaledHeight - 10));
   }
 
  private:

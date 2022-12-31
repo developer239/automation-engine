@@ -11,11 +11,11 @@
 #include "ecs/System.h"
 
 #include "../components/PositionComponent.h"
+#include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/SidebarTab1Window.h"
 #include "../layout/SidebarTab2Window.h"
 #include "../layout/Toolbar1Window.h"
-#include "../layout/Toolbar2Window.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/PositionSystem.h"
 #include "../systems/ScreenSystem.h"
@@ -58,7 +58,7 @@ class ECSStrategy : public Core::IStrategy {
     );
     registry.GetSystem<GUISystem>().AddWindow(std::make_unique<Toolbar1Window>()
     );
-    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<Toolbar2Window>()
+    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>()
     );
   }
 
