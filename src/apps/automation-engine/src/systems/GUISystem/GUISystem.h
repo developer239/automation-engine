@@ -64,6 +64,10 @@ class GUISystem : public ECS::System {
     auto& rightTopNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT_TOP];
     auto& rightBottomNode =
         layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM];
+    auto& rightBottomLeftNode =
+        layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT];
+    auto& rightBottomRightNode =
+        layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT];
 
     //
     // Split base window into two
@@ -97,6 +101,22 @@ class GUISystem : public ECS::System {
         ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
     ImGui::DockBuilderGetNode(rightBottomNode)->LocalFlags |=
+        ImGuiDockNodeFlags_NoDockingSplitMe |
+        ImGuiDockNodeFlags_NoDockingOverMe;
+
+    // Split right bottom window into two
+    ImGui::DockBuilderSplitNode(
+        ImGui::DockBuilderGetNode(rightBottomNode)->ID,
+        ImGuiDir_Left,
+        0.50f,
+        &rightBottomLeftNode,
+        &rightBottomRightNode
+    );
+
+    ImGui::DockBuilderGetNode(rightBottomLeftNode)->LocalFlags |=
+        ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe |
+        ImGuiDockNodeFlags_NoDockingOverMe;
+    ImGui::DockBuilderGetNode(rightBottomRightNode)->LocalFlags |=
         ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
 

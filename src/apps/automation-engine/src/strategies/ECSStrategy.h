@@ -59,9 +59,8 @@ class ECSStrategy : public Core::IStrategy {
     );
     registry.GetSystem<GUISystem>().AddWindow(std::make_unique<Toolbar1Window>()
     );
-    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>());
-
     registry.GetSystem<GUISystem>().AddWindow(std::make_unique<MemoryWindow>());
+    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>());
   }
 
   void HandleEvent(SDL_Event& event) override {}

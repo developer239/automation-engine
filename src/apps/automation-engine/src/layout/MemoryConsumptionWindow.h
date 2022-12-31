@@ -13,7 +13,7 @@
 class MemoryWindow : public IGUISystemWindow {
  public:
   GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_BOTTOM;
+    return GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT;
   }
 
   std::string GetName() override { return "Memory"; }
@@ -60,7 +60,7 @@ class MemoryWindow : public IGUISystemWindow {
 
     ImVec2 windowSize = ImGui::GetContentRegionAvail();
     auto title =
-        "Current memory consumption: " + std::to_string((int)lastMemoryValue) +
+        "Memory consumption: " + std::to_string((int)lastMemoryValue) +
         " MB" + "  | min: " + std::to_string(minValue) +
         " MB | max: " + std::to_string(maxValue) + " MB";
 

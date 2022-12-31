@@ -27,7 +27,7 @@ class Toolbar1Window : public IGUISystemWindow {
   };
 
   GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_BOTTOM;
+    return GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT;
   }
 
   std::string GetName() override { return "Debug"; }
