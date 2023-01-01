@@ -17,8 +17,6 @@
 #include "../layout/ImageStreamWindowControlsWindow.h"
 #include "../layout/LoggingWindow.h"
 #include "../layout/MemoryWindow.h"
-#include "../layout/SidebarTab1Window.h"
-#include "../layout/SidebarTab2Window.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/PositionSystem.h"
 #include "../systems/ScreenSystem.h"
@@ -52,12 +50,6 @@ class ECSStrategy : public Core::IStrategy {
 
     registry.GetSystem<GUISystem>().AddWindow(
         std::make_unique<ImageStreamWindow>()
-    );
-    registry.GetSystem<GUISystem>().AddWindow(
-        std::make_unique<SidebarTab1Window>()
-    );
-    registry.GetSystem<GUISystem>().AddWindow(
-        std::make_unique<SidebarTab2Window>()
     );
     registry.GetSystem<GUISystem>().AddWindow(std::make_unique<LoggingWindow>()
     );
