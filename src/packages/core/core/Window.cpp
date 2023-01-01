@@ -1,9 +1,12 @@
 #include "./Window.h"
+#include <SDL_ttf.h>
 
 namespace Core {
 
 Window::Window() {
+  // TODO: add error handling
   SDL_Init(SDL_INIT_EVERYTHING);
+  TTF_Init();
 
   SDL_DisplayMode displayMode;
   SDL_GetCurrentDisplayMode(0, &displayMode);

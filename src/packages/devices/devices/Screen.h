@@ -8,10 +8,10 @@ namespace Devices {
 
 class Screen {
  public:
-  int width;
-  int height;
-  int windowX;
-  int windowY;
+  std::shared_ptr<int> width;
+  std::shared_ptr<int> height;
+  std::shared_ptr<int> windowX;
+  std::shared_ptr<int> windowY;
 
   cv::Mat imageOriginal;
   cv::Mat latestScreenshot;
@@ -23,8 +23,6 @@ class Screen {
   void Screenshot();
 
   void SetSize(int w, int h);
-
-  void SetPosition(int x, int y);
 
  private:
   CGColorSpaceRef colorSpace;

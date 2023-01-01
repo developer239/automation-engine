@@ -41,7 +41,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
             .r = 0x80,
             .g = 0x80,
             .b = 0x80,
-        }
+        },
+        scale
     );
 
     //
@@ -60,10 +61,11 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         screenAreaRectangleSize.x,
         screenAreaRectangleSize.y,
         {
-            .r = 0x00,
-            .g = 0x00,
-            .b = 0x00,
-        }
+            .r = 0x50,
+            .g = 0x50,
+            .b = 0x50,
+        },
+        scale
     );
 
     //
@@ -134,10 +136,9 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         screenAreaRectanglePos.x = nextX;
         screenAreaRectanglePos.y = nextY;
 
-        screen.SetPosition(
-            screenAreaRectanglePos.x / scale,
-            screenAreaRectanglePos.y / scale
-        );
+        // TODO: use setter
+        screen.windowX.reset(new int(screenAreaRectanglePos.x / scale));
+        screen.windowY.reset(new int(screenAreaRectanglePos.y / scale));
       }
     }
 
@@ -179,6 +180,35 @@ class ImageStreamWindowControls : public IGUISystemWindow {
       isResizing = false;
     }
 
+    ImGui::SetCursorPos(ImVec2(
+        windowRectanglePos.x + fixOffset.x,
+        windowRectanglePos.y + windowRectangleSize.y + fixOffset.y + 10
+    ));
+
+    ImGui::Text("Screen position:");
+    ImGui::SliderInt(
+        "position x",
+        &(*screen.windowX),
+        0,
+        windowSize.x - *screen.width
+    );
+    ImGui::SliderInt(
+        "position y",
+        &(*screen.windowY),
+        0,
+        windowSize.y - *screen.height
+    );
+
+    ImGui::Text("Screen size:");
+    int currentWidth = *screen.width;
+    int currentHeight = *screen.height;
+    ImGui::SliderInt("width", &currentWidth, 10, windowSize.x - *screen.windowX);
+    ImGui::SliderInt("height", &currentHeight, 10, windowSize.y - *screen.windowY);
+
+    if (currentWidth != *screen.width || currentHeight != *screen.height) {
+      screen.SetSize(currentWidth, currentHeight);
+    }
+
     ImGui::End();
   }
 
@@ -209,7 +239,7 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
   void CreateWindowRectangleTexture(
       Core::Renderer& renderer, int width, int height,
-      SDL_Color color = {255, 0, 0, 255}
+      SDL_Color color = {255, 0, 0, 255}, float scale = 1
   ) {
     SDL_Surface* surface = SDL_CreateRGBSurface(
         0,
@@ -226,14 +256,45 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         nullptr,
         SDL_MapRGB(surface->format, color.r, color.g, color.b)
     );
+
+    // TODO: get from asset manager
+    TTF_Font* font = TTF_OpenFont(
+        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+        14
+    );
+    if (!font) {
+      std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+      return;
+    }
+
+    SDL_Color textColor = {0, 0, 0, 255};
+
+    std::string widthString = std::to_string(int(width / scale));
+    std::string heightString = std::to_string(int(height / scale));
+    std::string label = widthString + "x" + heightString;
+    SDL_Surface* textSurface =
+        TTF_RenderText_Solid(font, label.c_str(), textColor);
+    if (!textSurface) {
+      std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
+      return;
+    }
+
+    SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
+    SDL_BlitSurface(textSurface, NULL, surface, &textRect);
+
+    // Create the texture from the surface
     textureWindowRectangle =
         SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
     SDL_FreeSurface(surface);
+
+    // Clean up
+    TTF_CloseFont(font);
+    SDL_FreeSurface(textSurface);
   }
 
   void CreateAreaRectangleTexture(
       Core::Renderer& renderer, int width, int height,
-      SDL_Color color = {255, 0, 0, 255}
+      SDL_Color color = {255, 0, 0, 255}, float scale = 1
   ) {
     SDL_Surface* surface = SDL_CreateRGBSurface(
         0,
@@ -250,8 +311,35 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         nullptr,
         SDL_MapRGB(surface->format, color.r, color.g, color.b)
     );
+
+    // TODO: get from asset manager
+    TTF_Font* font = TTF_OpenFont(
+        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+        14
+    );
+    if (!font) {
+      std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
+      return;
+    }
+
+    SDL_Color textColor = {0, 0, 0, 255};
+
+    std::string widthString = std::to_string(int(width / scale));
+    std::string heightString = std::to_string(int(height / scale));
+    std::string label = widthString + "x" + heightString;
+    SDL_Surface* textSurface =
+        TTF_RenderText_Solid(font, label.c_str(), textColor);
+    if (!textSurface) {
+      std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
+      return;
+    }
+
+    SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
+    SDL_BlitSurface(textSurface, NULL, surface, &textRect);
+
     textureAreaRectangle =
         SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
     SDL_FreeSurface(surface);
+    TTF_CloseFont(font);
   }
 };
