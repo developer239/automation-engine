@@ -15,13 +15,18 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
   std::string GetName() override { return "Window Controls"; }
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer) override {
+  void Render(
+      Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window
+  ) override {
     ImGui::Begin(GetName().c_str());
 
     //
     // Calculate window size and scale
 
-    auto windowSize = GetWindowSize();
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(*screen.displayId - 1, &displayMode);
+
+    ImVec2 windowSize = {(float)displayMode.w, (float)displayMode.h};
     auto scale = CalculateScaleToGuiRegion(windowSize.x, windowSize.y);
 
     //
@@ -185,6 +190,22 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         windowRectanglePos.y + windowRectangleSize.y + fixOffset.y + 10
     ));
 
+    ImGui::Text("Available screens:");
+
+    auto screenCount = GetAvailableScreens();
+
+    for (int i = 0; i < screenCount; i++) {
+      std::string buttonLabel = "Screen " + std::to_string(i);
+      ImGui::SameLine();
+
+      if (ImGui::Button(buttonLabel.c_str())) {
+        screen.displayId.reset(new int(i + 1));
+
+        SDL_DisplayMode displayMode;
+        SDL_GetCurrentDisplayMode(i, &displayMode);
+      }
+    }
+
     ImGui::Text("Screen position:");
     ImGui::SliderInt(
         "position x",
@@ -202,8 +223,18 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     ImGui::Text("Screen size:");
     int currentWidth = *screen.width;
     int currentHeight = *screen.height;
-    ImGui::SliderInt("width", &currentWidth, 10, windowSize.x - *screen.windowX);
-    ImGui::SliderInt("height", &currentHeight, 10, windowSize.y - *screen.windowY);
+    ImGui::SliderInt(
+        "width",
+        &currentWidth,
+        10,
+        windowSize.x - *screen.windowX
+    );
+    ImGui::SliderInt(
+        "height",
+        &currentHeight,
+        10,
+        windowSize.y - *screen.windowY
+    );
 
     if (currentWidth != *screen.width || currentHeight != *screen.height) {
       screen.SetSize(currentWidth, currentHeight);
@@ -220,15 +251,6 @@ class ImageStreamWindowControls : public IGUISystemWindow {
  private:
   SDL_Texture* textureWindowRectangle{};
   SDL_Texture* textureAreaRectangle{};
-
-  ImVec2 GetWindowSize() {
-    SDL_DisplayMode displayMode;
-    SDL_GetCurrentDisplayMode(0, &displayMode);
-
-    return {
-        static_cast<float>(displayMode.w),
-        static_cast<float>(displayMode.h)};
-  }
 
   float CalculateScaleToGuiRegion(int width, int height) {
     auto windowSize = ImGui::GetContentRegionAvail();
@@ -341,5 +363,27 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
     SDL_FreeSurface(surface);
     TTF_CloseFont(font);
+  }
+
+  int GetAvailableScreens() {
+    CGDirectDisplayID displays[16];
+    uint32_t displayCount;
+    CGGetActiveDisplayList(16, displays, &displayCount);
+
+    //    for (int i = 0; i < displayCount; i++) {
+    //      CGDirectDisplayID display = displays[i];
+    //      CGRect bounds = CGDisplayBounds(display);
+    //      printf(
+    //          "Display %d: %f %f %f %f",
+    //          i,
+    //          bounds.origin.x,
+    //          bounds.origin.y,
+    //          bounds.size.width,
+    //          bounds.size.height
+    //      );
+    //      std::cout << std::endl;
+    //    }
+
+    return displayCount;
   }
 };

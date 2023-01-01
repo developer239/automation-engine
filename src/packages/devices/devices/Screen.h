@@ -12,6 +12,7 @@ class Screen {
   std::shared_ptr<int> height;
   std::shared_ptr<int> windowX;
   std::shared_ptr<int> windowY;
+  std::shared_ptr<int> displayId;
 
   cv::Mat imageOriginal;
   cv::Mat latestScreenshot;

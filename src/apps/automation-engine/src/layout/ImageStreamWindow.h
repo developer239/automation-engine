@@ -15,7 +15,7 @@ class ImageStreamWindow : public IGUISystemWindow {
 
   std::string GetName() override { return "Image Stream"; }
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer)
+  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window)
       override {
     ImGui::Begin(GetName().c_str());
     cvMatrixAsSDLTexture(screen, renderer);

@@ -76,7 +76,7 @@ class ECSStrategy : public Core::IStrategy {
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
-    registry.GetSystem<GUISystem>().Render(screen, renderer);
+    registry.GetSystem<GUISystem>().Render(screen, renderer, window);
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {

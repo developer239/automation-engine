@@ -13,10 +13,10 @@
 
 class GUISystem : public ECS::System {
  public:
-  void Render(Devices::Screen& screen, Core::Renderer& renderer) {
+  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window) {
     SetupDock();
     RenderDockSpace();
-    RenderWindows(screen, renderer);
+    RenderWindows(screen, renderer, window);
   }
 
   void AfterRender() {
@@ -52,7 +52,7 @@ class GUISystem : public ECS::System {
       {GUISystemLayoutNodePosition::RIGHT_BOTTOM, 0},
   };
 
-  void RenderWindows(Devices::Screen& screen, Core::Renderer& renderer) {
+  void RenderWindows(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& coreWindow) {
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("Menu")) {
         if (ImGui::MenuItem("Exit")) {
@@ -64,7 +64,7 @@ class GUISystem : public ECS::System {
     }
 
     for (auto& window : windows) {
-      window->Render(screen, renderer);
+      window->Render(screen, renderer, coreWindow);
     }
   }
 

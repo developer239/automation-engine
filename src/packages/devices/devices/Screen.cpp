@@ -12,6 +12,10 @@ Screen::Screen(int w, int h, int x, int y) {
   latestScreenshot = cv::Mat(cv::Size(*width, *height), CV_8UC3);
 
   colorSpace = CGColorSpaceCreateDeviceRGB();
+  // TODO: find out why this doesn't work
+  //  int targetId = CGMainDisplayID();
+  int targetId = 1;
+  displayId = std::make_shared<int>(targetId);
 }
 
 Screen::~Screen() { CGColorSpaceRelease(colorSpace); }
@@ -33,7 +37,7 @@ void Screen::Screenshot() {
   );
 
   screenshotRef = CGDisplayCreateImageForRect(
-      CGMainDisplayID(),
+      *displayId,
       CGRectMake(*windowX, *windowY, *width, *height)
   );
   CGContextDrawImage(

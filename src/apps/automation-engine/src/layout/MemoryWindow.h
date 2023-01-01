@@ -20,7 +20,7 @@ class MemoryWindow : public IGUISystemWindow {
 
   std::vector<float> values;
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer)
+  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window)
       override {
     UpdateMemoryConsumption();
     RenderMemoryGraph();
