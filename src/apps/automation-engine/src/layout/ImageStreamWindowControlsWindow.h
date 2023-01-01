@@ -104,10 +104,35 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
     if (isImageActive && !isResizing) {
       if (ImGui::IsMouseDragging(0)) {
-        screenAreaRectanglePos.x =
-            screenAreaRectanglePos.x + ImGui::GetIO().MouseDelta.x;
-        screenAreaRectanglePos.y =
-            screenAreaRectanglePos.y + ImGui::GetIO().MouseDelta.y;
+        auto tabSize = ImGui::GetContentRegionAvail();
+        auto nextX = screenAreaRectanglePos.x + ImGui::GetIO().MouseDelta.x;
+        auto nextY = screenAreaRectanglePos.y + ImGui::GetIO().MouseDelta.y;
+
+        if (nextX < 0) {
+          nextX = 0;
+        }
+        if (nextY < 0) {
+          nextY = 0;
+        }
+        if (nextX + screenAreaRectangleSize.x >
+            windowRectangleSize.x + windowRectanglePos.x) {
+          nextX = tabSize.x - screenAreaRectangleSize.x;
+        }
+
+        // TODO: this is glitching
+        //        if (nextY + screenAreaRectangleSize.y >
+        //            windowRectangleSize.y + windowRectanglePos.y) {
+        //          nextY = tabSize.y - screenAreaRectangleSize.y;
+        //        }
+
+        // TODO: glitch workaround
+        if (nextY + screenAreaRectangleSize.y >
+            windowRectangleSize.y + windowRectanglePos.y) {
+          nextY = screenAreaRectanglePos.y;
+        }
+
+        screenAreaRectanglePos.x = nextX;
+        screenAreaRectanglePos.y = nextY;
 
         screen.SetPosition(
             screenAreaRectanglePos.x / scale,
@@ -122,6 +147,25 @@ class ImageStreamWindowControls : public IGUISystemWindow {
             screenAreaRectangleSize.x + ImGui::GetIO().MouseDelta.x;
         screenAreaRectangleSize.y =
             screenAreaRectangleSize.y + ImGui::GetIO().MouseDelta.y;
+
+        if (screenAreaRectangleSize.x <= 10) {
+          screenAreaRectangleSize.x = 10;
+        }
+        if (screenAreaRectangleSize.y <= 10) {
+          screenAreaRectangleSize.y = 10;
+        }
+
+        if (screenAreaRectanglePos.x + screenAreaRectangleSize.x >
+            windowRectangleSize.x + windowRectanglePos.x) {
+          screenAreaRectangleSize.x =
+              windowRectangleSize.x - screenAreaRectanglePos.x;
+        }
+
+        if (screenAreaRectanglePos.y + screenAreaRectangleSize.y >
+            windowRectangleSize.y + windowRectanglePos.y) {
+          screenAreaRectangleSize.y =
+              windowRectangleSize.y - screenAreaRectanglePos.y;
+        }
 
         screen.SetSize(
             screenAreaRectangleSize.x / scale,
