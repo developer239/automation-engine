@@ -12,6 +12,11 @@ Screen::Screen(int w, int h, int x, int y) {
   latestScreenshot = cv::Mat(cv::Size(*width, *height), CV_8UC3);
 
   colorSpace = CGColorSpaceCreateDeviceRGB();
+
+  // !! TODO:
+  // display IDs are not necessarily sequential in some cases main display is 1 and external display is 4
+  // keep that in mind and fix ImageStreamWindowControlsWindow.h that expect the display to be sequential and add -1 to make it indexed from 0
+
   // TODO: find out why this doesn't work
   //  int targetId = CGMainDisplayID();
   int targetId = 1;
