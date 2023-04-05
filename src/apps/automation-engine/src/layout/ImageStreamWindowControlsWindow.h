@@ -6,6 +6,7 @@
 #include "../systems/GUISystem/IGUISystemWindow.h"
 #include "./core/Renderer.h"
 #include "./devices/Screen.h"
+#include "../services/FontManager.h"
 
 class ImageStreamWindowControls : public IGUISystemWindow {
  public:
@@ -23,18 +24,13 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     //
     // Calculate window size and scale
 
-    SDL_DisplayMode displayMode;
-    SDL_GetCurrentDisplayMode(
-        screen.GetDisplayIndexFromId(*screen.displayId),
-        &displayMode
-    );
+    if(*screen.displayId != displayId) {
+      CalculateWindowInformation(screen);
+    }
 
-    ImVec2 windowSize = {(float)displayMode.w, (float)displayMode.h};
-    auto scale = CalculateScaleToGuiRegion(windowSize.x, windowSize.y);
-
-    //
-    // Draw screen window rectangle according to scale
-
+//    //
+//    // Draw screen window rectangle according to scale
+//
     static ImVec2 windowRectanglePos = ImVec2(0, 0);
     ImVec2 windowRectangleSize = {
         windowSize.x * scale,
@@ -253,6 +249,28 @@ class ImageStreamWindowControls : public IGUISystemWindow {
   SDL_Texture* textureWindowRectangle{};
   SDL_Texture* textureAreaRectangle{};
 
+  FontManager& fontManager = FontManager::Instance();
+  TTF_Font& font = fontManager.GetFont(
+      "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+      14
+  );
+
+  int displayId;
+  ImVec2 windowSize;
+  float scale;
+
+  void CalculateWindowInformation(Devices::Screen& screen) {
+    SDL_DisplayMode displayMode;
+    SDL_GetCurrentDisplayMode(
+        screen.GetDisplayIndexFromId(*screen.displayId),
+        &displayMode
+    );
+
+    displayId = *screen.displayId;
+    windowSize = {(float)displayMode.w, (float)displayMode.h};
+    scale = CalculateScaleToGuiRegion(windowSize.x, windowSize.y);
+  }
+
   float CalculateScaleToGuiRegion(int width, int height) {
     auto windowSize = ImGui::GetContentRegionAvail();
     float scale = std::min(windowSize.x / width, windowSize.y / height);
@@ -280,23 +298,13 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         SDL_MapRGB(surface->format, color.r, color.g, color.b)
     );
 
-    // TODO: get from asset manager
-    TTF_Font* font = TTF_OpenFont(
-        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
-        14
-    );
-    if (!font) {
-      std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
-      return;
-    }
-
     SDL_Color textColor = {0, 0, 0, 255};
 
     std::string widthString = std::to_string(int(width / scale));
     std::string heightString = std::to_string(int(height / scale));
     std::string label = widthString + "x" + heightString;
     SDL_Surface* textSurface =
-        TTF_RenderText_Solid(font, label.c_str(), textColor);
+        TTF_RenderText_Solid(&font, label.c_str(), textColor);
     if (!textSurface) {
       std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
       return;
@@ -311,7 +319,6 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     SDL_FreeSurface(surface);
 
     // Clean up
-    TTF_CloseFont(font);
     SDL_FreeSurface(textSurface);
   }
 
@@ -335,23 +342,13 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         SDL_MapRGB(surface->format, color.r, color.g, color.b)
     );
 
-    // TODO: get from asset manager
-    TTF_Font* font = TTF_OpenFont(
-        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
-        14
-    );
-    if (!font) {
-      std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
-      return;
-    }
-
     SDL_Color textColor = {0, 0, 0, 255};
 
     std::string widthString = std::to_string(int(width / scale));
     std::string heightString = std::to_string(int(height / scale));
     std::string label = widthString + "x" + heightString;
     SDL_Surface* textSurface =
-        TTF_RenderText_Solid(font, label.c_str(), textColor);
+        TTF_RenderText_Solid(&font, label.c_str(), textColor);
     if (!textSurface) {
       std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
       return;
@@ -363,6 +360,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     textureAreaRectangle =
         SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
     SDL_FreeSurface(surface);
-    TTF_CloseFont(font);
+
+    // Clean up
+    SDL_FreeSurface(textSurface);
   }
 };

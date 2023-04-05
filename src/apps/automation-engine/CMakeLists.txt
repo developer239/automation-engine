@@ -15,7 +15,7 @@ set(SOURCES
         src/systems/PositionSystem.h
         src/systems/ScreenSystem.h
         src/main.cpp
-        )
+        src/services/FontManager.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 
