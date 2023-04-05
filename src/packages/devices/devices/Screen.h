@@ -25,6 +25,10 @@ class Screen {
 
   void SetSize(int w, int h);
 
+  std::vector<std::tuple<int, int>> GetDisplaysIndexIdPairs();
+
+  int GetDisplayIndexFromId(int id);
+
  private:
   CGColorSpaceRef colorSpace;
   CGContextRef contextRef;

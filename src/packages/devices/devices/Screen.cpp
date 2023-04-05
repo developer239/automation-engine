@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "./Screen.h"
 
 namespace Devices {
@@ -13,13 +15,12 @@ Screen::Screen(int w, int h, int x, int y) {
 
   colorSpace = CGColorSpaceCreateDeviceRGB();
 
-  // !! TODO:
-  // display IDs are not necessarily sequential in some cases main display is 1 and external display is 4
-  // keep that in mind and fix ImageStreamWindowControlsWindow.h that expect the display to be sequential and add -1 to make it indexed from 0
+  int targetId = CGMainDisplayID();
 
-  // TODO: find out why this doesn't work
-  //  int targetId = CGMainDisplayID();
-  int targetId = 1;
+  // FIXME: possible race condition CGMainDisplayID() returns value that crashes
+  // the app during initialization
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
   displayId = std::make_shared<int>(targetId);
 }
 
@@ -62,6 +63,29 @@ void Screen::SetSize(int w, int h) {
 
   imageOriginal = cv::Mat(*height, *width, CV_8UC4);
   latestScreenshot = cv::Mat(*height, *width, CV_8UC3);
+}
+
+std::vector<std::tuple<int, int>> Screen::GetDisplaysIndexIdPairs() {
+  std::vector<std::tuple<int, int>> result;
+
+  CGDirectDisplayID displayList[16];
+  uint32_t displayCount = 0;
+  CGGetActiveDisplayList(16, displayList, &displayCount);
+  for (int i = 0; i < displayCount; i++) {
+    result.emplace_back(i, displayList[i]);
+  }
+
+  return result;
+}
+int Screen::GetDisplayIndexFromId(int id) {
+  auto displays = GetDisplaysIndexIdPairs();
+  for (auto display : displays) {
+    if (std::get<1>(display) == id) {
+      return std::get<0>(display);
+    }
+  }
+
+  return -1;
 }
 
 }  // namespace Devices

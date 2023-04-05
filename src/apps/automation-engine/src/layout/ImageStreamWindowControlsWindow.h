@@ -24,7 +24,10 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     // Calculate window size and scale
 
     SDL_DisplayMode displayMode;
-    SDL_GetCurrentDisplayMode(*screen.displayId - 1, &displayMode);
+    SDL_GetCurrentDisplayMode(
+        screen.GetDisplayIndexFromId(*screen.displayId),
+        &displayMode
+    );
 
     ImVec2 windowSize = {(float)displayMode.w, (float)displayMode.h};
     auto scale = CalculateScaleToGuiRegion(windowSize.x, windowSize.y);
@@ -192,17 +195,15 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
     ImGui::Text("Available screens:");
 
-    auto screenCount = GetAvailableScreens();
-
-    for (int i = 0; i < screenCount; i++) {
-      std::string buttonLabel = "Screen " + std::to_string(i);
+    auto pairs = screen.GetDisplaysIndexIdPairs();
+    for (auto pair : pairs) {
+      auto displayId = std::get<1>(pair);
+      std::string buttonLabel = "Screen " + std::to_string(displayId);
       ImGui::SameLine();
 
       if (ImGui::Button(buttonLabel.c_str())) {
-        screen.displayId.reset(new int(i + 1));
-
-        SDL_DisplayMode displayMode;
-        SDL_GetCurrentDisplayMode(i, &displayMode);
+        // FIXME: possible memory leak?
+        screen.displayId.reset(new int(displayId));
       }
     }
 
@@ -363,27 +364,5 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
     SDL_FreeSurface(surface);
     TTF_CloseFont(font);
-  }
-
-  int GetAvailableScreens() {
-    CGDirectDisplayID displays[16];
-    uint32_t displayCount;
-    CGGetActiveDisplayList(16, displays, &displayCount);
-
-    //    for (int i = 0; i < displayCount; i++) {
-    //      CGDirectDisplayID display = displays[i];
-    //      CGRect bounds = CGDisplayBounds(display);
-    //      printf(
-    //          "Display %d: %f %f %f %f",
-    //          i,
-    //          bounds.origin.x,
-    //          bounds.origin.y,
-    //          bounds.size.width,
-    //          bounds.size.height
-    //      );
-    //      std::cout << std::endl;
-    //    }
-
-    return displayCount;
   }
 };
