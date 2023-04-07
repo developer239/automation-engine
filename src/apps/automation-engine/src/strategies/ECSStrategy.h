@@ -11,14 +11,14 @@
 #include "ecs/System.h"
 #include "events/Bus.h"
 
-#include "../components/PositionComponent.h"
+#include "../components/TextLabelComponent.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
 #include "../layout/LoggingWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../systems/GUISystem/GUISystem.h"
-#include "../systems/PositionSystem.h"
+#include "../systems/RenderTextSystem.h"
 #include "../systems/ScreenSystem.h"
 
 class ECSStrategy : public Core::IStrategy {
@@ -31,19 +31,16 @@ class ECSStrategy : public Core::IStrategy {
         24
     );
 
-    ECS::Entity entity = registry.CreateEntity();
-
-    //
-    // Initialize components
-
-    registry.AddComponentToEntity<PositionComponent>(entity);
+    ECS::Entity ball = registry.CreateEntity();
+    registry.TagEntity(ball, "Ball");
+    registry.AddComponent<TextLabelComponent>(ball, cv::Vec2i(0, 200), "asdf asdf asd fasf asdf asdfasdf asfda");
 
     //
     // Initialize systems
 
     registry.AddSystem<ScreenSystem>();
-    registry.AddSystem<PositionSystem>();
     registry.AddSystem<GUISystem>();
+    registry.AddSystem<RenderTextSystem>();
 
     //
     // Initialize windows
@@ -72,11 +69,12 @@ class ECSStrategy : public Core::IStrategy {
     registry.Update();
 
     registry.GetSystem<ScreenSystem>().Update(screen);
-    registry.GetSystem<PositionSystem>().Update(registry);
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     registry.GetSystem<GUISystem>().Render(screen, renderer, window);
+    // TODO: this doesn't do anything because the text probably needs to be rendered inside one of the GUISystem windows
+    registry.GetSystem<RenderTextSystem>().Render(renderer, assetStore, registry);
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
