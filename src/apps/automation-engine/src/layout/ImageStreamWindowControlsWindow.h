@@ -306,6 +306,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         currentHeight != selectedWindowArea.previewHeight / windowArea.scale) {
       selectedWindowArea.previewWidth = currentWidth * windowArea.scale;
       selectedWindowArea.previewHeight = currentHeight * windowArea.scale;
+
+      screen.SetSize(currentWidth, currentHeight);
     }
 
     ImGui::End();
