@@ -8,8 +8,114 @@
 #include "./core/Renderer.h"
 #include "./devices/Screen.h"
 
+class PreviewRectangle {
+ public:
+  float previewWidth = 0;
+  float previewHeight = 0;
+  float scale = 1;
+  float x = 0;
+  float y = 0;
+
+  PreviewRectangle(SDL_Color textureColor, SDL_Color textColor)
+      : sdlTextureColor(textureColor), sdlTextColor(textColor) {}
+
+  void UpdateData(
+      int originalWidth, int originalHeight,
+      // if lives inside parent use to pass parent's area scale
+      float scale = 0
+  ) {
+    this->originalWidth = originalWidth;
+    this->originalHeight = originalHeight;
+
+    if (!scale) {
+      ImVec2 regionSize = ImGui::GetContentRegionAvail();
+      auto widthRatio = regionSize.x / originalWidth;
+      auto heightRatio = regionSize.y / originalHeight;
+      this->scale = std::min(widthRatio, heightRatio);
+    } else {
+      this->scale = scale;
+    }
+
+    this->previewWidth = this->originalWidth * this->scale;
+    this->previewHeight = this->originalHeight * this->scale;
+    this->label =
+        std::to_string(originalWidth) + "x" + std::to_string(originalHeight);
+  }
+
+  void RenderSDLTexture(Core::Renderer& renderer) {
+    SDL_Surface* surface = SDL_CreateRGBSurface(
+        0,
+        originalWidth * scale,
+        originalHeight * scale,
+        32,
+        0x00FF0000,
+        0x0000FF00,
+        0x000000FF,
+        0xFF000000
+    );
+    SDL_FillRect(
+        surface,
+        nullptr,
+        SDL_MapRGB(
+            surface->format,
+            sdlTextureColor.r,
+            sdlTextureColor.g,
+            sdlTextureColor.b
+        )
+    );
+
+    SDL_Surface* textSurface =
+        TTF_RenderText_Solid(&font, label.c_str(), sdlTextColor);
+
+    SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
+    SDL_BlitSurface(textSurface, nullptr, surface, &textRect);
+    sdlTexture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
+
+    SDL_FreeSurface(surface);
+    SDL_FreeSurface(textSurface);
+  }
+
+  void RenderImGuiTexture() {
+    ImGui::Image(sdlTexture, {previewWidth, previewHeight});
+  }
+
+  void ClearTexture() { SDL_DestroyTexture(sdlTexture); }
+
+ private:
+  SDL_Texture* sdlTexture = nullptr;
+
+  int originalWidth = 0;
+  int originalHeight = 0;
+
+  std::string label;
+
+  SDL_Color sdlTextureColor = {255, 0, 0, 255};
+  SDL_Color sdlTextColor = {0, 0, 0, 255};
+  TTF_Font& font = FontManager::Instance().GetFont(
+      "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+      14
+  );
+};
+
 class ImageStreamWindowControls : public IGUISystemWindow {
  public:
+  PreviewRectangle windowArea = PreviewRectangle(
+      {
+          .r = 0x80,
+          .g = 0x80,
+          .b = 0x80,
+      },
+      {0x00, 0x00, 0x00, 0xFF}
+  );
+  PreviewRectangle selectedWindowArea = PreviewRectangle(
+      {
+          .r = 0x50,
+          .g = 0x50,
+          .b = 0x50,
+      },
+      {0x00, 0x00, 0x00, 0xFF}
+  );
+
   GUISystemLayoutNodePosition GetPosition() override {
     return GUISystemLayoutNodePosition::LEFT;
   }
@@ -22,69 +128,37 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     ImGui::Begin(GetName().c_str());
 
     //
-    // Calculate window size and scale
-
-    CalculateWindowInformation(screen);
-
-    //
     // Draw screen window rectangle according to scale
 
-    static ImVec2 windowRectanglePos = ImVec2(0, 0);
-    ImVec2 windowRectangleSize = {
-        windowSize.x * scale,
-        windowSize.y * scale,
-    };
-
-    CreateWindowRectangleTexture(
-        renderer,
-        windowSize.x,
-        windowSize.y,
-        {
-            .r = 0x80,
-            .g = 0x80,
-            .b = 0x80,
-        },
-        scale
-    );
+    auto displaySize = screen.GetSelectedDisplaySize();
+    windowArea.UpdateData(displaySize.width, displaySize.height);
+    windowArea.RenderSDLTexture(renderer);
 
     //
     // Draw screen area rectangle according to scale
 
-    static ImVec2 screenAreaRectanglePos = ImVec2(0, 0);
-    static ImVec2 screenAreaRectangleSize = {
-        screen.latestScreenshot.cols * scale,
-        screen.latestScreenshot.rows * scale,
-    };
-    static bool isImageActive = false;
-    static bool isResizing = false;
-
-    CreateAreaRectangleTexture(
-        renderer,
-        screen.latestScreenshot.cols,
-        screen.latestScreenshot.rows,
-        {
-            .r = 0x50,
-            .g = 0x50,
-            .b = 0x50,
-        },
-        scale
-    );
+    selectedWindowArea
+        .UpdateData(*screen.width, *screen.height, windowArea.scale);
+    selectedWindowArea.RenderSDLTexture(renderer);
 
     //
     // Render images
 
-    ImGui::Image(textureWindowRectangle, windowRectangleSize);
+    auto windowAreaImGuiOffset = ImGui::GetCursorPos();
+    windowArea.RenderImGuiTexture();
 
-    ImVec2 fixOffset = {8, 27};  // TODO: get actual content avail dimensions
     ImGui::SetCursorPos(ImVec2(
-        screenAreaRectanglePos.x + fixOffset.x,
-        screenAreaRectanglePos.y + fixOffset.y
+        windowAreaImGuiOffset.x + selectedWindowArea.x,
+        windowAreaImGuiOffset.y + selectedWindowArea.y
     ));
     ImGui::SetItemAllowOverlap();
-    ImGui::Image(textureAreaRectangle, screenAreaRectangleSize);
+    selectedWindowArea.RenderImGuiTexture();
 
     //
     // Handle drag & drop and resize
+
+    static bool isImageActive = false;
+    static bool isResizing = false;
 
     if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0)) {
       isImageActive = true;
@@ -93,10 +167,10 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     bool isMouseHoveringItem = ImGui::IsItemHovered();
     bool isMousePastXLimit =
         ImGui::GetMousePos().x >
-        screenAreaRectanglePos.x + screenAreaRectangleSize.x - 20;
+        selectedWindowArea.x + selectedWindowArea.previewWidth - 10;
     bool isMousePastYLimit =
         ImGui::GetMousePos().y >
-        screenAreaRectanglePos.y + screenAreaRectangleSize.y - 10;
+        selectedWindowArea.y + selectedWindowArea.previewHeight - 10;
     if (isMouseHoveringItem && isMousePastXLimit && isMousePastYLimit) {
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
       if (ImGui::IsMouseClicked(0)) {
@@ -109,8 +183,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     if (isImageActive && !isResizing) {
       if (ImGui::IsMouseDragging(0)) {
         auto tabSize = ImGui::GetContentRegionAvail();
-        auto nextX = screenAreaRectanglePos.x + ImGui::GetIO().MouseDelta.x;
-        auto nextY = screenAreaRectanglePos.y + ImGui::GetIO().MouseDelta.y;
+        auto nextX = selectedWindowArea.x + ImGui::GetIO().MouseDelta.x;
+        auto nextY = selectedWindowArea.y + ImGui::GetIO().MouseDelta.y;
 
         if (nextX < 0) {
           nextX = 0;
@@ -119,52 +193,54 @@ class ImageStreamWindowControls : public IGUISystemWindow {
           nextY = 0;
         }
 
-        if (nextX + screenAreaRectangleSize.x >
-            windowRectangleSize.x + windowRectanglePos.x) {
-          nextX = screenAreaRectanglePos.x;
+        if (nextX + selectedWindowArea.previewWidth >
+            windowArea.previewWidth + windowArea.x) {
+          nextX = windowArea.previewWidth + windowArea.x -
+                  selectedWindowArea.previewWidth;
         }
-        if (nextY + screenAreaRectangleSize.y >
-            windowRectangleSize.y + windowRectanglePos.y) {
-          nextY = screenAreaRectanglePos.y;
+        if (nextY + selectedWindowArea.previewHeight >
+            windowArea.previewHeight + windowArea.y) {
+          nextY = windowArea.previewHeight + windowArea.y -
+                  selectedWindowArea.previewHeight;
         }
 
-        screenAreaRectanglePos.x = nextX;
-        screenAreaRectanglePos.y = nextY;
+        selectedWindowArea.x = nextX;
+        selectedWindowArea.y = nextY;
 
-        screen.SetWindowX(screenAreaRectanglePos.x / scale);
-        screen.SetWindowY(screenAreaRectanglePos.y / scale);
+        screen.SetWindowX(selectedWindowArea.x / windowArea.scale);
+        screen.SetWindowY(selectedWindowArea.y / windowArea.scale);
       }
     }
 
     if (isResizing) {
       if (ImGui::IsMouseDragging(0)) {
-        screenAreaRectangleSize.x =
-            screenAreaRectangleSize.x + ImGui::GetIO().MouseDelta.x;
-        screenAreaRectangleSize.y =
-            screenAreaRectangleSize.y + ImGui::GetIO().MouseDelta.y;
+        selectedWindowArea.previewWidth =
+            selectedWindowArea.previewWidth + ImGui::GetIO().MouseDelta.x;
+        selectedWindowArea.previewHeight =
+            selectedWindowArea.previewHeight + ImGui::GetIO().MouseDelta.y;
 
-        if (screenAreaRectangleSize.x <= 10) {
-          screenAreaRectangleSize.x = 10;
+        if (selectedWindowArea.previewWidth <= 10) {
+          selectedWindowArea.previewWidth = 10;
         }
-        if (screenAreaRectangleSize.y <= 10) {
-          screenAreaRectangleSize.y = 10;
-        }
-
-        if (screenAreaRectanglePos.x + screenAreaRectangleSize.x >
-            windowRectangleSize.x + windowRectanglePos.x) {
-          screenAreaRectangleSize.x =
-              windowRectangleSize.x - screenAreaRectanglePos.x;
+        if (selectedWindowArea.previewHeight <= 10) {
+          selectedWindowArea.previewHeight = 10;
         }
 
-        if (screenAreaRectanglePos.y + screenAreaRectangleSize.y >
-            windowRectangleSize.y + windowRectanglePos.y) {
-          screenAreaRectangleSize.y =
-              windowRectangleSize.y - screenAreaRectanglePos.y;
+        if (selectedWindowArea.x + selectedWindowArea.previewWidth >
+            windowArea.previewWidth) {
+          selectedWindowArea.previewWidth =
+              windowArea.previewWidth - selectedWindowArea.x;
+        }
+
+        if (selectedWindowArea.y + selectedWindowArea.previewHeight >
+            windowArea.previewHeight) {
+          selectedWindowArea.previewHeight =
+              windowArea.previewHeight - selectedWindowArea.y;
         }
 
         screen.SetSize(
-            screenAreaRectangleSize.x / scale,
-            screenAreaRectangleSize.y / scale
+            selectedWindowArea.previewWidth / windowArea.scale,
+            selectedWindowArea.previewHeight / windowArea.scale
         );
       }
     }
@@ -175,8 +251,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     }
 
     ImGui::SetCursorPos(ImVec2(
-        windowRectanglePos.x + fixOffset.x,
-        windowRectanglePos.y + windowRectangleSize.y + fixOffset.y + 10
+        windowAreaImGuiOffset.x,
+        windowAreaImGuiOffset.y + windowArea.previewHeight + 10
     ));
 
     ImGui::Text("Available screens:");
@@ -195,160 +271,48 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         "position x",
         &(*screen.windowX),
         0,
-        windowSize.x - *screen.width
+        displaySize.width - *screen.width
     );
     ImGui::SliderInt(
         "position y",
         &(*screen.windowY),
         0,
-        windowSize.y - *screen.height
+        displaySize.height - *screen.height
     );
 
+    if (*screen.windowX != selectedWindowArea.x / windowArea.scale ||
+        *screen.windowY != selectedWindowArea.y / windowArea.scale) {
+      selectedWindowArea.x = *screen.windowX * windowArea.scale;
+      selectedWindowArea.y = *screen.windowY * windowArea.scale;
+    }
+
     ImGui::Text("Screen size:");
-    int currentWidth = *screen.width;
-    int currentHeight = *screen.height;
     ImGui::SliderInt(
         "width",
-        &currentWidth,
+        &(*screen.width),
         10,
-        windowSize.x - *screen.windowX
+        displaySize.width - *screen.windowX
     );
     ImGui::SliderInt(
         "height",
-        &currentHeight,
+        &(*screen.height),
         10,
-        windowSize.y - *screen.windowY
+        displaySize.height - *screen.windowY
     );
 
-    if (currentWidth != *screen.width || currentHeight != *screen.height) {
-      screen.SetSize(currentWidth, currentHeight);
+    int currentWidth = *screen.width;
+    int currentHeight = *screen.height;
+    if (currentWidth != selectedWindowArea.previewWidth / windowArea.scale ||
+        currentHeight != selectedWindowArea.previewHeight / windowArea.scale) {
+      selectedWindowArea.previewWidth = currentWidth * windowArea.scale;
+      selectedWindowArea.previewHeight = currentHeight * windowArea.scale;
     }
 
     ImGui::End();
   }
 
   void Clear() override {
-    SDL_DestroyTexture(textureWindowRectangle);
-    SDL_DestroyTexture(textureAreaRectangle);
-  }
-
- private:
-  SDL_Texture* textureWindowRectangle{};
-  SDL_Texture* textureAreaRectangle{};
-
-  FontManager& fontManager = FontManager::Instance();
-  TTF_Font& font = fontManager.GetFont(
-      "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
-      14
-  );
-
-  int displayId;
-  ImVec2 windowSize;
-  float scale;
-
-  void CalculateWindowInformation(Devices::Screen& screen) {
-    SDL_DisplayMode displayMode;
-    SDL_GetCurrentDisplayMode(
-        screen.GetDisplayIndexFromId(*screen.displayId),
-        &displayMode
-    );
-
-    displayId = *screen.displayId;
-    windowSize = {(float)displayMode.w, (float)displayMode.h};
-    scale = CalculateScaleToGuiRegion(windowSize.x, windowSize.y);
-  }
-
-  float CalculateScaleToGuiRegion(int width, int height) {
-    auto windowSize = ImGui::GetContentRegionAvail();
-    float scale = std::min(windowSize.x / width, windowSize.y / height);
-
-    return scale;
-  }
-
-  void CreateWindowRectangleTexture(
-      Core::Renderer& renderer, int width, int height,
-      SDL_Color color = {255, 0, 0, 255}, float scale = 1
-  ) {
-    SDL_Surface* surface = SDL_CreateRGBSurface(
-        0,
-        width * scale,
-        height * scale,
-        32,
-        0x00FF0000,
-        0x0000FF00,
-        0x000000FF,
-        0xFF000000
-    );
-    SDL_FillRect(
-        surface,
-        nullptr,
-        SDL_MapRGB(surface->format, color.r, color.g, color.b)
-    );
-
-    SDL_Color textColor = {0, 0, 0, 255};
-
-    std::string widthString = std::to_string(width);
-    std::string heightString = std::to_string(height);
-    std::string label = widthString + "x" + heightString;
-    SDL_Surface* textSurface =
-        TTF_RenderText_Solid(&font, label.c_str(), textColor);
-    if (!textSurface) {
-      std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
-      return;
-    }
-
-    SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
-    SDL_BlitSurface(textSurface, NULL, surface, &textRect);
-
-    // Create the texture from the surface
-    textureWindowRectangle =
-        SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
-    SDL_FreeSurface(surface);
-
-    // Clean up
-    SDL_FreeSurface(textSurface);
-  }
-
-  void CreateAreaRectangleTexture(
-      Core::Renderer& renderer, int width, int height,
-      SDL_Color color = {255, 0, 0, 255}, float scale = 1
-  ) {
-    SDL_Surface* surface = SDL_CreateRGBSurface(
-        0,
-        width * scale,
-        height * scale,
-        32,
-        0x00FF0000,
-        0x0000FF00,
-        0x000000FF,
-        0xFF000000
-    );
-    SDL_FillRect(
-        surface,
-        nullptr,
-        SDL_MapRGB(surface->format, color.r, color.g, color.b)
-    );
-
-    SDL_Color textColor = {0, 0, 0, 255};
-
-    std::string widthString = std::to_string(width);
-    std::string heightString = std::to_string(height);
-    std::string label = widthString + "x" + heightString;
-    SDL_Surface* textSurface =
-        TTF_RenderText_Solid(&font, label.c_str(), textColor);
-    if (!textSurface) {
-      std::cerr << "Failed to render text: " << TTF_GetError() << std::endl;
-      return;
-    }
-
-    SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
-    SDL_BlitSurface(textSurface, NULL, surface, &textRect);
-
-    textureAreaRectangle =
-        SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
-    SDL_FreeSurface(surface);
-
-    // Clean up
-    SDL_FreeSurface(textSurface);
+    windowArea.ClearTexture();
+    selectedWindowArea.ClearTexture();
   }
 };

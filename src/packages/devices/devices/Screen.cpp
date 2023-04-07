@@ -1,3 +1,4 @@
+#include <SDL_video.h>
 #include <thread>
 
 #include "./Screen.h"
@@ -15,11 +16,8 @@ Screen::Screen(int w, int h, int x, int y) {
 
   colorSpace = CGColorSpaceCreateDeviceRGB();
 
-  int targetId = CGMainDisplayID();
-
   // FIXME: possible race condition CGMainDisplayID() returns value that crashes
-  // the app during initialization
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  int targetId = 3;
 
   displayId = std::make_shared<int>(targetId);
 }
@@ -92,10 +90,19 @@ void Screen::SetWindowX(int x) const { *windowX = x; }
 
 void Screen::SetWindowY(int y) const { *windowY = y; }
 
-void Screen::SetDisplayId(int id) const {
-  SetWindowY(0);
-  SetWindowX(0);
-  *displayId = id;
+void Screen::SetDisplayId(int id) const { *displayId = id; }
+
+DisplaySize Screen::GetDisplaySize(int id) {
+  SDL_DisplayMode displayMode;
+  SDL_GetCurrentDisplayMode(GetDisplayIndexFromId(id), &displayMode);
+
+  auto displays = GetDisplaysIndexIdPairs();
+
+  return DisplaySize{displayMode.w, displayMode.h};
+}
+
+DisplaySize Screen::GetSelectedDisplaySize() {
+  return GetDisplaySize(*displayId);
 }
 
 }  // namespace Devices

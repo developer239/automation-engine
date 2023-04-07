@@ -6,6 +6,11 @@
 
 namespace Devices {
 
+struct DisplaySize {
+  int width;
+  int height;
+};
+
 class Screen {
  public:
   std::shared_ptr<int> width;
@@ -34,6 +39,10 @@ class Screen {
   void SetWindowY(int y) const;
 
   void SetDisplayId(int id) const;
+
+  [[nodiscard]] DisplaySize GetDisplaySize(int id);
+
+  [[nodiscard]] DisplaySize GetSelectedDisplaySize();
 
  private:
   CGColorSpaceRef colorSpace;
