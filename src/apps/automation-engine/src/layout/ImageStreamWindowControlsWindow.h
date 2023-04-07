@@ -2,11 +2,11 @@
 
 #include "imgui.h"
 
+#include "../services/FontManager.h"
 #include "../systems/GUISystem/GUISystem.structs.h"
 #include "../systems/GUISystem/IGUISystemWindow.h"
 #include "./core/Renderer.h"
 #include "./devices/Screen.h"
-#include "../services/FontManager.h"
 
 class ImageStreamWindowControls : public IGUISystemWindow {
  public:
@@ -24,13 +24,11 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     //
     // Calculate window size and scale
 
-    if(*screen.displayId != displayId) {
-      CalculateWindowInformation(screen);
-    }
+    CalculateWindowInformation(screen);
 
-//    //
-//    // Draw screen window rectangle according to scale
-//
+    //
+    // Draw screen window rectangle according to scale
+
     static ImVec2 windowRectanglePos = ImVec2(0, 0);
     ImVec2 windowRectangleSize = {
         windowSize.x * scale,
@@ -39,8 +37,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
     CreateWindowRectangleTexture(
         renderer,
-        windowRectangleSize.x,
-        windowRectangleSize.y,
+        windowSize.x,
+        windowSize.y,
         {
             .r = 0x80,
             .g = 0x80,
@@ -62,8 +60,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
     CreateAreaRectangleTexture(
         renderer,
-        screenAreaRectangleSize.x,
-        screenAreaRectangleSize.y,
+        screen.latestScreenshot.cols,
+        screen.latestScreenshot.rows,
         {
             .r = 0x50,
             .g = 0x50,
@@ -75,18 +73,15 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     //
     // Render images
 
-    ImGui::Image((void*)(intptr_t)textureWindowRectangle, windowRectangleSize);
+    ImGui::Image(textureWindowRectangle, windowRectangleSize);
 
-    ImVec2 fixOffset = {8, 27};  // TODO: find out why this is needed
+    ImVec2 fixOffset = {8, 27};  // TODO: get actual content avail dimensions
     ImGui::SetCursorPos(ImVec2(
         screenAreaRectanglePos.x + fixOffset.x,
         screenAreaRectanglePos.y + fixOffset.y
     ));
     ImGui::SetItemAllowOverlap();
-    ImGui::Image(
-        (void*)(intptr_t)textureAreaRectangle,
-        screenAreaRectangleSize
-    );
+    ImGui::Image(textureAreaRectangle, screenAreaRectangleSize);
 
     //
     // Handle drag & drop and resize
@@ -95,11 +90,14 @@ class ImageStreamWindowControls : public IGUISystemWindow {
       isImageActive = true;
     }
 
-    if (ImGui::IsItemHovered() &&
+    bool isMouseHoveringItem = ImGui::IsItemHovered();
+    bool isMousePastXLimit =
         ImGui::GetMousePos().x >
-            screenAreaRectanglePos.x + screenAreaRectangleSize.x - 10 &&
+        screenAreaRectanglePos.x + screenAreaRectangleSize.x - 20;
+    bool isMousePastYLimit =
         ImGui::GetMousePos().y >
-            screenAreaRectanglePos.y + screenAreaRectangleSize.y - 10) {
+        screenAreaRectanglePos.y + screenAreaRectangleSize.y - 10;
+    if (isMouseHoveringItem && isMousePastXLimit && isMousePastYLimit) {
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
       if (ImGui::IsMouseClicked(0)) {
         isResizing = true;
@@ -120,18 +118,11 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         if (nextY < 0) {
           nextY = 0;
         }
+
         if (nextX + screenAreaRectangleSize.x >
             windowRectangleSize.x + windowRectanglePos.x) {
-          nextX = tabSize.x - screenAreaRectangleSize.x;
+          nextX = screenAreaRectanglePos.x;
         }
-
-        // TODO: this is glitching
-        //        if (nextY + screenAreaRectangleSize.y >
-        //            windowRectangleSize.y + windowRectanglePos.y) {
-        //          nextY = tabSize.y - screenAreaRectangleSize.y;
-        //        }
-
-        // TODO: glitch workaround
         if (nextY + screenAreaRectangleSize.y >
             windowRectangleSize.y + windowRectanglePos.y) {
           nextY = screenAreaRectanglePos.y;
@@ -140,9 +131,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         screenAreaRectanglePos.x = nextX;
         screenAreaRectanglePos.y = nextY;
 
-        // TODO: use setter
-        screen.windowX.reset(new int(screenAreaRectanglePos.x / scale));
-        screen.windowY.reset(new int(screenAreaRectanglePos.y / scale));
+        screen.SetWindowX(screenAreaRectanglePos.x / scale);
+        screen.SetWindowY(screenAreaRectanglePos.y / scale);
       }
     }
 
@@ -190,16 +180,13 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     ));
 
     ImGui::Text("Available screens:");
-
-    auto pairs = screen.GetDisplaysIndexIdPairs();
-    for (auto pair : pairs) {
+    for (auto pair : screen.GetDisplaysIndexIdPairs()) {
       auto displayId = std::get<1>(pair);
       std::string buttonLabel = "Screen " + std::to_string(displayId);
       ImGui::SameLine();
 
       if (ImGui::Button(buttonLabel.c_str())) {
-        // FIXME: possible memory leak?
-        screen.displayId.reset(new int(displayId));
+        screen.SetDisplayId(displayId);
       }
     }
 
@@ -284,8 +271,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
   ) {
     SDL_Surface* surface = SDL_CreateRGBSurface(
         0,
-        width,
-        height,
+        width * scale,
+        height * scale,
         32,
         0x00FF0000,
         0x0000FF00,
@@ -300,8 +287,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
     SDL_Color textColor = {0, 0, 0, 255};
 
-    std::string widthString = std::to_string(int(width / scale));
-    std::string heightString = std::to_string(int(height / scale));
+    std::string widthString = std::to_string(width);
+    std::string heightString = std::to_string(height);
     std::string label = widthString + "x" + heightString;
     SDL_Surface* textSurface =
         TTF_RenderText_Solid(&font, label.c_str(), textColor);
@@ -328,8 +315,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
   ) {
     SDL_Surface* surface = SDL_CreateRGBSurface(
         0,
-        width,
-        height,
+        width * scale,
+        height * scale,
         32,
         0x00FF0000,
         0x0000FF00,
@@ -344,8 +331,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
 
     SDL_Color textColor = {0, 0, 0, 255};
 
-    std::string widthString = std::to_string(int(width / scale));
-    std::string heightString = std::to_string(int(height / scale));
+    std::string widthString = std::to_string(width);
+    std::string heightString = std::to_string(height);
     std::string label = widthString + "x" + heightString;
     SDL_Surface* textSurface =
         TTF_RenderText_Solid(&font, label.c_str(), textColor);

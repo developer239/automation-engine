@@ -88,4 +88,14 @@ int Screen::GetDisplayIndexFromId(int id) {
   return -1;
 }
 
+void Screen::SetWindowX(int x) const { *windowX = x; }
+
+void Screen::SetWindowY(int y) const { *windowY = y; }
+
+void Screen::SetDisplayId(int id) const {
+  SetWindowY(0);
+  SetWindowX(0);
+  *displayId = id;
+}
+
 }  // namespace Devices

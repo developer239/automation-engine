@@ -29,6 +29,12 @@ class Screen {
 
   int GetDisplayIndexFromId(int id);
 
+  void SetWindowX(int x) const;
+
+  void SetWindowY(int y) const;
+
+  void SetDisplayId(int id) const;
+
  private:
   CGColorSpaceRef colorSpace;
   CGContextRef contextRef;
