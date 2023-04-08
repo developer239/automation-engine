@@ -2,7 +2,6 @@
 
 #include "imgui.h"
 
-#include "../services/FontManager.h"
 #include "../systems/GUISystem/GUISystem.structs.h"
 #include "../systems/GUISystem/IGUISystemWindow.h"
 #include "./core/Renderer.h"
@@ -65,7 +64,7 @@ class PreviewRectangle {
     );
 
     SDL_Surface* textSurface =
-        TTF_RenderText_Solid(&font, label.c_str(), sdlTextColor);
+        TTF_RenderText_Solid(font, label.c_str(), sdlTextColor);
 
     SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
     SDL_BlitSurface(textSurface, nullptr, surface, &textRect);
@@ -91,11 +90,7 @@ class PreviewRectangle {
 
   SDL_Color sdlTextureColor = {255, 0, 0, 255};
   SDL_Color sdlTextColor = {0, 0, 0, 255};
-  // TODO: get font from asset store and remove font manager
-  TTF_Font& font = FontManager::Instance().GetFont(
-      "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
-      14
-  );
+  TTF_Font* font = Core::AssetStore::Instance().GetFont("pico8-font-10-small");
 };
 
 class ImageStreamWindowControls : public IGUISystemWindow {

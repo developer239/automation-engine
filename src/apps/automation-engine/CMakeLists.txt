@@ -13,7 +13,6 @@ set(SOURCES
         src/systems/GUISystem/IGUISystemWindow.h
         src/systems/ScreenSystem.h
         src/main.cpp
-        src/services/FontManager.h
         src/components/TextLabelComponent.h
         src/components/BoundingBoxComponent.h
         src/systems/RenderTextSystem.h)

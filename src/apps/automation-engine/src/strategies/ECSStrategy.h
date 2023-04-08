@@ -25,10 +25,15 @@ class ECSStrategy : public Core::IStrategy {
  public:
   void Init(Core::Window& window, Core::Renderer& renderer) override {
     // TODO: load from the build folder
-    assetStore.AddFont(
+    Core::AssetStore::Instance().AddFont(
         "pico8-font-10",
         "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
         24
+    );
+    Core::AssetStore::Instance().AddFont(
+        "pico8-font-10-small",
+        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+        16
     );
 
     ECS::Entity ball = registry.CreateEntity();
@@ -74,7 +79,7 @@ class ECSStrategy : public Core::IStrategy {
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     registry.GetSystem<GUISystem>().Render(screen, renderer, window);
     // TODO: this doesn't do anything because the text probably needs to be rendered inside one of the GUISystem windows
-    registry.GetSystem<RenderTextSystem>().Render(renderer, assetStore, registry);
+    registry.GetSystem<RenderTextSystem>().Render(renderer, registry);
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
@@ -86,7 +91,6 @@ class ECSStrategy : public Core::IStrategy {
 
  private:
   ECS::Registry registry;
-  Core::AssetStore assetStore;
   std::unique_ptr<Events::Bus> eventBus = std::make_unique<Events::Bus>();
 
   Devices::Screen screen = Devices::Screen(800, 600, 0, 0);

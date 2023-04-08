@@ -15,7 +15,17 @@ class AssetStore {
   std::map<std::string, SDL_Texture*> textures;
   std::map<std::string, TTF_Font*> fonts;
 
+  AssetStore() = default;
+
  public:
+  AssetStore(const AssetStore&) = delete;
+  AssetStore& operator=(const AssetStore&) = delete;
+
+  static AssetStore& Instance() {
+    static AssetStore instance;
+    return instance;
+  }
+
   void ClearAssets();
 
   void AddTexture(

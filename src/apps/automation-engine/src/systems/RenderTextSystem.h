@@ -13,12 +13,12 @@ class RenderTextSystem : public ECS::System {
       RequireComponent<TextLabelComponent>();
     }
 
-    void Render(Core::Renderer& renderer, Core::AssetStore &assetStore, ECS::Registry& registry) {
+    void Render(Core::Renderer& renderer, ECS::Registry& registry) {
       for (auto entity: GetSystemEntities()) {
         const auto textLabelComponent = registry.GetComponent<TextLabelComponent>(entity);
 
         SDL_Surface *surface = TTF_RenderText_Blended(
-            assetStore.GetFont(textLabelComponent.fontId),
+            Core::AssetStore::Instance().GetFont(textLabelComponent.fontId),
             textLabelComponent.text.c_str(),
             SDL_Color {
               // TODO: remove static casting
