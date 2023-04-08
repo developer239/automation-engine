@@ -18,7 +18,17 @@ class Bus {
 
   void AddItem(std::type_index type, IEventCallback* subscriber);
 
+  Bus() = default;
+
  public:
+  Bus(const Bus&) = delete;
+  Bus& operator=(const Bus&) = delete;
+
+  static Bus& Instance() {
+    static Bus instance;
+    return instance;
+  }
+
   template <typename TOwner, typename TEvent>
   IEventCallback* MakeEventCallback(
       TOwner* ownerInstance, void (TOwner::*callbackFunction)(TEvent&)

@@ -12,8 +12,8 @@ class LoggingWindow : public IGUISystemWindow {
  public:
   std::vector<MessageEvent> messages = {};
 
-  void SubscribeToEvents(std::unique_ptr<Events::Bus>& eventBus) {
-    eventBus->SubscribeToEvent<MessageEvent>(this, &LoggingWindow::OnMessage);
+  void SubscribeToEvents() {
+    Events::Bus::Instance().SubscribeToEvent<MessageEvent>(this, &LoggingWindow::OnMessage);
   }
 
   void OnMessage(MessageEvent& event) { messages.push_back(event); }

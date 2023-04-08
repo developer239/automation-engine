@@ -24,15 +24,14 @@
 class ECSStrategy : public Core::IStrategy {
  public:
   void Init(Core::Window& window, Core::Renderer& renderer) override {
-    // TODO: load from the build folder
     Core::AssetStore::Instance().AddFont(
         "pico8-font-10",
-        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+        "assets/fonts/Roboto-Medium.ttf",
         24
     );
     Core::AssetStore::Instance().AddFont(
         "pico8-font-10-small",
-        "../../../../src/apps/automation-engine/assets/fonts/Roboto-Medium.ttf",
+        "assets/fonts/Roboto-Medium.ttf",
         16
     );
 
@@ -65,11 +64,9 @@ class ECSStrategy : public Core::IStrategy {
   void HandleEvent(SDL_Event& event) override {}
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
-    if (eventBus != nullptr) {
-      ECS::Registry::Instance().GetSystem<GUISystem>()
-          .GetWindow<LoggingWindow>()
-          .SubscribeToEvents(eventBus);
-    }
+    ECS::Registry::Instance().GetSystem<GUISystem>()
+        .GetWindow<LoggingWindow>()
+        .SubscribeToEvents();
 
     ECS::Registry::Instance().Update();
 
@@ -91,7 +88,5 @@ class ECSStrategy : public Core::IStrategy {
   }
 
  private:
-  std::unique_ptr<Events::Bus> eventBus = std::make_unique<Events::Bus>();
-
   Devices::Screen screen = Devices::Screen(800, 600, 0, 0);
 };
