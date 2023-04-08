@@ -64,7 +64,7 @@ class PreviewRectangle {
     );
 
     SDL_Surface* textSurface =
-        TTF_RenderText_Solid(font, label.c_str(), sdlTextColor);
+        TTF_RenderText_Solid(font.get(), label.c_str(), sdlTextColor);
 
     SDL_Rect textRect = {10, 10, textSurface->w, textSurface->h};
     SDL_BlitSurface(textSurface, nullptr, surface, &textRect);
@@ -90,7 +90,7 @@ class PreviewRectangle {
 
   SDL_Color sdlTextureColor = {255, 0, 0, 255};
   SDL_Color sdlTextColor = {0, 0, 0, 255};
-  TTF_Font* font = Core::AssetStore::Instance().GetFont("pico8-font-10-small");
+  std::shared_ptr<TTF_Font> font = Core::AssetStore::Instance().GetFont("pico8-font-10-small");
 };
 
 class ImageStreamWindowControls : public IGUISystemWindow {

@@ -4,9 +4,12 @@
 namespace Core {
 
 Window::Window() {
-  // TODO: add error handling
-  SDL_Init(SDL_INIT_EVERYTHING);
-  TTF_Init();
+  if (SDL_Init(SDL_INIT_EVERYTHING)) {
+    throw std::runtime_error("Failed to initialize SDL");
+  }
+  if (TTF_Init()) {
+    throw std::runtime_error("Failed to initialize SDL_ttf");
+  }
 
   SDL_DisplayMode displayMode;
   SDL_GetCurrentDisplayMode(0, &displayMode);
@@ -22,6 +25,10 @@ Window::Window() {
       ),
       SDL_DestroyWindow
   );
+
+  if (window == nullptr) {
+    throw std::runtime_error("Failed to create SDL window");
+  }
 }
 
 std::shared_ptr<SDL_Window> Window::Get() { return window; }

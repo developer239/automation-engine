@@ -18,7 +18,7 @@ class RenderTextSystem : public ECS::System {
         const auto textLabelComponent = ECS::Registry::Instance().GetComponent<TextLabelComponent>(entity);
 
         SDL_Surface *surface = TTF_RenderText_Blended(
-            Core::AssetStore::Instance().GetFont(textLabelComponent.fontId),
+            Core::AssetStore::Instance().GetFont(textLabelComponent.fontId).get(),
             textLabelComponent.text.c_str(),
             SDL_Color {
               // TODO: remove static casting
