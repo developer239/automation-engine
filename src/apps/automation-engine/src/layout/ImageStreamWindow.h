@@ -28,11 +28,14 @@ class ImageStreamWindow : public IGUISystemWindow {
             screen,
             renderer
         );
+    ImVec2 screenCursor(
+        cursorTopLeft.x + screenRenderMetadata.cursor.x,
+        cursorTopLeft.y + screenRenderMetadata.cursor.y
+    );
 
     ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(
         renderer,
-        {cursorTopLeft.x + screenRenderMetadata.cursor.x,
-         cursorTopLeft.y + screenRenderMetadata.cursor.y},
+        screenCursor,
         screenRenderMetadata.scale
     );
 
