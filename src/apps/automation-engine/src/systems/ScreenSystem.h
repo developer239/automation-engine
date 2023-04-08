@@ -3,13 +3,20 @@
 #include "devices/Screen.h"
 #include "ecs/System.h"
 
+struct ScreenRenderMetadata {
+  ImVec2 cursor;
+  float scale;
+};
+
 class ScreenSystem : public ECS::System {
  public:
   ScreenSystem() = default;
 
   void Update(Devices::Screen screen) { screen.Screenshot(); }
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer) {
+  ScreenRenderMetadata Render(
+      Devices::Screen& screen, Core::Renderer& renderer
+  ) {
     cvMatrixAsSDLTexture(screen, renderer);
 
     ImVec2 windowSize = ImGui::GetWindowSize();
@@ -22,19 +29,23 @@ class ScreenSystem : public ECS::System {
     int scaledHeight = screen.latestScreenshot.rows * scale;
 
     ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
-    ImGui::SetCursorPos(ImVec2(
+    auto cursor = ImVec2(
         (windowSize.x - imageSize.x) / 2,
         (windowSize.y - imageSize.y) / 2
-    ));
+    );
+    ImGui::SetCursorPos(cursor);
     ImGui::Image(
         (void*)(intptr_t)texture,
         ImVec2(scaledWidth, scaledHeight - 10)
     );
+
+    return {cursor, scale};
   }
 
   void Clear() { SDL_DestroyTexture(texture); }
 
  private:
+  // TODO: support multiple textures 🤦‍♂️
   SDL_Texture* texture{};
 
   void cvMatrixAsSDLTexture(Devices::Screen& screen, Core::Renderer& renderer) {

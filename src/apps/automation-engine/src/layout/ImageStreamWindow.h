@@ -23,8 +23,18 @@ class ImageStreamWindow : public IGUISystemWindow {
     ImGui::Begin(GetName().c_str());
     auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
-    ECS::Registry::Instance().GetSystem<ScreenSystem>().Render(screen, renderer);
-    ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(renderer, cursorTopLeft);
+    auto screenRenderMetadata =
+        ECS::Registry::Instance().GetSystem<ScreenSystem>().Render(
+            screen,
+            renderer
+        );
+
+    ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(
+        renderer,
+        {cursorTopLeft.x + screenRenderMetadata.cursor.x,
+         cursorTopLeft.y + screenRenderMetadata.cursor.y},
+        screenRenderMetadata.scale
+    );
 
     ImGui::End();
   }

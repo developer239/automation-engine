@@ -37,7 +37,7 @@ class ECSStrategy : public Core::IStrategy {
 
     ECS::Entity ball = ECS::Registry::Instance().CreateEntity();
     ECS::Registry::Instance().TagEntity(ball, "Ball");
-    ECS::Registry::Instance().AddComponent<TextLabelComponent>(ball, cv::Vec2i(400, 400), "Hello world!");
+    ECS::Registry::Instance().AddComponent<TextLabelComponent>(ball, cv::Vec2i(200, 200), "Hello world! [0, 0]");
 
     //
     // Initialize systems
