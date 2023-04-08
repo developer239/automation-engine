@@ -17,6 +17,8 @@ namespace ECS {
 
 class Registry {
  private:
+  Registry() = default;
+
   int numEntities = 0;
 
   std::vector<std::shared_ptr<IPool>> componentPools;
@@ -37,6 +39,14 @@ class Registry {
   std::deque<int> freeIds;
 
  public:
+  Registry(const Registry&) = delete;
+  Registry& operator=(const Registry&) = delete;
+
+  static Registry& Instance() {
+    static Registry instance;
+    return instance;
+  }
+
   Entity CreateEntity() {
     int entityId;
 

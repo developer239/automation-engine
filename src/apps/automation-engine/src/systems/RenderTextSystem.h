@@ -13,9 +13,9 @@ class RenderTextSystem : public ECS::System {
       RequireComponent<TextLabelComponent>();
     }
 
-    void Render(Core::Renderer& renderer, ECS::Registry& registry) {
+    void Render(Core::Renderer& renderer) {
       for (auto entity: GetSystemEntities()) {
-        const auto textLabelComponent = registry.GetComponent<TextLabelComponent>(entity);
+        const auto textLabelComponent = ECS::Registry::Instance().GetComponent<TextLabelComponent>(entity);
 
         SDL_Surface *surface = TTF_RenderText_Blended(
             Core::AssetStore::Instance().GetFont(textLabelComponent.fontId),

@@ -36,28 +36,28 @@ class ECSStrategy : public Core::IStrategy {
         16
     );
 
-    ECS::Entity ball = registry.CreateEntity();
-    registry.TagEntity(ball, "Ball");
-    registry.AddComponent<TextLabelComponent>(ball, cv::Vec2i(0, 200), "asdf asdf asd fasf asdf asdfasdf asfda");
+    ECS::Entity ball = ECS::Registry::Instance().CreateEntity();
+    ECS::Registry::Instance().TagEntity(ball, "Ball");
+    ECS::Registry::Instance().AddComponent<TextLabelComponent>(ball, cv::Vec2i(0, 200), "asdf asdf asd fasf asdf asdfasdf asfda");
 
     //
     // Initialize systems
 
-    registry.AddSystem<ScreenSystem>();
-    registry.AddSystem<GUISystem>();
-    registry.AddSystem<RenderTextSystem>();
+    ECS::Registry::Instance().AddSystem<ScreenSystem>();
+    ECS::Registry::Instance().AddSystem<GUISystem>();
+    ECS::Registry::Instance().AddSystem<RenderTextSystem>();
 
     //
     // Initialize windows
 
-    registry.GetSystem<GUISystem>().AddWindow(
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<ImageStreamWindow>()
     );
-    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<LoggingWindow>()
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(std::make_unique<LoggingWindow>()
     );
-    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<MemoryWindow>());
-    registry.GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>());
-    registry.GetSystem<GUISystem>().AddWindow(
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(std::make_unique<MemoryWindow>());
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(std::make_unique<FPSWindow>());
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<ImageStreamWindowControls>()
     );
   }
@@ -66,31 +66,31 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     if (eventBus != nullptr) {
-      registry.GetSystem<GUISystem>()
+      ECS::Registry::Instance().GetSystem<GUISystem>()
           .GetWindow<LoggingWindow>()
           .SubscribeToEvents(eventBus);
     }
 
-    registry.Update();
+    ECS::Registry::Instance().Update();
 
-    registry.GetSystem<ScreenSystem>().Update(screen);
+    ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
-    registry.GetSystem<GUISystem>().Render(screen, renderer, window);
+    ECS::Registry::Instance().GetSystem<GUISystem>().Render(screen, renderer, window);
+
     // TODO: this doesn't do anything because the text probably needs to be rendered inside one of the GUISystem windows
-    registry.GetSystem<RenderTextSystem>().Render(renderer, registry);
+    ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(renderer);
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
   }
 
   void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override {
-    registry.GetSystem<GUISystem>().AfterRender();
+    ECS::Registry::Instance().GetSystem<GUISystem>().AfterRender();
   }
 
  private:
-  ECS::Registry registry;
   std::unique_ptr<Events::Bus> eventBus = std::make_unique<Events::Bus>();
 
   Devices::Screen screen = Devices::Screen(800, 600, 0, 0);
