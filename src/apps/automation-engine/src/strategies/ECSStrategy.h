@@ -37,7 +37,7 @@ class ECSStrategy : public Core::IStrategy {
 
     ECS::Entity ball = ECS::Registry::Instance().CreateEntity();
     ECS::Registry::Instance().TagEntity(ball, "Ball");
-    ECS::Registry::Instance().AddComponent<TextLabelComponent>(ball, cv::Vec2i(0, 200), "asdf asdf asd fasf asdf asdfasdf asfda");
+    ECS::Registry::Instance().AddComponent<TextLabelComponent>(ball, cv::Vec2i(400, 400), "Hello world!");
 
     //
     // Initialize systems
@@ -69,15 +69,11 @@ class ECSStrategy : public Core::IStrategy {
         .SubscribeToEvents();
 
     ECS::Registry::Instance().Update();
-
     ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance().GetSystem<GUISystem>().Render(screen, renderer, window);
-
-    // TODO: this doesn't do anything because the text probably needs to be rendered inside one of the GUISystem windows
-    ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(renderer);
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {

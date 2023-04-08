@@ -4,6 +4,8 @@
 
 #include "../systems/GUISystem/GUISystem.structs.h"
 #include "../systems/GUISystem/IGUISystemWindow.h"
+#include "../systems/RenderTextSystem.h"
+#include "../systems/ScreenSystem.h"
 #include "./core/Renderer.h"
 #include "./devices/Screen.h"
 
@@ -15,52 +17,20 @@ class ImageStreamWindow : public IGUISystemWindow {
 
   std::string GetName() override { return "Image Stream"; }
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window)
-      override {
+  void Render(
+      Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window
+  ) override {
     ImGui::Begin(GetName().c_str());
-    cvMatrixAsSDLTexture(screen, renderer);
+    auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
-    ImVec2 windowSize = ImGui::GetWindowSize();
+    ECS::Registry::Instance().GetSystem<ScreenSystem>().Render(screen, renderer);
+    ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(renderer, cursorTopLeft);
 
-    float scale = std::min(
-        windowSize.x / screen.latestScreenshot.cols,
-        windowSize.y / screen.latestScreenshot.rows
-    );
-    int scaledWidth = screen.latestScreenshot.cols * scale;
-    int scaledHeight = screen.latestScreenshot.rows * scale;
-
-    ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
-    ImGui::SetCursorPos(ImVec2(
-        (windowSize.x - imageSize.x) / 2,
-        (windowSize.y - imageSize.y) / 2
-    ));
-    ImGui::Image(
-        (void*)(intptr_t)texture,
-        ImVec2(scaledWidth, scaledHeight - 10)
-    );
     ImGui::End();
   }
 
-  void Clear() override { SDL_DestroyTexture(texture); }
-
- private:
-  SDL_Texture* texture{};
-
-  void cvMatrixAsSDLTexture(
-      Devices::Screen& screen, Core::Renderer& renderer
-  ) {
-    texture = SDL_CreateTexture(
-        renderer.Get().get(),
-        SDL_PIXELFORMAT_BGR24,
-        SDL_TEXTUREACCESS_STREAMING,
-        screen.latestScreenshot.cols,
-        screen.latestScreenshot.rows
-    );
-    SDL_UpdateTexture(
-        texture,
-        nullptr,
-        (void*)screen.latestScreenshot.data,
-        screen.latestScreenshot.step1()
-    );
+  void Clear() override {
+    ECS::Registry::Instance().GetSystem<ScreenSystem>().Clear();
+    ECS::Registry::Instance().GetSystem<RenderTextSystem>().Clear();
   }
 };

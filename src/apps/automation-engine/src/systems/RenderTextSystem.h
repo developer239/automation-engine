@@ -3,9 +3,9 @@
 #include <SDL.h>
 
 #include "ecs/System.h"
+#include "core/AssetStore.h"
 
 #include "../Components/TextLabelComponent.h"
-#include "core/AssetStore.h"
 
 class RenderTextSystem : public ECS::System {
   public:
@@ -13,7 +13,7 @@ class RenderTextSystem : public ECS::System {
       RequireComponent<TextLabelComponent>();
     }
 
-    void Render(Core::Renderer& renderer) {
+    void Render(Core::Renderer& renderer, ImVec2 cursor) {
       for (auto entity: GetSystemEntities()) {
         const auto textLabelComponent = ECS::Registry::Instance().GetComponent<TextLabelComponent>(entity);
 
@@ -21,13 +21,12 @@ class RenderTextSystem : public ECS::System {
             Core::AssetStore::Instance().GetFont(textLabelComponent.fontId).get(),
             textLabelComponent.text.c_str(),
             SDL_Color {
-              // TODO: remove static casting
               static_cast<uint8_t>(textLabelComponent.color.r),
               static_cast<uint8_t>(textLabelComponent.color.g),
               static_cast<uint8_t>(textLabelComponent.color.b),
             }
         );
-        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
+        texture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
         SDL_FreeSurface(surface);
 
         int labelWidth = 0;
@@ -42,8 +41,17 @@ class RenderTextSystem : public ECS::System {
         };
         SDL_RenderCopy(renderer.Get().get(), texture, nullptr, &dstRect);
 
-        SDL_DestroyTexture(texture);
+        ImGui::SetCursorScreenPos(cursor);
+        ImGui::Image(
+            (void*)(intptr_t)texture,
+            ImVec2(labelWidth, labelHeight)
+        );
       }
     }
+
+    void Clear() { SDL_DestroyTexture(texture); }
+
+   private:
+    SDL_Texture* texture{};
 };
 
