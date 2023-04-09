@@ -8,7 +8,7 @@ add_library(${LIB_NAME} STATIC
 
 target_include_directories(${LIB_NAME} INTERFACE .)
 
-add_test(AllTests${LIB_NAME} ${LIB_NAME})
+add_test(AllTests${LIB_NAME} ${LIB_NAME_TEST})
 
 set(SOURCES_TEST
         ./logger/Logger.cpp

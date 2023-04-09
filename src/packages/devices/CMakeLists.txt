@@ -12,6 +12,12 @@ add_library(${LIB_NAME} STATIC
 
 target_include_directories(${LIB_NAME} INTERFACE .)
 
+target_link_libraries(${LIB_NAME} PUBLIC
+        SDL2::SDL2
+        SDL2::TTF
+        SDL2::Image
+        SDL2::Mixer)
+
 target_link_libraries(${LIB_NAME} PRIVATE Utility)
 
 target_link_libraries(${LIB_NAME} PUBLIC Imgui)
@@ -33,7 +39,7 @@ target_include_directories(${LIB_NAME} PUBLIC
         ${leptonica_include})
 # OpenCV end
 
-add_test(AllTests${LIB_NAME} ${LIB_NAME})
+add_test(AllTests${LIB_NAME} ${LIB_NAME_TEST})
 
 set(SOURCES_TEST
         ./devices/Keyboard.cpp
@@ -48,6 +54,15 @@ set(SOURCES_TEST
         )
 
 add_executable(${LIB_NAME_TEST} ${SOURCES_TEST})
+
+target_link_libraries(${LIB_NAME_TEST} PRIVATE
+        gtest
+        gmock
+        gmock_main
+        SDL2::SDL2
+        SDL2::TTF
+        SDL2::Image
+        SDL2::Mixer)
 target_link_libraries(${LIB_NAME_TEST} PUBLIC "-framework Carbon")
 target_link_libraries(${LIB_NAME_TEST} PRIVATE
         gtest
