@@ -119,7 +119,7 @@ class ImageStreamWindowControls : public IGUISystemWindow {
   std::string GetName() override { return "Window Controls"; }
 
   void Render(
-      Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window
+      Devices::Screen& screen, Core::Renderer& renderer
   ) override {
     ImGui::Begin(GetName().c_str());
 

@@ -89,8 +89,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(screen);
     ECS::Registry::Instance().GetSystem<GUISystem>().Render(
         screen,
-        renderer,
-        window
+        renderer
     );
   }
 

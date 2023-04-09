@@ -16,7 +16,7 @@ class FPSWindow : public IGUISystemWindow {
 
   std::string GetName() override { return "FPS"; }
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window)
+  void Render(Devices::Screen& screen, Core::Renderer& renderer)
       override {
     ImGui::Begin(GetName().c_str());
     HandleFPSChange();

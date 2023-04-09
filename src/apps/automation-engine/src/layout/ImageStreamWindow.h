@@ -18,7 +18,7 @@ class ImageStreamWindow : public IGUISystemWindow {
   std::string GetName() override { return "Image Stream"; }
 
   void Render(
-      Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window
+      Devices::Screen& screen, Core::Renderer& renderer
   ) override {
     ImGui::Begin(GetName().c_str());
     auto cursorTopLeft = ImGui::GetCursorScreenPos();

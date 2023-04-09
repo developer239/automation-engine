@@ -24,7 +24,7 @@ class LoggingWindow : public IGUISystemWindow {
 
   std::string GetName() override { return "Logger"; }
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window)
+  void Render(Devices::Screen& screen, Core::Renderer& renderer)
       override {
     DrawImGuiLoggingWindow();
   }
