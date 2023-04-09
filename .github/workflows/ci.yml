@@ -17,12 +17,33 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Show Homebrew Cellar
+        run: ls -l /usr/local/Cellar
+
+      - name: Cache dependencies
+        id: cache-primes
+        uses: actions/cache@v2
+        with:
+          path: |
+            /usr/local/Cellar/sdl2
+            /usr/local/Cellar/sdl2_ttf
+            /usr/local/Cellar/sdl2_image
+            /usr/local/Cellar/sdl2_mixer
+            /usr/local/Cellar/opencv
+          key: ${{ runner.os }}-deps-$(md5deep /usr/local/Cellar/*)
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      # TODO: install specific versions
       - name: Install dependencies
-        # TODO: Install specific version
         run: |
-          brew install cmake ninja
-          brew install opencv
-          brew install sdl2 sdl2_ttf sdl2_image sdl2_mixer
+          if [ ${{ steps.cache-primes.outputs.cache-hit }} = 'true' ]; then
+            echo "Cache hit, skipping dependencies installation."
+          else
+            brew install cmake ninja
+            brew install opencv
+            brew install sdl2 sdl2_ttf sdl2_image sdl2_mixer
+          fi
 
       - name: Create build directory
         run: mkdir build
