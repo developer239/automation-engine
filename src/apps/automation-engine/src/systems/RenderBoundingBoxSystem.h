@@ -13,21 +13,23 @@ class RenderBoundingBoxSystem : public ECS::System {
  public:
   RenderBoundingBoxSystem() { RequireComponent<BoundingBoxComponent>(); }
 
-  void Render(Devices::Screen& screen) {
-    auto imageOutput = screen.latestScreenshot;
+  void Render(std::optional<Devices::Screen> screen) {
+    if(screen.has_value()) {
+      auto imageOutput = screen->latestScreenshot;
 
-    for (auto entity : GetSystemEntities()) {
-      auto component =
-          ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entity);
+      for (auto entity : GetSystemEntities()) {
+        auto component =
+            ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entity);
 
-      cv::rectangle(
-          imageOutput,
-          {component.positionX, component.positionY},
-          {component.positionX + component.width,
-           component.positionY + component.height},
-          component.color,
-          3
-      );
+        cv::rectangle(
+            imageOutput,
+            {component.positionX, component.positionY},
+            {component.positionX + component.width,
+             component.positionY + component.height},
+            component.color,
+            3
+        );
+      }
     }
   }
 };

@@ -20,7 +20,7 @@ class MemoryWindow : public IGUISystemWindow {
 
   std::vector<float> values;
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer)
+  void Render(Core::Renderer& renderer)
       override {
     UpdateMemoryConsumption();
     RenderMemoryGraph();
@@ -53,7 +53,7 @@ class MemoryWindow : public IGUISystemWindow {
 
     ImGui::SetNextItemWidth(plotWidth);
 
-    float lastMemoryValue = values.back();
+    float lastMemoryValue = values.empty() ? 0.0f : values.back();
     int minValue = 0;
     int maxValue = 0;
     if (!values.empty()) {

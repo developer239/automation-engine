@@ -57,7 +57,7 @@ class ECSStrategy : public Core::IStrategy {
     // Initialize windows
 
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ImageStreamWindow>()
+        std::make_unique<ImageStreamWindow>(screen)
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<LoggingWindow>()
@@ -69,7 +69,7 @@ class ECSStrategy : public Core::IStrategy {
         std::make_unique<FPSWindow>()
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ImageStreamWindowControls>()
+        std::make_unique<ImageStreamWindowControls>(screen)
     );
   }
 
@@ -82,13 +82,18 @@ class ECSStrategy : public Core::IStrategy {
         .SubscribeToEvents();
 
     ECS::Registry::Instance().Update();
-    ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+
+    if(screen.has_value()) {
+      ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+    }
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
-    ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(screen);
+    if(screen.has_value()) {
+      ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(screen);
+    }
+
     ECS::Registry::Instance().GetSystem<GUISystem>().Render(
-        screen,
         renderer
     );
   }
@@ -101,5 +106,5 @@ class ECSStrategy : public Core::IStrategy {
   }
 
  private:
-  Devices::Screen screen = Devices::Screen(800, 600, 0, 0);
+  std::optional<Devices::Screen> screen = Devices::Screen(800, 600, 0, 0);
 };
