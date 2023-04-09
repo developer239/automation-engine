@@ -27,3 +27,6 @@ target_link_libraries(${APP_NAME} ECS)
 target_link_libraries(${APP_NAME} Devices)
 target_link_libraries(${APP_NAME} Utility)
 target_link_libraries(${APP_NAME} Events)
+
+target_link_libraries(${APP_NAME} ${LUA_LIBRARY})
+target_include_directories(${APP_NAME} PRIVATE ${LUA_INCLUDE_DIR} ${SOL2_INCLUDE_DIRS})
