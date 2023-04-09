@@ -18,16 +18,22 @@ jobs:
           submodules: 'recursive'
 
       - name: Install dependencies
+        # TODO: Install specific version
         run: |
           brew install cmake ninja
           brew install opencv
           brew install sdl2 sdl2_ttf sdl2_image sdl2_mixer
 
       - name: Create build directory
-        run: mkdir cmake-build-debug
+        run: mkdir build
 
       - name: Configure CMake
-        run: cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=$(brew --prefix)/bin/ninja -G Ninja -S . -B cmake-build-debug
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=$(brew --prefix)/bin/ninja -G Ninja -S . -B build
 
-      - name: Build project
-        run: cmake --build cmake-build-debug
+      - name: Link
+        run: ninja
+        working-directory: build
+
+      - name: Test
+        run: ctest
+        working-directory: build
