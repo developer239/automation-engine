@@ -19,4 +19,11 @@ find_package(SDL2_ttf REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
+# Find Lua
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/lua/")
+find_package(Lua REQUIRED)
+
+# Find Sol2
+set(SOL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/externals/sol2/include)
+
 add_subdirectory(src)

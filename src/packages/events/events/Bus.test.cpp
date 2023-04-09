@@ -20,10 +20,9 @@ class EventReceiver {
 class EventTest : public ::testing::Test {
  protected:
   EventReceiver receiver;
-  Events::Bus bus;
 
   void SetUp() override {
-    bus.SubscribeToEvent<CustomEvent>(&receiver, &EventReceiver::OnCustomEvent);
+    Events::Bus::Instance().SubscribeToEvent<CustomEvent>(&receiver, &EventReceiver::OnCustomEvent);
   }
 };
 
@@ -34,16 +33,16 @@ TEST_F(EventTest, Subscription) {
         EXPECT_EQ(event.value, 42);
       });
 
-  bus.EmitEvent<CustomEvent>("Hello, world!", 42);
+  Events::Bus::Instance().EmitEvent<CustomEvent>("Hello, world!", 42);
 }
 
 TEST_F(EventTest, Unsubscription) {
-  bus.UnsubscribeFromEvent<CustomEvent>(
+  Events::Bus::Instance().UnsubscribeFromEvent<CustomEvent>(
       &receiver,
       &EventReceiver::OnCustomEvent
   );
 
-  bus.EmitEvent<CustomEvent>("Hello, again!", 41);
+  Events::Bus::Instance().EmitEvent<CustomEvent>("Hello, again!", 41);
 
   EXPECT_CALL(receiver, OnCustomEvent(::testing::_)).Times(0);
 }

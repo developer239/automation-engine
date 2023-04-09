@@ -11,3 +11,12 @@
 [submodule "externals/googletest"]
 	path = externals/googletest
 	url = https://github.com/google/googletest
+[submodule "externals/lua"]
+	path = externals/lua
+	url = https://github.com/lua/lua.git
+[submodule "externals/sol2"]
+	path = externals/sol2
+	url = https://github.com/ThePhD/sol2.git
+[submodule "cmake/lua"]
+	path = cmake/lua
+	url = https://github.com/developer239/cmake-modern-findlua

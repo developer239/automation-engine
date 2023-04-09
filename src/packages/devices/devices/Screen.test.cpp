@@ -14,11 +14,14 @@ TEST(ScreenTest, TestScreenshotMethodManually) {
   int windowX = 0;
   int windowY = 0;
 
-  Devices::Screen screen(&width, &height, &windowX, &windowY);
+  Devices::Screen screen(width, height, windowX, windowY);
 
   screen.Screenshot();
 
-  cv::imshow("Screenshot", *screen.latestScreenshot);
+  cv::imshow("Screenshot", screen.latestScreenshot);
 
-  cv::waitKey(0);
+  // Uncomment to see the screenshot
+  //  cv::waitKey(0);
+
+  EXPECT_TRUE(true);
 }
