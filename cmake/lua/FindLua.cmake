@@ -1,16 +1,22 @@
-find_path(LUA_INCLUDE_DIR NAMES lua.h PATH_SUFFIXES lua)
-find_library(LUA_LIBRARY NAMES lua)
+# FindLua.cmake
 
-if (LUA_INCLUDE_DIR AND LUA_LIBRARY)
-    set(LUA_FOUND TRUE)
-else ()
-    set(LUA_FOUND FALSE)
-endif ()
+set(LUA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/externals/lua")
 
-if (LUA_FOUND)
+set(LUA_INCLUDE_DIR ${LUA_SOURCE_DIR})
+
+file(GLOB LUA_SOURCES ${LUA_SOURCE_DIR}/*.c)
+list(REMOVE_ITEM LUA_SOURCES "${LUA_SOURCE_DIR}/lua.c")
+
+add_library(Lua STATIC ${LUA_SOURCES})
+target_include_directories(Lua PUBLIC ${LUA_INCLUDE_DIR})
+
+set(LUA_FOUND TRUE)
+set(LUA_LIBRARY Lua)
+
+if(LUA_FOUND)
     message(STATUS "Found Lua: ${LUA_LIBRARY}")
-else ()
+else()
     message(FATAL_ERROR "Lua not found")
-endif ()
+endif()
 
-mark_as_advanced(LUA_INCLUDE_DIR LUA_LIBRARY)
+mark_as_advanced(LUA_INCLUDE_DIR)
