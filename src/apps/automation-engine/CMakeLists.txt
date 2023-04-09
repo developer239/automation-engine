@@ -15,7 +15,7 @@ set(SOURCES
         src/main.cpp
         src/components/TextLabelComponent.h
         src/components/BoundingBoxComponent.h
-        src/systems/RenderTextSystem.h)
+        src/systems/RenderTextSystem.h src/systems/RenderBoundingBoxSystem.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 
