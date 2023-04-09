@@ -30,7 +30,8 @@ jobs:
             /usr/local/Cellar/sdl2_image
             /usr/local/Cellar/sdl2_mixer
             /usr/local/Cellar/opencv
-          key: ${{ runner.os }}-deps-$(md5deep /usr/local/Cellar/*)
+            /tmp/homebrew_env
+          key: ${{ runner.os }}-deps-$(md5deep /usr/local/Cellar/* /tmp/homebrew_env)
           restore-keys: |
             ${{ runner.os }}-deps-
 
