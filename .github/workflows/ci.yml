@@ -34,15 +34,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deps-
 
-      # TODO: install specific versions
       - name: Install dependencies
         run: |
           if [ ${{ steps.cache-primes.outputs.cache-hit }} = 'true' ]; then
             echo "Cache hit, skipping dependencies installation."
           else
-            brew install cmake ninja
-            brew install opencv
-            brew install sdl2 sdl2_ttf sdl2_image sdl2_mixer
+            brew install cmake@3.26.3 ninja@1.11.1
+            brew install opencv@4.7.0
+            brew install sdl2@2.26.5 sdl2_ttf@2.20.2 sdl2_image@2.6.3 sdl2_mixer@2.6.3
           fi
 
       - name: Create build directory
