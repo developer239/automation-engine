@@ -21,8 +21,6 @@ find_package(SDL2_mixer REQUIRED)
 
 # Find Lua
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/lua/")
-
-# Find Lua
 find_package(Lua REQUIRED)
 
 # Find Sol2
