@@ -134,6 +134,7 @@ class GUISystem : public ECS::System {
     // Dock windows
 
     for (auto& window : windows) {
+      // TODO: should not be tightly coupled with the window pass the position as separate parameter
       auto position = window->GetPosition();
       ImGui::DockBuilderDockWindow(
           window->GetName().c_str(),

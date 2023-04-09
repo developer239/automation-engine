@@ -21,6 +21,7 @@
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderTextSystem.h"
 #include "../systems/ScreenSystem.h"
+#include "../systems/ScriptingSystem.h"
 
 class ECSStrategy : public Core::IStrategy {
  public:
@@ -29,6 +30,9 @@ class ECSStrategy : public Core::IStrategy {
         .AddFont("pico8-font-10", "assets/fonts/Roboto-Medium.ttf", 24);
     Core::AssetStore::Instance()
         .AddFont("pico8-font-10-small", "assets/fonts/Roboto-Medium.ttf", 16);
+
+    //
+    // TODO: remove temporary entity initialization
 
     ECS::Entity ball = ECS::Registry::Instance().CreateEntity();
     ECS::Registry::Instance().TagEntity(ball, "Ball");
@@ -48,6 +52,7 @@ class ECSStrategy : public Core::IStrategy {
     //
     // Initialize systems
 
+    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen, "../../../../src/apps/scripts/first-script.lua");
     ECS::Registry::Instance().AddSystem<ScreenSystem>();
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
@@ -85,6 +90,7 @@ class ECSStrategy : public Core::IStrategy {
 
     if(screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+      ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
     }
   }
 
