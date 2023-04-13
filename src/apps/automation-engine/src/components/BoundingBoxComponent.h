@@ -2,6 +2,11 @@
 
 #include <opencv2/core/types.hpp>
 
+// TODO: make it close to TypeScript typing
+// declare interface IBoundingBoxComponent {
+//   position: IPosition
+//   size: ISize
+// }
 struct BoundingBoxComponent {
   int positionX;
   int positionY;

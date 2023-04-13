@@ -92,6 +92,12 @@ class Registry {
     }
   }
 
+  void RemoveAllEntitiesFromSystems() {
+    for (const auto& system : systems) {
+      system.second->RemoveAllEntitiesFromSystem();
+    }
+  }
+
   void TagEntity(Entity entity, const std::string& tag) {
     entityPerTag.emplace(tag, entity);
     tagPerEntity.emplace(entity.GetId(), tag);

@@ -21,9 +21,13 @@ class LoadScriptWindow : public IGUISystemWindow {
   void Render(Core::Renderer& renderer) override {
     ImGui::Begin(GetName().c_str());
 
-    if (isFileLoaded) {
+    if (filePathName.length() > 0) {
       ImGui::Text("Script loaded");
       ImGui::Spacing();
+
+      if (ImGui::Button("Refresh")) {
+        Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName);
+      }
     } else {
       ImGui::Text("No script loaded");
     }
@@ -40,13 +44,11 @@ class LoadScriptWindow : public IGUISystemWindow {
 
     if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
       if (ImGuiFileDialog::Instance()->IsOk()) {
-        std::string filePathName =
+        filePathName =
             ImGuiFileDialog::Instance()->GetFilePathName();
         std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
         Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName);
-        // Possibly emit and subscribe to event in script system
-        isFileLoaded = true;
       }
 
       ImGuiFileDialog::Instance()->Close();
@@ -56,5 +58,5 @@ class LoadScriptWindow : public IGUISystemWindow {
   }
 
   private:
-    bool isFileLoaded = false;
+   std::string filePathName;
 };

@@ -27,6 +27,10 @@ class System {
     );
   }
 
+  void RemoveAllEntitiesFromSystem() {
+    entities.clear();
+  }
+
   [[nodiscard]] std::vector<Entity> GetSystemEntities() const {
     return entities;
   }
