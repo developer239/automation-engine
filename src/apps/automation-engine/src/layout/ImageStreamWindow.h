@@ -14,10 +14,6 @@ class ImageStreamWindow : public IGUISystemWindow {
   ImageStreamWindow(std::optional<Devices::Screen>& screen)
       : screen(screen) {}
 
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_TOP;
-  }
-
   std::string GetName() override { return "Image Stream"; }
 
   void Render(

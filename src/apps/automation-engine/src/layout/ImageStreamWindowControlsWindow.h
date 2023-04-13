@@ -90,13 +90,20 @@ class PreviewRectangle {
 
   SDL_Color sdlTextureColor = {255, 0, 0, 255};
   SDL_Color sdlTextColor = {0, 0, 0, 255};
-  std::shared_ptr<TTF_Font> font = Core::AssetStore::Instance().GetFont("pico8-font-10-small");
+  std::shared_ptr<TTF_Font> font =
+      Core::AssetStore::Instance().GetFont("pico8-font-10-small");
 };
 
 class ImageStreamWindowControls : public IGUISystemWindow {
  public:
   ImageStreamWindowControls(std::optional<Devices::Screen>& screen)
-      : screen(screen) {}
+      : screen(screen) {
+    if (screen.has_value()) {
+      std::cout << "Screen has value" << std::endl;
+    } else {
+      std::cout << "Screen has no value" << std::endl;
+    }
+  }
 
   PreviewRectangle windowArea = PreviewRectangle(
       {
@@ -115,16 +122,10 @@ class ImageStreamWindowControls : public IGUISystemWindow {
       {0x00, 0x00, 0x00, 0xFF}
   );
 
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::LEFT;
-  }
-
   std::string GetName() override { return "Window Controls"; }
 
-  void Render(
-      Core::Renderer& renderer
-  ) override {
-    if(!screen.has_value()) {
+  void Render(Core::Renderer& renderer) override {
+    if (!screen.has_value()) {
       ImGui::Begin(GetName().c_str());
       ImGui::End();
       return;

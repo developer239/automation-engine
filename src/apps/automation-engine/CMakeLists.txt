@@ -17,7 +17,7 @@ set(SOURCES
         src/components/BoundingBoxComponent.h
         src/systems/RenderTextSystem.h
         src/systems/RenderBoundingBoxSystem.h
-        src/systems/ScriptingSystem.h)
+        src/systems/ScriptingSystem.h src/layout/LoadScriptWindow.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 

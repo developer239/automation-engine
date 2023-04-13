@@ -17,7 +17,7 @@ Screen::Screen(int w, int h, int x, int y) {
   colorSpace = CGColorSpaceCreateDeviceRGB();
 
   // FIXME: possible race condition CGMainDisplayID() returns value that crashes
-  int targetId = 3;
+  int targetId = 1;
 
   displayId = std::make_shared<int>(targetId);
 }

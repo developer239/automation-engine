@@ -15,6 +15,7 @@
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
+#include "../layout/LoadScriptWindow.h"
 #include "../layout/LoggingWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../systems/GUISystem/GUISystem.h"
@@ -52,7 +53,7 @@ class ECSStrategy : public Core::IStrategy {
     //
     // Initialize systems
 
-    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen, "../../../../src/apps/scripts/first-script.lua");
+    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen, scriptFile, lua);
     ECS::Registry::Instance().AddSystem<ScreenSystem>();
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
@@ -62,19 +63,28 @@ class ECSStrategy : public Core::IStrategy {
     // Initialize windows
 
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ImageStreamWindow>(screen)
+        std::make_unique<ImageStreamWindow>(screen),
+        GUISystemLayoutNodePosition::RIGHT_TOP
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<LoggingWindow>()
+        std::make_unique<LoggingWindow>(),
+        GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<MemoryWindow>()
+        std::make_unique<MemoryWindow>(),
+        GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<FPSWindow>()
+        std::make_unique<FPSWindow>(),
+        GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ImageStreamWindowControls>(screen)
+        std::make_unique<ImageStreamWindowControls>(screen),
+        GUISystemLayoutNodePosition::LEFT
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<LoadScriptWindow>(scriptFile, lua),
+        GUISystemLayoutNodePosition::LEFT
     );
   }
 
@@ -112,5 +122,9 @@ class ECSStrategy : public Core::IStrategy {
   }
 
  private:
-  std::optional<Devices::Screen> screen = Devices::Screen(800, 600, 0, 0);
+  std::optional<Devices::Screen> screen;
+
+  // TODO: create state struct
+  std::optional<std::string> scriptFile = "../../../../src/apps/scripts/first-script.lua";
+  std::optional<sol::state> lua = std::make_optional<sol::state>();
 };

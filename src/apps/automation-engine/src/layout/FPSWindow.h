@@ -10,10 +10,6 @@
 
 class FPSWindow : public IGUISystemWindow {
  public:
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT;
-  }
-
   std::string GetName() override { return "FPS"; }
 
   void Render(Core::Renderer& renderer)

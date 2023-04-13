@@ -12,10 +12,6 @@
 
 class MemoryWindow : public IGUISystemWindow {
  public:
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT;
-  }
-
   std::string GetName() override { return "Memory"; }
 
   std::vector<float> values;

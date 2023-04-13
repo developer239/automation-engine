@@ -18,10 +18,6 @@ class LoggingWindow : public IGUISystemWindow {
 
   void OnMessage(MessageEvent& event) { messages.push_back(event); }
 
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT;
-  }
-
   std::string GetName() override { return "Logger"; }
 
   void Render(Core::Renderer& renderer)
