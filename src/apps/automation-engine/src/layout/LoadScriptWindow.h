@@ -26,8 +26,11 @@ class LoadScriptWindow : public IGUISystemWindow {
       ImGui::Spacing();
 
       if (ImGui::Button("Refresh")) {
-        Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName);
+        Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName
+        );
       }
+
+      LiveReload();
     } else {
       ImGui::Text("No script loaded");
     }
@@ -44,11 +47,11 @@ class LoadScriptWindow : public IGUISystemWindow {
 
     if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
       if (ImGuiFileDialog::Instance()->IsOk()) {
-        filePathName =
-            ImGuiFileDialog::Instance()->GetFilePathName();
+        filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
         std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-        Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName);
+        Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName
+        );
       }
 
       ImGuiFileDialog::Instance()->Close();
@@ -57,6 +60,34 @@ class LoadScriptWindow : public IGUISystemWindow {
     ImGui::End();
   }
 
-  private:
-   std::string filePathName;
+ private:
+  std::string filePathName;
+
+  // TODO: run in separate thread
+  void LiveReload() {
+    static Uint32 lastPolledAt = 0;
+    auto ticks = SDL_GetTicks();
+
+    if (ticks - lastPolledAt > 1000) {
+      lastPolledAt = ticks;
+
+      auto lastWriteTime = std::filesystem::last_write_time(filePathName);
+      auto lastWriteTimeMs =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              lastWriteTime.time_since_epoch()
+          )
+              .count();
+      auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::system_clock::now().time_since_epoch()
+      )
+                             .count();
+      auto diff = std::chrono::milliseconds(currentTime - lastWriteTimeMs);
+      auto diffS = diff.count() / 1000;
+
+      if (diffS < 2) {
+        Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName
+        );
+      }
+    }
+  }
 };
