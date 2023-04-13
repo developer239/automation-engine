@@ -6,6 +6,7 @@
 
 #include "imgui.h"
 
+#include "../../../externals/ImGuiFileDialog/ImGuiFileDialog.h"
 #include "../events/MessageEvent.h"
 #include "../systems/GUISystem/GUISystem.structs.h"
 #include "../systems/GUISystem/IGUISystemWindow.h"
@@ -35,18 +36,29 @@ class LoadScriptWindow : public IGUISystemWindow {
   void Render(Core::Renderer& renderer) override {
     ImGui::Begin(GetName().c_str());
 
-    if(scriptFile.has_value()) {
+    if (scriptFile.has_value()) {
       auto scriptName = std::filesystem::path(*scriptFile).filename().string();
       ImGui::Text("Current script: %s", scriptName.c_str());
       ImGui::Spacing();
-
-      if (ImGui::Button("Save")) {
-        std::ofstream out(scriptFile->c_str());
-        out << lua->lua_state();
-        out.close();
-      }
     } else {
-        ImGui::Text("No script loaded");
+      ImGui::Text("No script loaded");
+    }
+
+    if (ImGui::Button("Open File Dialog")) {
+      ImGuiFileDialog::Instance()
+          ->OpenDialog("ChooseFileDlgKey", "Choose File", ".lua", "/Users/michaljarnot/IdeaProjects/swords-and-souls-scripts/dist/");
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+      if (ImGuiFileDialog::Instance()->IsOk()) {
+        std::string filePathName =
+            ImGuiFileDialog::Instance()->GetFilePathName();
+        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+        // update scriptFile
+      }
+
+      ImGuiFileDialog::Instance()->Close();
     }
 
     ImGui::End();

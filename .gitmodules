@@ -20,3 +20,7 @@
 [submodule "cmake/lua"]
 	path = cmake/lua
 	url = https://github.com/developer239/cmake-modern-findlua
+[submodule "externals/ImGuiFileDialog"]
+	path = externals/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git
+	branch = Lib_Only

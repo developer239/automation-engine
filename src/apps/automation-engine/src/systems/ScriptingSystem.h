@@ -17,13 +17,15 @@ class ScriptingSystem : public ECS::System {
 
   void LoadFile() {
     if (scriptFile.has_value()) {
+      currentFile = scriptFile;
+
       lua->open_libraries(sol::lib::base);
       lua->script_file(*scriptFile);
 
-      int screenWidth = (*lua)["screen"]["width"];
-      int screenHeight = (*lua)["screen"]["height"];
-      int screenX = (*lua)["screen"]["x"];
-      int screenY = (*lua)["screen"]["y"];
+      int screenWidth = (*lua)["main"]["screen"]["width"];
+      int screenHeight = (*lua)["main"]["screen"]["height"];
+      int screenX = (*lua)["main"]["screen"]["x"];
+      int screenY = (*lua)["main"]["screen"]["y"];
 
       screen = Devices::Screen(screenWidth, screenHeight, screenX, screenY);
     }
@@ -31,12 +33,13 @@ class ScriptingSystem : public ECS::System {
 
   void Update() {
     if (lua.has_value()) {
-      (*lua)["onRender"]();
+      (*lua)["main"]["onRender"]();
     }
   }
 
  private:
   std::optional<Devices::Screen>& screen;
   std::optional<std::string>& scriptFile;
+  std::optional<std::string> currentFile;
   std::optional<sol::state>& lua;
 };

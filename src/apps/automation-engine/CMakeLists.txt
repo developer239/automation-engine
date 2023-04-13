@@ -17,7 +17,10 @@ set(SOURCES
         src/components/BoundingBoxComponent.h
         src/systems/RenderTextSystem.h
         src/systems/RenderBoundingBoxSystem.h
-        src/systems/ScriptingSystem.h src/layout/LoadScriptWindow.h)
+        src/systems/ScriptingSystem.h
+        src/layout/LoadScriptWindow.h
+        ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
+)
 
 add_executable(${APP_NAME} ${SOURCES})
 

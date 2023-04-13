@@ -125,6 +125,6 @@ class ECSStrategy : public Core::IStrategy {
   std::optional<Devices::Screen> screen;
 
   // TODO: create state struct
-  std::optional<std::string> scriptFile = "../../../../src/apps/scripts/first-script.lua";
+  std::optional<std::string> scriptFile = "/Users/michaljarnot/IdeaProjects/swords-and-souls-scripts/dist/index.lua";
   std::optional<sol::state> lua = std::make_optional<sol::state>();
 };
