@@ -19,6 +19,7 @@ class ScriptingSystem : public ECS::System {
   }
 
   void OnFileSelected(ScriptFileSelectedEvent& event) {
+    // NOTE: it seems that ScriptFileSelectedEvent is be emitted multiple times
     bool isOldScriptFile =
         std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now() - scriptFileLoadedAt
@@ -35,13 +36,7 @@ class ScriptingSystem : public ECS::System {
       );
       lua.script_file(event.filePath);
 
-      int screenWidth = lua["main"]["screen"]["width"];
-      int screenHeight = lua["main"]["screen"]["height"];
-      int screenX = lua["main"]["screen"]["x"];
-      int screenY = lua["main"]["screen"]["y"];
-
-      screen = Devices::Screen(screenWidth, screenHeight, screenX, screenY);
-
+      LoadScreenInfo();
       LoadEntities();
 
       scriptFile = event.filePath;
@@ -57,6 +52,15 @@ class ScriptingSystem : public ECS::System {
   std::chrono::time_point<std::chrono::system_clock> scriptFileLoadedAt;
   std::optional<std::string> scriptFile;
   sol::state lua;
+
+  void LoadScreenInfo() {
+    int screenWidth = lua["main"]["screen"]["width"];
+    int screenHeight = lua["main"]["screen"]["height"];
+    int screenX = lua["main"]["screen"]["x"];
+    int screenY = lua["main"]["screen"]["y"];
+
+    screen = Devices::Screen(screenWidth, screenHeight, screenX, screenY);
+  }
 
   void LoadEntities() {
     ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
