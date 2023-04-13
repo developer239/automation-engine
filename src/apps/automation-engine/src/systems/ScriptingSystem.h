@@ -4,42 +4,47 @@
 
 #include "devices/Screen.h"
 #include "ecs/System.h"
+#include "events/Bus.h"
 
 class ScriptingSystem : public ECS::System {
  public:
-  ScriptingSystem(
-      std::optional<Devices::Screen>& screen,
-      std::optional<std::string>& scriptFile, std::optional<sol::state>& lua
-  )
-      : screen(screen), scriptFile(scriptFile), lua(lua) {
-    LoadFile();
+  ScriptingSystem(std::optional<Devices::Screen>& screen)
+      : screen(screen), lua() {}
+
+  void SubscribeToEvents() {
+    Events::Bus::Instance().SubscribeToEvent<ScriptFileSelectedEvent>(
+        this,
+        &ScriptingSystem::OnFileSelected
+    );
   }
 
-  void LoadFile() {
-    if (scriptFile.has_value()) {
-      currentFile = scriptFile;
+  void OnFileSelected(ScriptFileSelectedEvent& event) {
+    if (event.filePath != *scriptFile) {
+      lua.open_libraries(
+          sol::lib::base,
+          sol::lib::package,
+          sol::lib::string,
+          sol::lib::table,
+          sol::lib::math,
+          sol::lib::os
+      );
+      lua.script_file(event.filePath);
 
-      lua->open_libraries(sol::lib::base);
-      lua->script_file(*scriptFile);
-
-      int screenWidth = (*lua)["main"]["screen"]["width"];
-      int screenHeight = (*lua)["main"]["screen"]["height"];
-      int screenX = (*lua)["main"]["screen"]["x"];
-      int screenY = (*lua)["main"]["screen"]["y"];
+      int screenWidth = lua["main"]["screen"]["width"];
+      int screenHeight = lua["main"]["screen"]["height"];
+      int screenX = lua["main"]["screen"]["x"];
+      int screenY = lua["main"]["screen"]["y"];
 
       screen = Devices::Screen(screenWidth, screenHeight, screenX, screenY);
+
+      scriptFile = event.filePath;
     }
   }
 
-  void Update() {
-    if (lua.has_value()) {
-      (*lua)["main"]["onRender"]();
-    }
-  }
+  void Update() { lua["main"]["onRender"](); }
 
  private:
   std::optional<Devices::Screen>& screen;
-  std::optional<std::string>& scriptFile;
-  std::optional<std::string> currentFile;
-  std::optional<sol::state>& lua;
+  std::optional<std::string> scriptFile;
+  sol::state lua;
 };

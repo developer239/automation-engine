@@ -97,13 +97,7 @@ class PreviewRectangle {
 class ImageStreamWindowControls : public IGUISystemWindow {
  public:
   ImageStreamWindowControls(std::optional<Devices::Screen>& screen)
-      : screen(screen) {
-    if (screen.has_value()) {
-      std::cout << "Screen has value" << std::endl;
-    } else {
-      std::cout << "Screen has no value" << std::endl;
-    }
-  }
+      : screen(screen) {}
 
   PreviewRectangle windowArea = PreviewRectangle(
       {

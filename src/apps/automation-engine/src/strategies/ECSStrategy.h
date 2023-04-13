@@ -53,7 +53,7 @@ class ECSStrategy : public Core::IStrategy {
     //
     // Initialize systems
 
-    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen, scriptFile, lua);
+    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen);
     ECS::Registry::Instance().AddSystem<ScreenSystem>();
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
@@ -83,7 +83,7 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<LoadScriptWindow>(scriptFile, lua),
+        std::make_unique<LoadScriptWindow>(),
         GUISystemLayoutNodePosition::LEFT
     );
   }
@@ -94,6 +94,9 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance()
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
+        .SubscribeToEvents();
+    ECS::Registry::Instance()
+        .GetSystem<ScriptingSystem>()
         .SubscribeToEvents();
 
     ECS::Registry::Instance().Update();
@@ -123,8 +126,4 @@ class ECSStrategy : public Core::IStrategy {
 
  private:
   std::optional<Devices::Screen> screen;
-
-  // TODO: create state struct
-  std::optional<std::string> scriptFile = "/Users/michaljarnot/IdeaProjects/swords-and-souls-scripts/dist/index.lua";
-  std::optional<sol::state> lua = std::make_optional<sol::state>();
 };
