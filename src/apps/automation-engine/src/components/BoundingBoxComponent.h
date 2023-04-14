@@ -12,15 +12,12 @@ struct BoundingBoxComponent {
   int positionY;
   int width;
   int height;
-  cv::Scalar color;
+  cv::Scalar color;  // bgr
   int thickness;
 
   explicit BoundingBoxComponent(
-      const int& positionX = 0,
-      const int& positionY = 0,
-      const int& width = 0,
-      const int& height = 0,
-      const cv::Scalar& color = cv::Scalar(255, 0, 0),
+      const int& positionX = 0, const int& positionY = 0, const int& width = 0,
+      const int& height = 0, const cv::Scalar& color = cv::Scalar(255, 0, 0),
       const int& thickness = 1
   ) {
     this->positionX = positionX;

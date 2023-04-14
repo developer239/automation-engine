@@ -23,7 +23,8 @@ class ScriptingSystem : public ECS::System {
     bool isOldScriptFile =
         std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now() - scriptFileLoadedAt
-        ).count() > 1;
+        )
+            .count() > 1;
 
     if (event.filePath != *scriptFile || isOldScriptFile) {
       lua.open_libraries(
@@ -89,17 +90,45 @@ class ScriptingSystem : public ECS::System {
 
       sol::optional<sol::table> hasComponents = entity["components"];
       if (hasComponents != sol::nullopt) {
-        // Bounding Box
-
-        sol::optional<sol::table> transform =
-            entity["components"]["boundingBox"];
-        if (transform != sol::nullopt) {
+        // BoundingBox
+        sol::optional<sol::table> bbox = entity["components"]["boundingBox"];
+        if (bbox != sol::nullopt) {
           ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
               newEntity,
               entity["components"]["boundingBox"]["position"]["x"],
               entity["components"]["boundingBox"]["position"]["y"],
               entity["components"]["boundingBox"]["size"]["width"],
               entity["components"]["boundingBox"]["size"]["height"]
+          );
+
+          sol::optional<sol::table> color =
+              entity["components"]["boundingBox"]["color"];
+          if (color != sol::nullopt) {
+            ECS::Registry::Instance()
+                .GetComponent<BoundingBoxComponent>(newEntity)
+                .color = cv::Scalar(
+                entity["components"]["boundingBox"]["color"]["b"],
+                entity["components"]["boundingBox"]["color"]["g"],
+                entity["components"]["boundingBox"]["color"]["r"]
+            );
+          }
+        }
+
+        // TextLabel
+        sol::optional<sol::table> textLabel = entity["components"]["textLabel"];
+        if (textLabel != sol::nullopt) {
+          ECS::Registry::Instance().AddComponent<TextLabelComponent>(
+              newEntity,
+              cv::Vec2i(
+                  entity["components"]["textLabel"]["position"]["x"],
+                  entity["components"]["textLabel"]["position"]["y"]
+              ),
+              entity["components"]["textLabel"]["text"],
+              SDL_Color(
+                  {entity["components"]["textLabel"]["color"]["r"],
+                   entity["components"]["textLabel"]["color"]["g"],
+                   entity["components"]["textLabel"]["color"]["b"]}
+              )
           );
         }
       }
