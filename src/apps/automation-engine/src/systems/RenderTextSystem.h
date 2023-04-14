@@ -28,8 +28,10 @@ class RenderTextSystem : public ECS::System {
               static_cast<uint8_t>(textLabelComponent.color.b),
           }
       );
-      texture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
+      SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
       SDL_FreeSurface(surface);
+
+      textures.emplace_back(texture);
 
       int labelWidth = 0;
       int labelHeight = 0;
@@ -54,11 +56,13 @@ class RenderTextSystem : public ECS::System {
     }
   }
 
-  void Clear() { SDL_DestroyTexture(texture); }
+  void Clear() {
+    for (auto texture : textures) {
+      SDL_DestroyTexture(texture);
+    }
+    textures.clear();
+  }
 
  private:
-  // FIXME: multiple components cause memory leak
-  // NOTE: this actually works figure out why
-  // TODO: support multiple textures 🤦‍♂️
-  SDL_Texture* texture{};
+  std::vector<SDL_Texture*> textures{};
 };
