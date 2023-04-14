@@ -57,6 +57,7 @@ class RenderTextSystem : public ECS::System {
   void Clear() { SDL_DestroyTexture(texture); }
 
  private:
+  // FIXME: multiple components cause memory leak
   // NOTE: this actually works figure out why
   // TODO: support multiple textures 🤦‍♂️
   SDL_Texture* texture{};
