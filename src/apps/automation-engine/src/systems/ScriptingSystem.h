@@ -24,7 +24,8 @@ class ScriptingSystem : public ECS::System {
 
     BindRegistry();
     BindEntity();
-    BindVector();
+    BindVector<ECS::Entity>();
+    BindPrintTable();
   }
 
   void SubscribeToEvents() {
@@ -181,34 +182,80 @@ class ScriptingSystem : public ECS::System {
     );
   }
 
-  void BindVector() {
-    using EntityVector = std::vector<ECS::Entity>;
+  // NOTE: "std::vector<TType>" is printed as "Table []"
+  void PrintTable(const sol::table table) {
+    std::cout << "Table [";
 
-    // Bind EntityVector to Lua using sol::new_usertype
-    lua.new_usertype<EntityVector>(
-        "EntityVector",
-        sol::constructors<EntityVector()>(),
+    auto size = table.size();
+    int count = 0;
+    for (auto& pair : table) {
+      if (pair.first.is<int>()) {
+        std::cout << pair.first.as<int>() << ": ";
+      } else if (pair.first.is<std::string>()) {
+        std::cout << pair.first.as<std::string>() << ": ";
+      }
+
+      if (pair.second.is<sol::table>()) {
+        PrintTable(pair.second.as<sol::table>());
+      } else if (pair.second.is<std::string>()) {
+        std::cout << pair.second.as<std::string>();
+      } else if (pair.second.is<int>()) {
+        std::cout << pair.second.as<int>();
+      } else {
+        std::cout << "unknown";
+      }
+
+      if (count < size + 1) {
+        std::cout << ", ";
+      }
+      count++;
+    }
+
+    std::cout << "]";
+  }
+
+  void BindPrintTable() {
+    lua.set_function("printTable", [this](sol::table table) {
+      PrintTable(table);
+    });
+  }
+
+  template <typename TType>
+  void BindVector() {
+    using VectorType = std::vector<TType>;
+
+    // Bind VectorType to Lua using sol::new_usertype
+    lua.new_usertype<VectorType>(
+        sol::meta_function::construct,
+        sol::factories([]() { return VectorType{}; }),
         "size",
-        &EntityVector::size,
+        &VectorType::size,
         "at",
-        [](EntityVector& v, std::size_t i) -> ECS::Entity& {
+        [](VectorType& v, std::size_t i) -> TType& {
           if (i >= v.size()) {
             throw sol::error("index out of bounds");
           }
           return v[i];
         },
         sol::meta_function::to_string,
-        [](const EntityVector& v) {
-          std::string s = "EntityVector {";
+        [](const VectorType& v) {
+          std::ostringstream oss;
+
+          oss << "Vector [";
           for (std::size_t i = 0; i < v.size(); ++i) {
-            s += v[i].ToString();
+            if constexpr (std::is_same_v<TType, ECS::Entity>) {
+              oss << v[i].ToString();
+            } else {
+              oss << "unknown";
+            }
 
             if (i < v.size() - 1) {
-              s += ", ";
+              oss << ", ";
             }
           }
-          s += "}";
-          return s;
+          oss << "]";
+
+          return oss.str();
         }
     );
   }
