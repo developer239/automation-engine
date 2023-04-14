@@ -2,15 +2,28 @@
 
 #include <sol/sol.hpp>
 
-#include "../components/EditableComponent.h"
 #include "devices/Screen.h"
 #include "ecs/System.h"
 #include "events/Bus.h"
 
+#include "../components/EditableComponent.h"
+
 class ScriptingSystem : public ECS::System {
  public:
   ScriptingSystem(std::optional<Devices::Screen>& screen)
-      : screen(screen), lua() {}
+      : screen(screen), lua() {
+    lua.open_libraries(
+        sol::lib::base,
+        sol::lib::package,
+        sol::lib::string,
+        sol::lib::table,
+        sol::lib::math,
+        sol::lib::os
+    );
+
+    BindRegistry();
+    BindEntity();
+  }
 
   void SubscribeToEvents() {
     Events::Bus::Instance().SubscribeToEvent<ScriptFileSelectedEvent>(
@@ -28,14 +41,6 @@ class ScriptingSystem : public ECS::System {
             .count() > 1;
 
     if (event.filePath != *scriptFile || isOldScriptFile) {
-      lua.open_libraries(
-          sol::lib::base,
-          sol::lib::package,
-          sol::lib::string,
-          sol::lib::table,
-          sol::lib::math,
-          sol::lib::os
-      );
       lua.script_file(event.filePath);
 
       LoadScreenInfo();
@@ -143,5 +148,30 @@ class ScriptingSystem : public ECS::System {
 
       i++;
     }
+  }
+
+  void BindRegistry() {
+    lua.new_usertype<ECS::Registry>(
+        "Registry",
+        "Instance",
+        &ECS::Registry::Instance,
+        "getEntityByTag",
+        &ECS::Registry::GetEntityByTag,
+        "getEntitiesByGroup",
+        &ECS::Registry::GetEntitiesByGroup
+    );
+  }
+
+  void BindEntity() {
+    lua.new_usertype<ECS::Entity>(
+        "Entity",
+        sol::constructors<ECS::Entity(int)>(),
+        "getId",
+        &ECS::Entity::GetId,
+        sol::meta_function::to_string,
+        [](const ECS::Entity& entity) {
+          return "Entity " + std::to_string(entity.GetId());
+        }
+    );
   }
 };
