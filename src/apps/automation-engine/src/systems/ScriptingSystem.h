@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sol/sol.hpp>
+#include <vector>
 
 #include "devices/Screen.h"
 #include "ecs/System.h"
@@ -23,6 +24,7 @@ class ScriptingSystem : public ECS::System {
 
     BindRegistry();
     BindEntity();
+    BindVector();
   }
 
   void SubscribeToEvents() {
@@ -158,7 +160,13 @@ class ScriptingSystem : public ECS::System {
         "getEntityByTag",
         &ECS::Registry::GetEntityByTag,
         "getEntitiesByGroup",
-        &ECS::Registry::GetEntitiesByGroup
+        &ECS::Registry::GetEntitiesByGroup,
+        "createEntity",
+        &ECS::Registry::CreateEntity,
+        "tagEntity",
+        &ECS::Registry::TagEntity,
+        "groupEntity",
+        &ECS::Registry::GroupEntity
     );
   }
 
@@ -169,8 +177,38 @@ class ScriptingSystem : public ECS::System {
         "getId",
         &ECS::Entity::GetId,
         sol::meta_function::to_string,
-        [](const ECS::Entity& entity) {
-          return "Entity " + std::to_string(entity.GetId());
+        &ECS::Entity::ToString
+    );
+  }
+
+  void BindVector() {
+    using EntityVector = std::vector<ECS::Entity>;
+
+    // Bind EntityVector to Lua using sol::new_usertype
+    lua.new_usertype<EntityVector>(
+        "EntityVector",
+        sol::constructors<EntityVector()>(),
+        "size",
+        &EntityVector::size,
+        "at",
+        [](EntityVector& v, std::size_t i) -> ECS::Entity& {
+          if (i >= v.size()) {
+            throw sol::error("index out of bounds");
+          }
+          return v[i];
+        },
+        sol::meta_function::to_string,
+        [](const EntityVector& v) {
+          std::string s = "EntityVector {";
+          for (std::size_t i = 0; i < v.size(); ++i) {
+            s += v[i].ToString();
+
+            if (i < v.size() - 1) {
+              s += ", ";
+            }
+          }
+          s += "}";
+          return s;
         }
     );
   }
