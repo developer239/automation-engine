@@ -27,7 +27,7 @@ class RenderBoundingBoxSystem : public ECS::System {
             {component.positionX + component.width,
              component.positionY + component.height},
             component.color,
-            3
+            component.thickness
         );
       }
     }

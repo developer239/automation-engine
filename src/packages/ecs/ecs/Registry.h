@@ -103,6 +103,14 @@ class Registry {
     tagPerEntity.emplace(entity.GetId(), tag);
   }
 
+  std::string GetEntityTag(Entity entity) const {
+    return tagPerEntity.at(entity.GetId());
+  }
+
+  std::string GetEntityGroup(Entity entity) const {
+    return groupPerEntity.at(entity.GetId());
+  }
+
   bool EntityHasTag(Entity entity, const std::string& tag) const {
     if (tagPerEntity.find(entity.GetId()) == tagPerEntity.end()) {
       return false;
@@ -208,6 +216,20 @@ class Registry {
   TSystem& GetSystem() const {
     auto system = systems.find(std::type_index(typeid(TSystem)));
     return *(std::static_pointer_cast<TSystem>(system->second));
+  }
+
+  template <typename TComponent>
+  std::vector<Entity> GetEntitiesWithComponent() const {
+    std::vector<Entity> entitiesWithComponent;
+
+    const auto componentId = Component<TComponent>::GetId();
+    for (size_t entityId = 0; entityId < entityComponentSignatures.size(); ++entityId) {
+      if (entityComponentSignatures[entityId].test(componentId)) {
+        entitiesWithComponent.emplace_back(Entity(static_cast<int>(entityId)));
+      }
+    }
+
+    return entitiesWithComponent;
   }
 
   template <typename TComponent, typename... TArgs>

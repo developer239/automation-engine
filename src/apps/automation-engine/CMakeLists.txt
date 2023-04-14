@@ -20,7 +20,7 @@ set(SOURCES
         src/systems/ScriptingSystem.h
         src/layout/LoadScriptWindow.h
         ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
-        src/events/ScriptFileSelectedEvent.h)
+        src/events/ScriptFileSelectedEvent.h src/layout/ManageEntitiesWindow.h src/systems/RenderEditableComponentsGUISystem.h src/components/EditableComponent.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 

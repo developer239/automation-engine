@@ -2,6 +2,7 @@
 
 #include <sol/sol.hpp>
 
+#include "../components/EditableComponent.h"
 #include "devices/Screen.h"
 #include "ecs/System.h"
 #include "events/Bus.h"
@@ -90,6 +91,13 @@ class ScriptingSystem : public ECS::System {
 
       sol::optional<sol::table> hasComponents = entity["components"];
       if (hasComponents != sol::nullopt) {
+        // Editable
+
+        // is entity["isEditable"] true
+        if (entity["isEditable"].valid() && entity["isEditable"]) {
+          ECS::Registry::Instance().AddComponent<EditableComponent>(newEntity);
+        }
+
         // BoundingBox
         sol::optional<sol::table> bbox = entity["components"]["boundingBox"];
         if (bbox != sol::nullopt) {

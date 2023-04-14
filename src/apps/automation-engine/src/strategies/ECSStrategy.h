@@ -17,9 +17,11 @@
 #include "../layout/ImageStreamWindowControlsWindow.h"
 #include "../layout/LoadScriptWindow.h"
 #include "../layout/LoggingWindow.h"
+#include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
+#include "../systems/RenderEditableComponentsGUISystem.h"
 #include "../systems/RenderTextSystem.h"
 #include "../systems/ScreenSystem.h"
 #include "../systems/ScriptingSystem.h"
@@ -58,6 +60,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
     ECS::Registry::Instance().AddSystem<RenderBoundingBoxSystem>();
+    ECS::Registry::Instance().AddSystem<RenderEditableComponentsGUISystem>();
 
     //
     // Initialize windows
@@ -84,6 +87,10 @@ class ECSStrategy : public Core::IStrategy {
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<LoadScriptWindow>(),
+        GUISystemLayoutNodePosition::LEFT
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<ManageEntitiesWindow>(screen),
         GUISystemLayoutNodePosition::LEFT
     );
   }
