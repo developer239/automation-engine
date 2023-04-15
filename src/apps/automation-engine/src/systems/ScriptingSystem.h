@@ -172,7 +172,10 @@ class ScriptingSystem : public ECS::System {
         "groupEntity",
         &ECS::Registry::GroupEntity,
         "getEntityGroups",
-        &ECS::Registry::GetEntityGroups,
+        [this](ECS::Registry& registry, ECS::Entity entity) {
+          std::vector<std::string> groups = registry.GetEntityGroups(entity);
+          return vectorToTable<std::string>(groups);
+        },
         "getEntitiesByGroup",
         &ECS::Registry::GetEntitiesByGroup,
         "removeEntityGroup",
@@ -191,38 +194,6 @@ class ScriptingSystem : public ECS::System {
         sol::meta_function::to_string,
         &ECS::Entity::ToString
     );
-  }
-
-  // NOTE: "std::vector<TType>" is printed as "Table []"
-  void PrintTable(const sol::table table) {
-    std::cout << "Table [";
-
-    auto size = table.size();
-    int count = 0;
-    for (auto& pair : table) {
-      if (pair.first.is<int>()) {
-        std::cout << pair.first.as<int>() << ": ";
-      } else if (pair.first.is<std::string>()) {
-        std::cout << pair.first.as<std::string>() << ": ";
-      }
-
-      if (pair.second.is<sol::table>()) {
-        PrintTable(pair.second.as<sol::table>());
-      } else if (pair.second.is<std::string>()) {
-        std::cout << pair.second.as<std::string>();
-      } else if (pair.second.is<int>()) {
-        std::cout << pair.second.as<int>();
-      } else {
-        std::cout << "unknown";
-      }
-
-      if (count < size + 1) {
-        std::cout << ", ";
-      }
-      count++;
-    }
-
-    std::cout << "]";
   }
 
   void BindPrintTable() {
@@ -269,5 +240,50 @@ class ScriptingSystem : public ECS::System {
           return oss.str();
         }
     );
+  }
+
+  // TODO: possibly implement specialisation and convert to sol::table before printing
+  // NOTE: "std::vector<TType>" is printed as "Table []"
+  void PrintTable(const sol::table table) {
+    std::cout << "Table [";
+
+    auto size = table.size();
+    int count = 0;
+    for (auto& pair : table) {
+      if (pair.first.is<int>()) {
+        std::cout << pair.first.as<int>() << ": ";
+      } else if (pair.first.is<std::string>()) {
+        std::cout << pair.first.as<std::string>() << ": ";
+      }
+
+      if (pair.second.is<sol::table>()) {
+        PrintTable(pair.second.as<sol::table>());
+      } else if (pair.second.is<std::string>()) {
+        std::cout << pair.second.as<std::string>();
+      } else if (pair.second.is<int>()) {
+        std::cout << pair.second.as<int>();
+      } else {
+        std::cout << "unknown";
+      }
+
+      if (count < size - 1) {
+        std::cout << ", ";
+      }
+      count++;
+    }
+
+    std::cout << "]";
+  }
+
+  template <typename TType>
+  sol::table vectorToTable(const std::vector<TType>& vec) {
+    sol::table result = lua.create_table();
+    int index = 1;
+
+    for (const auto& str : vec) {
+      result[index++] = str;
+    }
+
+    return result;
   }
 };
