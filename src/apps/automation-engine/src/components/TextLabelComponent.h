@@ -1,24 +1,27 @@
 #pragma once
 
+#include <SDL.h>
 #include <opencv2/opencv.hpp>
 #include <string>
-#include <SDL.h>
+#include <utility>
+
+#include "../structs/Color.h"
+#include "../structs/Position.h"
 
 struct TextLabelComponent {
-  cv::Vec2i position;
   std::string text;
-  SDL_Color color;
+  App::Position position;
+  App::Color color;
   std::string fontId;
 
   explicit TextLabelComponent(
-      const cv::Vec2i& position = cv::Vec2i(0),
-      const std::string& text = "",
-      const SDL_Color& color = { 0, 255, 0 },
-      const std::string& assetId = "pico8-font-10"
-  ) {
-    this->position = position;
-    this->text = text;
-    this->fontId = assetId;
-    this->color = color;
-  }
+      std::string text = "",
+      const App::Position& position = {0, 0},
+      const App::Color& color = {0, 255, 0},
+      std::string assetId = "pico8-font-10"
+  )
+      : text(std::move(text)),
+        position(position),
+        color(color),
+        fontId(std::move(assetId)) {}
 };

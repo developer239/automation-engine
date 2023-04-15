@@ -35,24 +35,6 @@ class ECSStrategy : public Core::IStrategy {
         .AddFont("pico8-font-10-small", "assets/fonts/Roboto-Medium.ttf", 16);
 
     //
-    // TODO: remove temporary entity initialization
-
-    ECS::Entity ball = ECS::Registry::Instance().CreateEntity();
-    ECS::Registry::Instance().TagEntity(ball, "Ball");
-    ECS::Registry::Instance().AddComponent<TextLabelComponent>(
-        ball,
-        cv::Vec2i(200, 200),
-        "Hello world! [0, 0]"
-    );
-    ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
-        ball,
-        200,
-        200,
-        100,
-        100
-    );
-
-    //
     // Initialize systems
 
     ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen);

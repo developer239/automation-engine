@@ -65,42 +65,42 @@ class RenderEditableComponentsGUISystem : public ECS::System {
           // Position
           ImGui::SliderInt(
               "bb:X",
-              &boundingBox.positionX,
+              &boundingBox.position.x,
               0,
-              *screen->width - boundingBox.width
+              *screen->width - boundingBox.size.width
           );
           ImGui::SliderInt(
               "bb:Y",
-              &boundingBox.positionY,
+              &boundingBox.position.y,
               0,
-              *screen->height - boundingBox.height
+              *screen->height - boundingBox.size.height
           );
 
           //
           // Size
           ImGui::SliderInt(
               "bb:Width",
-              &boundingBox.width,
+              &boundingBox.size.width,
               0,
-              *screen->width - boundingBox.positionX
+              *screen->width - boundingBox.position.x
           );
           ImGui::SliderInt(
               "bb:Height",
-              &boundingBox.height,
+              &boundingBox.size.height,
               0,
-              *screen->height - boundingBox.positionY
+              *screen->height - boundingBox.position.y
           );
 
           //
           // Color
           float color[3] = {
-              static_cast<float>(boundingBox.color[2]) / 255.0f,
-              static_cast<float>(boundingBox.color[1]) / 255.0f,
-              static_cast<float>(boundingBox.color[0]) / 255.0f};
+              static_cast<float>(boundingBox.color.r) / 255.0f,
+              static_cast<float>(boundingBox.color.g) / 255.0f,
+              static_cast<float>(boundingBox.color.b) / 255.0f};
           if (ImGui::ColorEdit3("bb:Color", color)) {
-            boundingBox.color[0] = static_cast<Uint8>(color[2] * 255.0f);
-            boundingBox.color[1] = static_cast<Uint8>(color[1] * 255.0f);
-            boundingBox.color[2] = static_cast<Uint8>(color[0] * 255.0f);
+            boundingBox.color.r = static_cast<Uint8>(color[0] * 255.0f);
+            boundingBox.color.g = static_cast<Uint8>(color[1] * 255.0f);
+            boundingBox.color.b = static_cast<Uint8>(color[2] * 255.0f);
           }
           ImGui::SliderInt("bb:Thickness", &boundingBox.thickness, 1, 10);
         }
@@ -130,9 +130,9 @@ class RenderEditableComponentsGUISystem : public ECS::System {
           //
           // Color
           float color[3] = {
-              textLabel.color.r / 255.0f,
-              textLabel.color.g / 255.0f,
-              textLabel.color.b / 255.0f};
+              static_cast<float>(textLabel.color.r) / 255.0f,
+              static_cast<float>(textLabel.color.g) / 255.0f,
+              static_cast<float>(textLabel.color.b) / 255.0f};
           if (ImGui::ColorEdit3("label:Color", color)) {
             textLabel.color.r = static_cast<Uint8>(color[0] * 255.0f);
             textLabel.color.g = static_cast<Uint8>(color[1] * 255.0f);
@@ -146,8 +146,8 @@ class RenderEditableComponentsGUISystem : public ECS::System {
           auto maxPositionX = *screen->width - textLabelWidth;
           auto maxPositionY = *screen->height - autoLabelHeight;
 
-          ImGui::SliderInt("label:X", &textLabel.position[0], 0, maxPositionX);
-          ImGui::SliderInt("label:Y", &textLabel.position[1], 0, maxPositionY);
+          ImGui::SliderInt("label:X", &textLabel.position.x, 0, maxPositionX);
+          ImGui::SliderInt("label:Y", &textLabel.position.y, 0, maxPositionY);
         }
       }
     }

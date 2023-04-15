@@ -26,6 +26,11 @@ class ScriptingSystem : public ECS::System {
     BindEntity();
     BindVector<ECS::Entity>();
     BindPrintTable();
+    BindTextLabelComponent();
+    BindBoundingBoxComponent();
+    BindAppColorStruct();
+    BindAppPositionStruct();
+    BindAppSizeStruct();
   }
 
   void SubscribeToEvents() {
@@ -116,21 +121,26 @@ class ScriptingSystem : public ECS::System {
         if (bbox != sol::nullopt) {
           ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
               newEntity,
-              entity["components"]["boundingBox"]["position"]["x"],
-              entity["components"]["boundingBox"]["position"]["y"],
-              entity["components"]["boundingBox"]["size"]["width"],
-              entity["components"]["boundingBox"]["size"]["height"]
+              App::Position(
+                  entity["components"]["boundingBox"]["position"]["x"],
+                  entity["components"]["boundingBox"]["position"]["y"]
+              ),
+              App::Size(
+                  entity["components"]["boundingBox"]["size"]["width"],
+                  entity["components"]["boundingBox"]["size"]["height"]
+              )
           );
 
           sol::optional<sol::table> color =
               entity["components"]["boundingBox"]["color"];
+
           if (color != sol::nullopt) {
             ECS::Registry::Instance()
                 .GetComponent<BoundingBoxComponent>(newEntity)
-                .color = cv::Scalar(
-                entity["components"]["boundingBox"]["color"]["b"],
+                .color = App::Color(
+                entity["components"]["boundingBox"]["color"]["r"],
                 entity["components"]["boundingBox"]["color"]["g"],
-                entity["components"]["boundingBox"]["color"]["r"]
+                entity["components"]["boundingBox"]["color"]["b"]
             );
           }
         }
@@ -140,15 +150,15 @@ class ScriptingSystem : public ECS::System {
         if (textLabel != sol::nullopt) {
           ECS::Registry::Instance().AddComponent<TextLabelComponent>(
               newEntity,
-              cv::Vec2i(
+              entity["components"]["textLabel"]["text"],
+              App::Position(
                   entity["components"]["textLabel"]["position"]["x"],
                   entity["components"]["textLabel"]["position"]["y"]
               ),
-              entity["components"]["textLabel"]["text"],
-              SDL_Color(
-                  {entity["components"]["textLabel"]["color"]["r"],
-                   entity["components"]["textLabel"]["color"]["g"],
-                   entity["components"]["textLabel"]["color"]["b"]}
+              App::Color(
+                  entity["components"]["textLabel"]["color"]["r"],
+                  entity["components"]["textLabel"]["color"]["g"],
+                  entity["components"]["textLabel"]["color"]["b"]
               )
           );
         }
@@ -181,7 +191,37 @@ class ScriptingSystem : public ECS::System {
         "removeEntityGroup",
         &ECS::Registry::RemoveEntityGroup,
         "removeEntityGroups",
-        &ECS::Registry::RemoveEntityGroups
+        &ECS::Registry::RemoveEntityGroups,
+        "getComponent",
+        [this](
+            ECS::Registry& registry,
+            ECS::Entity entity,
+            const std::string& componentName
+        ) {
+          if (componentName == "BoundingBoxComponent") {
+            return sol::object(
+                lua,
+                sol::in_place,
+                registry.GetComponent<BoundingBoxComponent>(entity)
+            );
+          } else if (componentName == "EditableComponent") {
+            return sol::object(
+                lua,
+                sol::in_place,
+                registry.GetComponent<EditableComponent>(entity)
+            );
+          } else if (componentName == "TextLabelComponent") {
+            return sol::object(
+                lua,
+                sol::in_place,
+                registry.GetComponent<TextLabelComponent>(entity)
+            );
+          } else {
+            throw std::runtime_error(
+                "Unknown component name: " + componentName
+            );
+          }
+        }
     );
   }
 
@@ -242,8 +282,79 @@ class ScriptingSystem : public ECS::System {
     );
   }
 
-  // TODO: possibly implement specialisation and convert to sol::table before printing
-  // NOTE: "std::vector<TType>" is printed as "Table []"
+  void BindTextLabelComponent() {
+    lua.new_usertype<TextLabelComponent>(
+        "TextLabelComponent",
+        sol::constructors<
+            TextLabelComponent(),
+            TextLabelComponent(const std::string&, const App::Position&, const App::Color&, const std::string&)>(
+        ),
+        "position",
+        &TextLabelComponent::position,
+        "text",
+        &TextLabelComponent::text,
+        "color",
+        &TextLabelComponent::color,
+        "fontId",
+        &TextLabelComponent::fontId
+    );
+  }
+
+  void BindBoundingBoxComponent() {
+    lua.new_usertype<BoundingBoxComponent>(
+        "BoundingBoxComponent",
+        sol::constructors<
+            BoundingBoxComponent(),
+            BoundingBoxComponent(const App::Position&, const App::Size&, const App::Color&)>(
+        ),
+        "position",
+        &BoundingBoxComponent::position,
+        "size",
+        &BoundingBoxComponent::size,
+        "color",
+        &BoundingBoxComponent::color,
+        "thickness",
+        &BoundingBoxComponent::thickness
+    );
+  }
+
+  void BindAppPositionStruct() {
+    lua.new_usertype<App::Position>(
+        "Position",
+        sol::constructors<App::Position(int, int)>(),
+        "x",
+        &App::Position::x,
+        "y",
+        &App::Position::y
+    );
+  }
+
+  void BindAppColorStruct() {
+    lua.new_usertype<App::Color>(
+        "Color",
+        sol::constructors<App::Color(int, int, int)>(),
+        "r",
+        &App::Color::r,
+        "g",
+        &App::Color::g,
+        "b",
+        &App::Color::b
+    );
+  }
+
+  void BindAppSizeStruct() {
+    lua.new_usertype<App::Size>(
+        "Size",
+        sol::constructors<App::Size(int, int)>(),
+        "width",
+        &App::Size::width,
+        "height",
+        &App::Size::height
+    );
+  }
+
+  // TODO: possibly implement specialisation and convert to sol::table before
+  // printing NOTE: "std::vector<TType>" is printed as "Table []"
   void PrintTable(const sol::table table) {
     std::cout << "Table [";
 
