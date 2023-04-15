@@ -175,6 +175,8 @@ class ScriptingSystem : public ECS::System {
         &ECS::Registry::Instance,
         "createEntity",
         &ECS::Registry::CreateEntity,
+        "killEntity",
+        &ECS::Registry::KillEntity,
         "tagEntity",
         &ECS::Registry::TagEntity,
         "getEntityByTag",
@@ -192,35 +194,72 @@ class ScriptingSystem : public ECS::System {
         &ECS::Registry::RemoveEntityGroup,
         "removeEntityGroups",
         &ECS::Registry::RemoveEntityGroups,
-        "getComponent",
-        [this](
-            ECS::Registry& registry,
-            ECS::Entity entity,
-            const std::string& componentName
-        ) {
-          if (componentName == "BoundingBoxComponent") {
-            return sol::object(
-                lua,
-                sol::in_place,
-                registry.GetComponent<BoundingBoxComponent>(entity)
-            );
-          } else if (componentName == "EditableComponent") {
-            return sol::object(
-                lua,
-                sol::in_place,
-                registry.GetComponent<EditableComponent>(entity)
-            );
-          } else if (componentName == "TextLabelComponent") {
-            return sol::object(
-                lua,
-                sol::in_place,
-                registry.GetComponent<TextLabelComponent>(entity)
-            );
-          } else {
-            throw std::runtime_error(
-                "Unknown component name: " + componentName
+        "getComponentBoundingBox",
+        [this](ECS::Registry& registry, ECS::Entity entity) {
+          if (!registry.HasComponent<BoundingBoxComponent>(entity)) {
+            throw std::runtime_error("Entity does not have BoundingBoxComponent"
             );
           }
+
+          return sol::object(
+              lua,
+              sol::in_place,
+              registry.GetComponent<BoundingBoxComponent>(entity)
+          );
+        },
+        "addComponentBoundingBox",
+        [](ECS::Registry& registry,
+           ECS::Entity entity,
+           const sol::table& bboxTable) {
+          auto bbox = BoundingBoxComponent(
+              App::Position(
+                  bboxTable["position"]["x"],
+                  bboxTable["position"]["y"]
+              ),
+              App::Size(
+                  bboxTable["size"]["width"],
+                  bboxTable["size"]["height"]
+              ),
+              App::Color(
+                  bboxTable["color"]["r"],
+                  bboxTable["color"]["g"],
+                  bboxTable["color"]["b"]
+              ),
+              bboxTable["thickness"]
+          );
+
+          registry.AddComponent<BoundingBoxComponent>(entity, bbox);
+        },
+        "getComponentTextLabel",
+        [this](ECS::Registry& registry, ECS::Entity entity) {
+          if (!registry.HasComponent<TextLabelComponent>(entity)) {
+            throw std::runtime_error("Entity does not have TextLabelComponent");
+          }
+
+          return sol::object(
+              lua,
+              sol::in_place,
+              registry.GetComponent<TextLabelComponent>(entity)
+          );
+        },
+        "addComponentTextLabel",
+        [](ECS::Registry& registry,
+           ECS::Entity entity,
+           const sol::table& bboxTable) {
+          auto textLabel = TextLabelComponent(
+              bboxTable["text"],
+              App::Position(
+                  bboxTable["position"]["x"],
+                  bboxTable["position"]["y"]
+              ),
+              App::Color(
+                  bboxTable["color"]["r"],
+                  bboxTable["color"]["g"],
+                  bboxTable["color"]["b"]
+              )
+          );
+
+          registry.AddComponent<TextLabelComponent>(entity, textLabel);
         }
     );
   }
