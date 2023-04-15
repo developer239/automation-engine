@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL.h>
+#include <numeric>
 
 #include "core/Renderer.h"
 #include "devices/Screen.h"
@@ -20,15 +21,32 @@ class RenderEditableComponentsGUISystem : public ECS::System {
       auto headerLabel = "Entity " + std::to_string(entity.GetId());
       if (ImGui::CollapsingHeader(headerLabel.c_str())) {
         //
-        // Tag & group
+        // Tag
         ImGui::Text(
             "Entity tag %s",
             ECS::Registry::Instance().GetEntityTag(entity).c_str()
         );
-        ImGui::Text(
-            "Entity group %s",
-            ECS::Registry::Instance().GetEntityGroup(entity).c_str()
-        );
+
+        //
+        // Groups
+        auto groups = ECS::Registry::Instance().GetEntityGroups(entity);
+        if (!groups.empty()) {
+          std::string groupsLabel = std::reduce(
+              groups.begin(),
+              groups.end(),
+              std::string(),
+              [](const std::string& a, const std::string& b) {
+                if (a.empty()) {
+                  return b;
+                }
+
+                return a + ", " + b;
+              }
+          );
+          ImGui::Text("Entity groups: %s", groupsLabel.c_str());
+        } else {
+          ImGui::Text("Entity belongs to no groups");
+        }
 
         auto hasBoundingBox =
             ECS::Registry::Instance().HasComponent<BoundingBoxComponent>(entity
@@ -80,12 +98,9 @@ class RenderEditableComponentsGUISystem : public ECS::System {
               static_cast<float>(boundingBox.color[1]) / 255.0f,
               static_cast<float>(boundingBox.color[0]) / 255.0f};
           if (ImGui::ColorEdit3("bb:Color", color)) {
-            boundingBox.color[0] =
-                static_cast<Uint8>(color[2] * 255.0f);
-            boundingBox.color[1] =
-                static_cast<Uint8>(color[1] * 255.0f);
-            boundingBox.color[2] =
-                static_cast<Uint8>(color[0] * 255.0f);
+            boundingBox.color[0] = static_cast<Uint8>(color[2] * 255.0f);
+            boundingBox.color[1] = static_cast<Uint8>(color[1] * 255.0f);
+            boundingBox.color[2] = static_cast<Uint8>(color[0] * 255.0f);
           }
           ImGui::SliderInt("bb:Thickness", &boundingBox.thickness, 1, 10);
         }

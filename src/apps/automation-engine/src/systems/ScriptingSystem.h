@@ -91,8 +91,13 @@ class ScriptingSystem : public ECS::System {
         ECS::Registry::Instance().TagEntity(newEntity, entity["tag"]);
       }
 
-      if (entity["group"].valid()) {
-        ECS::Registry::Instance().GroupEntity(newEntity, entity["group"]);
+      const sol::optional<sol::table> groupsTable = entity["groups"];
+      const sol::table defaultTable;
+      const std::vector<std::string> groups =
+          groupsTable ? groupsTable.value().as<std::vector<std::string>>()
+                      : std::vector<std::string>();
+      for (const auto& group : groups) {
+        ECS::Registry::Instance().GroupEntity(newEntity, group);
       }
 
       // Components
@@ -158,16 +163,22 @@ class ScriptingSystem : public ECS::System {
         "Registry",
         "Instance",
         &ECS::Registry::Instance,
-        "getEntityByTag",
-        &ECS::Registry::GetEntityByTag,
-        "getEntitiesByGroup",
-        &ECS::Registry::GetEntitiesByGroup,
         "createEntity",
         &ECS::Registry::CreateEntity,
         "tagEntity",
         &ECS::Registry::TagEntity,
+        "getEntityByTag",
+        &ECS::Registry::GetEntityByTag,
         "groupEntity",
-        &ECS::Registry::GroupEntity
+        &ECS::Registry::GroupEntity,
+        "getEntityGroups",
+        &ECS::Registry::GetEntityGroups,
+        "getEntitiesByGroup",
+        &ECS::Registry::GetEntitiesByGroup,
+        "removeEntityGroup",
+        &ECS::Registry::RemoveEntityGroup,
+        "removeEntityGroups",
+        &ECS::Registry::RemoveEntityGroups
     );
   }
 
