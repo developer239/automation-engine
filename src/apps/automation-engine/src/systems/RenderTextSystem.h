@@ -22,29 +22,27 @@ class RenderTextSystem : public ECS::System {
       SDL_Surface* surface = TTF_RenderText_Blended(
           Core::AssetStore::Instance().GetFont(textLabelComponent.fontId).get(),
           textLabelComponent.text.c_str(),
-          SDL_Color{
-              static_cast<uint8_t>(textLabelComponent.color.r),
-              static_cast<uint8_t>(textLabelComponent.color.g),
-              static_cast<uint8_t>(textLabelComponent.color.b),
-          }
+          textLabelComponent.color.ToSDLColor()
       );
-      texture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
+      SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer.Get().get(), surface);
       SDL_FreeSurface(surface);
+
+      textures.emplace_back(texture);
 
       int labelWidth = 0;
       int labelHeight = 0;
 
       SDL_QueryTexture(texture, nullptr, nullptr, &labelWidth, &labelHeight);
       SDL_Rect dstRect = {
-          static_cast<int>(textLabelComponent.position[0]),
-          static_cast<int>(textLabelComponent.position[1]),
+          textLabelComponent.position.x,
+          textLabelComponent.position.y,
           labelWidth,
           labelHeight};
       SDL_RenderCopy(renderer.Get().get(), texture, nullptr, &dstRect);
 
       ImVec2 labelPosition = ImVec2(
-          screenImageCursor.x + textLabelComponent.position[0] * screenScale,
-          screenImageCursor.y + textLabelComponent.position[1] * screenScale
+          screenImageCursor.x + textLabelComponent.position.x * screenScale,
+          screenImageCursor.y + textLabelComponent.position.y * screenScale
       );
       ImGui::SetCursorScreenPos(labelPosition);
       ImGui::Image(
@@ -54,9 +52,13 @@ class RenderTextSystem : public ECS::System {
     }
   }
 
-  void Clear() { SDL_DestroyTexture(texture); }
+  void Clear() {
+    for (auto texture : textures) {
+      SDL_DestroyTexture(texture);
+    }
+    textures.clear();
+  }
 
  private:
-  // TODO: support multiple textures 🤦‍♂️
-  SDL_Texture* texture{};
+  std::vector<SDL_Texture*> textures{};
 };

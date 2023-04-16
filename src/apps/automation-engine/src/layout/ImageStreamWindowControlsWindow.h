@@ -90,11 +90,15 @@ class PreviewRectangle {
 
   SDL_Color sdlTextureColor = {255, 0, 0, 255};
   SDL_Color sdlTextColor = {0, 0, 0, 255};
-  std::shared_ptr<TTF_Font> font = Core::AssetStore::Instance().GetFont("pico8-font-10-small");
+  std::shared_ptr<TTF_Font> font =
+      Core::AssetStore::Instance().GetFont("pico8-font-10-small");
 };
 
 class ImageStreamWindowControls : public IGUISystemWindow {
  public:
+  ImageStreamWindowControls(std::optional<Devices::Screen>& screen)
+      : screen(screen) {}
+
   PreviewRectangle windowArea = PreviewRectangle(
       {
           .r = 0x80,
@@ -112,21 +116,21 @@ class ImageStreamWindowControls : public IGUISystemWindow {
       {0x00, 0x00, 0x00, 0xFF}
   );
 
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::LEFT;
-  }
-
   std::string GetName() override { return "Window Controls"; }
 
-  void Render(
-      Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window
-  ) override {
+  void Render(Core::Renderer& renderer) override {
+    if (!screen.has_value()) {
+      ImGui::Begin(GetName().c_str());
+      ImGui::End();
+      return;
+    }
+
     ImGui::Begin(GetName().c_str());
 
     //
     // Draw screen window rectangle according to scale
 
-    auto displaySize = screen.GetSelectedDisplaySize();
+    auto displaySize = screen->GetSelectedDisplaySize();
     windowArea.UpdateData(displaySize.width, displaySize.height);
     windowArea.RenderSDLTexture(renderer);
 
@@ -134,7 +138,7 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     // Draw screen area rectangle according to scale
 
     selectedWindowArea
-        .UpdateData(*screen.width, *screen.height, windowArea.scale);
+        .UpdateData(*screen->width, *screen->height, windowArea.scale);
     selectedWindowArea.RenderSDLTexture(renderer);
 
     //
@@ -203,8 +207,8 @@ class ImageStreamWindowControls : public IGUISystemWindow {
         selectedWindowArea.x = nextX;
         selectedWindowArea.y = nextY;
 
-        screen.SetWindowX(selectedWindowArea.x / windowArea.scale);
-        screen.SetWindowY(selectedWindowArea.y / windowArea.scale);
+        screen->SetWindowX(selectedWindowArea.x / windowArea.scale);
+        screen->SetWindowY(selectedWindowArea.y / windowArea.scale);
       }
     }
 
@@ -234,7 +238,7 @@ class ImageStreamWindowControls : public IGUISystemWindow {
               windowArea.previewHeight - selectedWindowArea.y;
         }
 
-        screen.SetSize(
+        screen->SetSize(
             selectedWindowArea.previewWidth / windowArea.scale,
             selectedWindowArea.previewHeight / windowArea.scale
         );
@@ -252,58 +256,58 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     ));
 
     ImGui::Text("Available screens:");
-    for (auto pair : screen.GetDisplaysIndexIdPairs()) {
+    for (auto pair : screen->GetDisplaysIndexIdPairs()) {
       auto displayId = std::get<1>(pair);
       std::string buttonLabel = "Screen " + std::to_string(displayId);
       ImGui::SameLine();
 
       if (ImGui::Button(buttonLabel.c_str())) {
-        screen.SetDisplayId(displayId);
+        screen->SetDisplayId(displayId);
       }
     }
 
     ImGui::Text("Screen position:");
     ImGui::SliderInt(
         "position x",
-        &(*screen.windowX),
+        &(*screen->windowX),
         0,
-        displaySize.width - *screen.width
+        displaySize.width - *screen->width
     );
     ImGui::SliderInt(
         "position y",
-        &(*screen.windowY),
+        &(*screen->windowY),
         0,
-        displaySize.height - *screen.height
+        displaySize.height - *screen->height
     );
 
-    if (*screen.windowX != selectedWindowArea.x / windowArea.scale ||
-        *screen.windowY != selectedWindowArea.y / windowArea.scale) {
-      selectedWindowArea.x = *screen.windowX * windowArea.scale;
-      selectedWindowArea.y = *screen.windowY * windowArea.scale;
+    if (*screen->windowX != selectedWindowArea.x / windowArea.scale ||
+        *screen->windowY != selectedWindowArea.y / windowArea.scale) {
+      selectedWindowArea.x = *screen->windowX * windowArea.scale;
+      selectedWindowArea.y = *screen->windowY * windowArea.scale;
     }
 
     ImGui::Text("Screen size:");
     ImGui::SliderInt(
         "width",
-        &(*screen.width),
+        &(*screen->width),
         10,
-        displaySize.width - *screen.windowX
+        displaySize.width - *screen->windowX
     );
     ImGui::SliderInt(
         "height",
-        &(*screen.height),
+        &(*screen->height),
         10,
-        displaySize.height - *screen.windowY
+        displaySize.height - *screen->windowY
     );
 
-    int currentWidth = *screen.width;
-    int currentHeight = *screen.height;
+    int currentWidth = *screen->width;
+    int currentHeight = *screen->height;
     if (currentWidth != selectedWindowArea.previewWidth / windowArea.scale ||
         currentHeight != selectedWindowArea.previewHeight / windowArea.scale) {
       selectedWindowArea.previewWidth = currentWidth * windowArea.scale;
       selectedWindowArea.previewHeight = currentHeight * windowArea.scale;
 
-      screen.SetSize(currentWidth, currentHeight);
+      screen->SetSize(currentWidth, currentHeight);
     }
 
     ImGui::End();
@@ -313,4 +317,7 @@ class ImageStreamWindowControls : public IGUISystemWindow {
     windowArea.ClearTexture();
     selectedWindowArea.ClearTexture();
   }
+
+ private:
+  std::optional<Devices::Screen>& screen;
 };

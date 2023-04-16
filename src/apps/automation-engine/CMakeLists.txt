@@ -15,7 +15,12 @@ set(SOURCES
         src/main.cpp
         src/components/TextLabelComponent.h
         src/components/BoundingBoxComponent.h
-        src/systems/RenderTextSystem.h src/systems/RenderBoundingBoxSystem.h)
+        src/systems/RenderTextSystem.h
+        src/systems/RenderBoundingBoxSystem.h
+        src/systems/ScriptingSystem.h
+        src/layout/LoadScriptWindow.h
+        ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
+        src/events/ScriptFileSelectedEvent.h src/layout/ManageEntitiesWindow.h src/systems/RenderEditableComponentsGUISystem.h src/components/EditableComponent.h src/structs/Size.h src/structs/Color.h src/structs/Position.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 

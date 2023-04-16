@@ -12,21 +12,21 @@ class ScreenSystem : public ECS::System {
  public:
   ScreenSystem() = default;
 
-  void Update(Devices::Screen screen) { screen.Screenshot(); }
+  void Update(std::optional<Devices::Screen> screen) { screen->Screenshot(); }
 
   ScreenRenderMetadata Render(
-      Devices::Screen& screen, Core::Renderer& renderer
+      std::optional<Devices::Screen> screen, Core::Renderer& renderer
   ) {
     cvMatrixAsSDLTexture(screen, renderer);
 
     ImVec2 windowSize = ImGui::GetWindowSize();
 
     float scale = std::min(
-        windowSize.x / screen.latestScreenshot.cols,
-        windowSize.y / screen.latestScreenshot.rows
+        windowSize.x / screen->latestScreenshot.cols,
+        windowSize.y / screen->latestScreenshot.rows
     );
-    int scaledWidth = screen.latestScreenshot.cols * scale;
-    int scaledHeight = screen.latestScreenshot.rows * scale;
+    int scaledWidth = screen->latestScreenshot.cols * scale;
+    int scaledHeight = screen->latestScreenshot.rows * scale;
 
     ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
     auto cursor = ImVec2(
@@ -48,19 +48,19 @@ class ScreenSystem : public ECS::System {
   // TODO: support multiple textures 🤦‍♂️
   SDL_Texture* texture{};
 
-  void cvMatrixAsSDLTexture(Devices::Screen& screen, Core::Renderer& renderer) {
+  void cvMatrixAsSDLTexture(std::optional<Devices::Screen> screen, Core::Renderer& renderer) {
     texture = SDL_CreateTexture(
         renderer.Get().get(),
         SDL_PIXELFORMAT_BGR24,
         SDL_TEXTUREACCESS_STREAMING,
-        screen.latestScreenshot.cols,
-        screen.latestScreenshot.rows
+        screen->latestScreenshot.cols,
+        screen->latestScreenshot.rows
     );
     SDL_UpdateTexture(
         texture,
         nullptr,
-        (void*)screen.latestScreenshot.data,
-        screen.latestScreenshot.step1()
+        (void*)screen->latestScreenshot.data,
+        screen->latestScreenshot.step1()
     );
   }
 };

@@ -15,12 +15,16 @@
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
+#include "../layout/LoadScriptWindow.h"
 #include "../layout/LoggingWindow.h"
+#include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
+#include "../systems/RenderEditableComponentsGUISystem.h"
 #include "../systems/RenderTextSystem.h"
 #include "../systems/ScreenSystem.h"
+#include "../systems/ScriptingSystem.h"
 
 class ECSStrategy : public Core::IStrategy {
  public:
@@ -30,46 +34,46 @@ class ECSStrategy : public Core::IStrategy {
     Core::AssetStore::Instance()
         .AddFont("pico8-font-10-small", "assets/fonts/Roboto-Medium.ttf", 16);
 
-    ECS::Entity ball = ECS::Registry::Instance().CreateEntity();
-    ECS::Registry::Instance().TagEntity(ball, "Ball");
-    ECS::Registry::Instance().AddComponent<TextLabelComponent>(
-        ball,
-        cv::Vec2i(200, 200),
-        "Hello world! [0, 0]"
-    );
-    ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
-        ball,
-        200,
-        200,
-        100,
-        100
-    );
-
     //
     // Initialize systems
 
+    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen);
     ECS::Registry::Instance().AddSystem<ScreenSystem>();
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
     ECS::Registry::Instance().AddSystem<RenderBoundingBoxSystem>();
+    ECS::Registry::Instance().AddSystem<RenderEditableComponentsGUISystem>();
 
     //
     // Initialize windows
 
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ImageStreamWindow>()
+        std::make_unique<ImageStreamWindow>(screen),
+        GUISystemLayoutNodePosition::RIGHT_TOP
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<LoggingWindow>()
+        std::make_unique<LoggingWindow>(),
+        GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<MemoryWindow>()
+        std::make_unique<MemoryWindow>(),
+        GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<FPSWindow>()
+        std::make_unique<FPSWindow>(),
+        GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ImageStreamWindowControls>()
+        std::make_unique<ImageStreamWindowControls>(screen),
+        GUISystemLayoutNodePosition::LEFT
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<LoadScriptWindow>(),
+        GUISystemLayoutNodePosition::LEFT
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<ManageEntitiesWindow>(screen),
+        GUISystemLayoutNodePosition::LEFT
     );
   }
 
@@ -80,17 +84,25 @@ class ECSStrategy : public Core::IStrategy {
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
         .SubscribeToEvents();
+    ECS::Registry::Instance()
+        .GetSystem<ScriptingSystem>()
+        .SubscribeToEvents();
 
     ECS::Registry::Instance().Update();
-    ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+
+    if(screen.has_value()) {
+      ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+      ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
+    }
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
-    ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(screen);
+    if(screen.has_value()) {
+      ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(screen);
+    }
+
     ECS::Registry::Instance().GetSystem<GUISystem>().Render(
-        screen,
-        renderer,
-        window
+        renderer
     );
   }
 
@@ -102,5 +114,5 @@ class ECSStrategy : public Core::IStrategy {
   }
 
  private:
-  Devices::Screen screen = Devices::Screen(800, 600, 0, 0);
+  std::optional<Devices::Screen> screen;
 };

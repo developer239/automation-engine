@@ -11,15 +11,20 @@
 
 class ImageStreamWindow : public IGUISystemWindow {
  public:
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_TOP;
-  }
+  ImageStreamWindow(std::optional<Devices::Screen>& screen)
+      : screen(screen) {}
 
   std::string GetName() override { return "Image Stream"; }
 
   void Render(
-      Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window
+      Core::Renderer& renderer
   ) override {
+    if(!screen.has_value()) {
+      ImGui::Begin(GetName().c_str());
+      ImGui::End();
+      return;
+    }
+
     ImGui::Begin(GetName().c_str());
     auto cursorTopLeft = ImGui::GetCursorScreenPos();
 
@@ -46,4 +51,7 @@ class ImageStreamWindow : public IGUISystemWindow {
     ECS::Registry::Instance().GetSystem<ScreenSystem>().Clear();
     ECS::Registry::Instance().GetSystem<RenderTextSystem>().Clear();
   }
+
+ private:
+  std::optional<Devices::Screen>& screen;
 };

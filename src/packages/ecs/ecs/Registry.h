@@ -34,7 +34,7 @@ class Registry {
   std::unordered_map<int, std::string> tagPerEntity;
 
   std::unordered_map<std::string, std::set<Entity>> entitiesPerGroup;
-  std::unordered_map<int, std::string> groupPerEntity;
+  std::unordered_map<int, std::set<std::string>> groupsPerEntity;
 
   std::deque<int> freeIds;
 
@@ -92,16 +92,33 @@ class Registry {
     }
   }
 
+  void RemoveAllEntitiesFromSystems() {
+    for (const auto& system : systems) {
+      system.second->RemoveAllEntitiesFromSystem();
+    }
+  }
+
   void TagEntity(Entity entity, const std::string& tag) {
     entityPerTag.emplace(tag, entity);
     tagPerEntity.emplace(entity.GetId(), tag);
   }
 
-  bool EntityHasTag(Entity entity, const std::string& tag) const {
-    if (tagPerEntity.find(entity.GetId()) == tagPerEntity.end()) {
-      return false;
+  std::string GetEntityTag(Entity entity) const {
+    return tagPerEntity.at(entity.GetId());
+  }
+
+  std::vector<std::string> GetEntityGroups(Entity entity) const {
+    std::vector<std::string> groups = {};
+
+    try {
+      for (const auto& group : groupsPerEntity.at(entity.GetId())) {
+        groups.push_back(group);
+      }
+
+      return groups;
+    } catch (const std::out_of_range& e) {
+      return groups;
     }
-    return entityPerTag.find(tag)->second == entity;
   }
 
   Entity GetEntityByTag(const std::string& tag) const {
@@ -120,17 +137,9 @@ class Registry {
   void GroupEntity(Entity entity, const std::string& group) {
     entitiesPerGroup.emplace(group, std::set<Entity>());
     entitiesPerGroup[group].emplace(entity);
-    groupPerEntity.emplace(entity.GetId(), group);
-  }
 
-  bool EntityBelongsToGroup(Entity entity, const std::string& group) const {
-    if (entitiesPerGroup.find(group) == entitiesPerGroup.end()) {
-      return false;
-    }
-    auto groupEntities = entitiesPerGroup.at(group);
-    // TODO: fix
-    return true;
-    //    return groupEntities.find(entity.GetId()) != groupEntities.end();
+    groupsPerEntity.emplace(entity.GetId(), std::set<std::string>());
+    groupsPerEntity[entity.GetId()].emplace(group);
   }
 
   std::vector<Entity> GetEntitiesByGroup(const std::string& group) const {
@@ -142,18 +151,27 @@ class Registry {
     }
   }
 
-  void RemoveEntityGroup(Entity entity) {
-    auto groupedEntity = groupPerEntity.find(entity.GetId());
-    if (groupedEntity != groupPerEntity.end()) {
-      auto group = entitiesPerGroup.find(groupedEntity->second);
-      if (group != entitiesPerGroup.end()) {
-        auto entityInGroup = group->second.find(entity);
-        if (entityInGroup != group->second.end()) {
-          group->second.erase(entityInGroup);
-        }
-      }
-      groupPerEntity.erase(groupedEntity);
+  void RemoveEntityGroup(Entity entity, std::string group) {
+    auto& entitySet = entitiesPerGroup[group];
+    entitySet.erase(entity);
+
+    auto& groupSet = groupsPerEntity[entity.GetId()];
+    groupSet.erase(group);
+
+    if (groupSet.empty()) {
+      groupsPerEntity.erase(entity.GetId());
     }
+  }
+
+  void RemoveEntityGroups(Entity entity) {
+    auto& groupSet = groupsPerEntity[entity.GetId()];
+
+    for (const auto& group : groupSet) {
+      auto& entitySet = entitiesPerGroup[group];
+      entitySet.erase(entity);
+    }
+
+    groupsPerEntity.erase(entity.GetId());
   }
 
   void Update() {
@@ -175,7 +193,7 @@ class Registry {
       freeIds.push_back(entity.GetId());
 
       RemoveEntityTag(entity);
-      RemoveEntityGroup(entity);
+      RemoveEntityGroups(entity);
     }
     entitiesToBeKilled.clear();
   }
@@ -202,6 +220,21 @@ class Registry {
   TSystem& GetSystem() const {
     auto system = systems.find(std::type_index(typeid(TSystem)));
     return *(std::static_pointer_cast<TSystem>(system->second));
+  }
+
+  template <typename TComponent>
+  std::vector<Entity> GetEntitiesWithComponent() const {
+    std::vector<Entity> entitiesWithComponent;
+
+    const auto componentId = Component<TComponent>::GetId();
+    for (size_t entityId = 0; entityId < entityComponentSignatures.size();
+         ++entityId) {
+      if (entityComponentSignatures[entityId].test(componentId)) {
+        entitiesWithComponent.emplace_back(Entity(static_cast<int>(entityId)));
+      }
+    }
+
+    return entitiesWithComponent;
   }
 
   template <typename TComponent, typename... TArgs>

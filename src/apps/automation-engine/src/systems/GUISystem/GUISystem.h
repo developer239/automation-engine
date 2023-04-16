@@ -11,28 +11,36 @@
 #include "./IGUISystemWindow.h"
 #include "./ecs/System.h"
 
+struct GUISystemWindowInfo {
+  std::unique_ptr<IGUISystemWindow> window;
+  GUISystemLayoutNodePosition position;
+};
+
 class GUISystem : public ECS::System {
  public:
-  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window) {
+  void Render(Core::Renderer& renderer) {
     SetupDock();
     RenderDockSpace();
-    RenderWindows(screen, renderer, window);
+    RenderWindows(renderer);
   }
 
   void AfterRender() {
     for (auto& window : windows) {
-      window->Clear();
+      window.window->Clear();
     }
   }
 
-  void AddWindow(std::unique_ptr<IGUISystemWindow> window) {
-    windows.push_back(std::move(window));
+  void AddWindow(std::unique_ptr<IGUISystemWindow> window, GUISystemLayoutNodePosition position) {
+    windows.push_back({
+        .window = std::move(window),
+        .position = position
+    });
   }
 
   template <typename TWindow>
   TWindow& GetWindow() {
     for (auto& window : windows) {
-      if (auto result = dynamic_cast<TWindow*>(window.get())) {
+      if (auto result = dynamic_cast<TWindow*>(window.window.get())) {
         return *result;
       }
     }
@@ -40,7 +48,7 @@ class GUISystem : public ECS::System {
   }
 
  private:
-  std::vector<std::unique_ptr<IGUISystemWindow>> windows;
+  std::vector<GUISystemWindowInfo> windows;
 
   ImGuiWindowFlags windowFlags;
   ImGuiDockNodeFlags dockSpaceFlags;
@@ -52,7 +60,7 @@ class GUISystem : public ECS::System {
       {GUISystemLayoutNodePosition::RIGHT_BOTTOM, 0},
   };
 
-  void RenderWindows(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& coreWindow) {
+  void RenderWindows(Core::Renderer& renderer) {
     if (ImGui::BeginMainMenuBar()) {
       if (ImGui::BeginMenu("Menu")) {
         if (ImGui::MenuItem("Exit")) {
@@ -64,7 +72,7 @@ class GUISystem : public ECS::System {
     }
 
     for (auto& window : windows) {
-      window->Render(screen, renderer, coreWindow);
+      window.window->Render(renderer);
     }
   }
 
@@ -134,9 +142,11 @@ class GUISystem : public ECS::System {
     // Dock windows
 
     for (auto& window : windows) {
-      auto position = window->GetPosition();
+      // TODO: should not be tightly coupled with the window pass the position
+      // as separate parameter
+      auto position = window.position;
       ImGui::DockBuilderDockWindow(
-          window->GetName().c_str(),
+          window.window->GetName().c_str(),
           layoutNodes[position]
       );
     }

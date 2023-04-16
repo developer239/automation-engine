@@ -12,15 +12,11 @@
 
 class MemoryWindow : public IGUISystemWindow {
  public:
-  GUISystemLayoutNodePosition GetPosition() override {
-    return GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT;
-  }
-
   std::string GetName() override { return "Memory"; }
 
   std::vector<float> values;
 
-  void Render(Devices::Screen& screen, Core::Renderer& renderer, Core::Window& window)
+  void Render(Core::Renderer& renderer)
       override {
     UpdateMemoryConsumption();
     RenderMemoryGraph();
@@ -53,7 +49,7 @@ class MemoryWindow : public IGUISystemWindow {
 
     ImGui::SetNextItemWidth(plotWidth);
 
-    float lastMemoryValue = values.back();
+    float lastMemoryValue = values.empty() ? 0.0f : values.back();
     int minValue = 0;
     int maxValue = 0;
     if (!values.empty()) {
