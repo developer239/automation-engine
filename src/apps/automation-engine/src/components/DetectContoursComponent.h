@@ -9,7 +9,7 @@
 
 struct DetectContoursComponent {
   explicit DetectContoursComponent(
-      std::string id,
+      std::string id = "",
       App::Size minArea = {10, 10},
       App::Color bboxColor = {0, 255, 0},
       std::optional<App::Size> maxArea = std::nullopt

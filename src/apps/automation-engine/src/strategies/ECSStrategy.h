@@ -86,26 +86,24 @@ class ECSStrategy : public Core::IStrategy {
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
         .SubscribeToEvents();
-    ECS::Registry::Instance()
-        .GetSystem<ScriptingSystem>()
-        .SubscribeToEvents();
+    ECS::Registry::Instance().GetSystem<ScriptingSystem>().SubscribeToEvents();
 
     ECS::Registry::Instance().Update();
 
-    if(screen.has_value()) {
+    if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
     }
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
-    if(screen.has_value()) {
-      ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(screen);
+    if (screen.has_value()) {
+      ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
+          screen
+      );
     }
 
-    ECS::Registry::Instance().GetSystem<GUISystem>().Render(
-        renderer
-    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().Render(renderer);
   }
 
   void OnBeforeRender(Core::Window& window, Core::Renderer& renderer) override {
