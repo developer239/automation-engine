@@ -14,7 +14,7 @@ class DetectContoursSystem : public ECS::System {
     RequireComponent<DetectContoursComponent>();
   }
 
-  void Update(std::unique_ptr<Devices::Screen>& screen) {
+  void Update(std::optional<Devices::Screen>& screen) {
     for (auto entity : GetSystemEntities()) {
       auto screenshotDebug = screen->latestScreenshot.clone();
       ApplyOperations(entity, screenshotDebug);
@@ -41,6 +41,8 @@ class DetectContoursSystem : public ECS::System {
         cv::RETR_TREE,
         cv::CHAIN_APPROX_SIMPLE
     );
+
+    cv::imshow("screenshotDebug", screenshotDebug);
 
     std::vector<std::vector<cv::Point>> contoursVector(contours.size());
     std::vector<cv::Rect> boundRect(contours.size());

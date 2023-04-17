@@ -52,7 +52,37 @@ class ScriptingSystem : public ECS::System {
       lua.script_file(event.filePath);
 
       LoadScreenInfo();
-      LoadEntities();
+//      LoadEntities();
+
+      auto newEntity = ECS::Registry::Instance().CreateEntity();
+      ECS::Registry::Instance().TagEntity(newEntity, "apples-detector");
+      ECS::Registry::Instance().GroupEntity(newEntity, "group");
+      ECS::Registry::Instance().GroupEntity(newEntity, "another group");
+      ECS::Registry::Instance().AddComponent<EditableComponent>(newEntity, true);
+      ECS::Registry::Instance().AddComponent<DetectionComponent>(
+          newEntity,
+          DetectionComponent{
+              .operations =
+                  {
+                      std::make_shared<CropOperation>(
+                       App::Position(0, 0),
+                       App::Size(200, 200)
+                   ),
+                   std::make_shared<CloseOperation>(App::Size(3, 3)),
+                   std::make_shared<DilateOperation>(App::Size(3, 3)),
+                   std::make_shared<ErodeOperation>(App::Size(3, 3)),
+                   std::make_shared<OpenOperation>(App::Size(3, 3)),
+                   std::make_shared<DetectColorsOperation>(
+                       App::Color(0, 0, 50),
+                       App::Color(255, 65, 255)
+                   )}}
+      );
+      ECS::Registry::Instance().AddComponent<DetectContoursComponent>(
+          newEntity,
+          "apple",
+          App::Size(1, 1),
+          App::Color(255, 0, 0)
+      );
 
       scriptFile = event.filePath;
       scriptFileLoadedAt = std::chrono::system_clock::now();

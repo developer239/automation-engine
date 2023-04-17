@@ -9,6 +9,7 @@
 #include "ecs/System.h"
 
 #include "../components/BoundingBoxComponent.h"
+#include "../components/DetectContoursComponent.h"
 #include "../components/EditableComponent.h"
 
 class RenderEditableComponentsGUISystem : public ECS::System {
@@ -18,14 +19,25 @@ class RenderEditableComponentsGUISystem : public ECS::System {
   void Render(std::optional<Devices::Screen>& screen) {
     ImGui::Begin("Entities");
     for (auto& entity : GetSystemEntities()) {
-      auto headerLabel = "Entity " + std::to_string(entity.GetId());
+      auto editableComponent =
+          ECS::Registry::Instance().GetComponent<EditableComponent>(entity);
+      if (!editableComponent.isEditable) {
+        continue;
+      }
+
+      auto tag = ECS::Registry::Instance().GetEntityTag(entity);
+      auto headerLabel = "Entity " + (!tag.empty() ? tag : std::to_string(entity.GetId()));
       if (ImGui::CollapsingHeader(headerLabel.c_str())) {
         //
         // Tag
-        ImGui::Text(
-            "Entity tag %s",
-            ECS::Registry::Instance().GetEntityTag(entity).c_str()
-        );
+        if (!tag.empty()) {
+          ImGui::Text(
+              "Entity tag %s",
+              ECS::Registry::Instance().GetEntityTag(entity).c_str()
+          );
+        } else {
+          ImGui::Text("Entity has no tag");
+        }
 
         //
         // Groups
@@ -148,6 +160,74 @@ class RenderEditableComponentsGUISystem : public ECS::System {
 
           ImGui::SliderInt("label:X", &textLabel.position.x, 0, maxPositionX);
           ImGui::SliderInt("label:Y", &textLabel.position.y, 0, maxPositionY);
+        }
+
+        //
+        // Detect Contours
+        auto hasDetectContours =
+            ECS::Registry::Instance().HasComponent<DetectContoursComponent>(
+                entity
+            );
+        if (hasDetectContours) {
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Text("Detect Contours");
+
+          auto& detectContours =
+              ECS::Registry::Instance().GetComponent<DetectContoursComponent>(entity
+              );
+
+          char buffer[256];
+          strcpy(buffer, detectContours.id.c_str());
+
+          if (ImGui::InputText("contours:Id", buffer, 256)) {
+            detectContours.id = buffer;
+          }
+
+          //
+          // Color
+          float color[3] = {
+              static_cast<float>(detectContours.bboxColor.r) / 255.0f,
+              static_cast<float>(detectContours.bboxColor.g) / 255.0f,
+              static_cast<float>(detectContours.bboxColor.b) / 255.0f};
+          if (ImGui::ColorEdit3("contours:Color", color)) {
+            detectContours.bboxColor.r = static_cast<Uint8>(color[0] * 255.0f);
+            detectContours.bboxColor.g = static_cast<Uint8>(color[1] * 255.0f);
+            detectContours.bboxColor.b = static_cast<Uint8>(color[2] * 255.0f);
+          }
+
+          //
+          // MinSize
+          ImGui::SliderInt(
+              "contours:min-width",
+              &detectContours.minArea.width,
+              0,
+              *screen->width
+          );
+          ImGui::SliderInt(
+              "contours:min-height",
+              &detectContours.minArea.height,
+              0,
+              *screen->height
+          );
+
+          //
+          // MaxSize
+          if(detectContours.maxArea.has_value()) {
+            ImGui::SliderInt(
+                "contours:max-width",
+                &detectContours.maxArea->width,
+                detectContours.minArea.width,
+                *screen->width
+            );
+            ImGui::SliderInt(
+                "contours:max-height",
+                &detectContours.maxArea->height,
+                detectContours.minArea.height,
+                *screen->height
+            );
+          }
         }
       }
     }

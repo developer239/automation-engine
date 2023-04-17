@@ -93,6 +93,7 @@ class ECSStrategy : public Core::IStrategy {
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
+      ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen);
     }
   }
 
