@@ -5,20 +5,17 @@
 #include "../structs/Position.h"
 #include "../structs/Size.h"
 
-class Operation {
- public:
+struct Operation {
   virtual void Apply(cv::Mat& inputMatrix) = 0;
 };
 
-class MorphologyArguments : public Operation {
- public:
+struct MorphologyArguments : public Operation {
   explicit MorphologyArguments(App::Size size = {0, 0}) : size(size) {}
 
   App::Size size;
 };
 
-class CloseArguments : public MorphologyArguments {
- public:
+struct CloseArguments : public MorphologyArguments {
   explicit CloseArguments(App::Size size) : MorphologyArguments(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
@@ -31,7 +28,7 @@ class CloseArguments : public MorphologyArguments {
   }
 };
 
-class DilateArguments : public MorphologyArguments {
+struct DilateArguments : public MorphologyArguments {
   explicit DilateArguments(App::Size size) : MorphologyArguments(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
@@ -43,7 +40,7 @@ class DilateArguments : public MorphologyArguments {
   }
 };
 
-class ErodeArguments : public MorphologyArguments {
+struct ErodeArguments : public MorphologyArguments {
   explicit ErodeArguments(App::Size size) : MorphologyArguments(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
@@ -55,7 +52,7 @@ class ErodeArguments : public MorphologyArguments {
   }
 };
 
-class OpenArguments : public MorphologyArguments {
+struct OpenArguments : public MorphologyArguments {
   explicit OpenArguments(App::Size size) : MorphologyArguments(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
@@ -68,7 +65,7 @@ class OpenArguments : public MorphologyArguments {
   }
 };
 
-class DetectColorsArguments : public Operation {
+struct DetectColorsArguments : public Operation {
   explicit DetectColorsArguments(
       App::Color lowerBound = {0, 0, 0}, App::Color upperBound = {0, 0, 0}
   )
@@ -87,24 +84,25 @@ class DetectColorsArguments : public Operation {
   App::Color upperBound;
 };
 
-class CropArguments : public Operation {
- public:
-  explicit CropArguments(App::Position position = {0, 0}, App::Size size = {0, 0})
+struct CropArguments : public Operation {
+  explicit CropArguments(
+      App::Position position = {0, 0}, App::Size size = {0, 0}
+  )
       : position(position), size(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
-    inputMatrix = inputMatrix(cv::Rect(position.x, position.y, size.width, size.height));
+    inputMatrix =
+        inputMatrix(cv::Rect(position.x, position.y, size.width, size.height));
   }
 
   App::Position position;
   App::Size size;
 };
 
-class DetectionComponent {
- public:
-  std::vector<std::unique_ptr<Operation>> operations = {};
+struct DetectionComponent {
+  std::vector<std::shared_ptr<Operation>> operations = {};
 
-  void AddArguments(std::unique_ptr<Operation> args) {
+  void AddArguments(std::shared_ptr<Operation> args) {
     operations.push_back(std::move(args));
   }
 };
