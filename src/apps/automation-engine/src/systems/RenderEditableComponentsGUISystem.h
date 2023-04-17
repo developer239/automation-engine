@@ -10,6 +10,7 @@
 
 #include "../components/BoundingBoxComponent.h"
 #include "../components/DetectContoursComponent.h"
+#include "../components/DetectionComponent.h"
 #include "../components/EditableComponent.h"
 
 class RenderEditableComponentsGUISystem : public ECS::System {
@@ -26,7 +27,8 @@ class RenderEditableComponentsGUISystem : public ECS::System {
       }
 
       auto tag = ECS::Registry::Instance().GetEntityTag(entity);
-      auto headerLabel = "Entity " + (!tag.empty() ? tag : std::to_string(entity.GetId()));
+      auto headerLabel =
+          "Entity " + (!tag.empty() ? tag : std::to_string(entity.GetId()));
       if (ImGui::CollapsingHeader(headerLabel.c_str())) {
         //
         // Tag
@@ -163,6 +165,126 @@ class RenderEditableComponentsGUISystem : public ECS::System {
         }
 
         //
+        // Detect
+        auto hasDetectionComponent =
+            ECS::Registry::Instance().HasComponent<DetectionComponent>(entity);
+        if (hasDetectionComponent) {
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Text("Detection");
+
+          auto& detectionComponent =
+              ECS::Registry::Instance().GetComponent<DetectionComponent>(entity
+              );
+
+          for (auto& operation : detectionComponent.operations) {
+            //
+            // Crop
+            auto cropArgs = dynamic_cast<CropOperation*>(operation.get());
+            if (cropArgs) {
+              auto typeName = typeid(*cropArgs).name();
+              ImGui::Text(typeName);
+              auto labelCrop = typeName + std::string(":lb");
+
+              //
+              // Position
+              ImGui::Text("op:Position");
+              ImGui::SliderInt(
+                  "op:position:x",
+                  &cropArgs->position.x,
+                  1,
+                  *screen->width - cropArgs->size.width
+              );
+              ImGui::SliderInt(
+                  "op:position:y",
+                  &cropArgs->position.y,
+                  1,
+                  *screen->height - cropArgs->size.height
+              );
+
+              //
+              // Size
+              ImGui::Text("op:Size");
+              ImGui::SliderInt(
+                  "crop:width",
+                  &cropArgs->size.width,
+                  1,
+                  *screen->width - cropArgs->position.x
+              );
+              ImGui::SliderInt(
+                  "crop:height",
+                  &cropArgs->size.height,
+                  1,
+                  *screen->height - cropArgs->position.y
+              );
+            }
+
+            //
+            // Colors
+            auto colorsArgs =
+                dynamic_cast<DetectColorsOperation*>(operation.get());
+            if (colorsArgs) {
+              auto typeName = typeid(*colorsArgs).name();
+              ImGui::Text(typeName);
+
+              auto labelLb = typeName + std::string(":lb");
+              float colorLb[3] = {
+                  static_cast<float>(colorsArgs->lowerBound.r) / 255.0f,
+                  static_cast<float>(colorsArgs->lowerBound.g) / 255.0f,
+                  static_cast<float>(colorsArgs->lowerBound.b) / 255.0f};
+              if (ImGui::ColorEdit3(labelLb.c_str(), colorLb)) {
+                colorsArgs->lowerBound.r =
+                    static_cast<Uint8>(colorLb[0] * 255.0f);
+                colorsArgs->lowerBound.g =
+                    static_cast<Uint8>(colorLb[1] * 255.0f);
+                colorsArgs->lowerBound.b =
+                    static_cast<Uint8>(colorLb[2] * 255.0f);
+              }
+
+              auto labelUb = typeName + std::string(":ub");
+              float colorUb[3] = {
+                  static_cast<float>(colorsArgs->upperBound.r) / 255.0f,
+                  static_cast<float>(colorsArgs->upperBound.g) / 255.0f,
+                  static_cast<float>(colorsArgs->upperBound.b) / 255.0f};
+              if (ImGui::ColorEdit3(labelUb.c_str(), colorUb)) {
+                colorsArgs->upperBound.r =
+                    static_cast<Uint8>(colorUb[0] * 255.0f);
+                colorsArgs->upperBound.g =
+                    static_cast<Uint8>(colorUb[1] * 255.0f);
+                colorsArgs->upperBound.b =
+                    static_cast<Uint8>(colorUb[2] * 255.0f);
+              }
+            }
+
+            //
+            // Morphology
+            auto morphArgs =
+                dynamic_cast<MorphologyOperation*>(operation.get());
+            if (morphArgs) {
+              auto typeName = typeid(*morphArgs).name();
+              ImGui::Text(typeName);
+              //
+              // MinSize
+              auto labelWidth = typeName + std::string(":width");
+              ImGui::SliderInt(
+                  labelWidth.c_str(),
+                  &morphArgs->size.width,
+                  1,
+                  100
+              );
+              auto labelHeight = typeName + std::string(":height");
+              ImGui::SliderInt(
+                  labelHeight.c_str(),
+                  &morphArgs->size.height,
+                  1,
+                  100
+              );
+            }
+          }
+        }
+
+        //
         // Detect Contours
         auto hasDetectContours =
             ECS::Registry::Instance().HasComponent<DetectContoursComponent>(
@@ -175,9 +297,16 @@ class RenderEditableComponentsGUISystem : public ECS::System {
           ImGui::Text("Detect Contours");
 
           auto& detectContours =
-              ECS::Registry::Instance().GetComponent<DetectContoursComponent>(entity
+              ECS::Registry::Instance().GetComponent<DetectContoursComponent>(
+                  entity
               );
 
+          //
+          // Preview
+          ImGui::Checkbox("Contours", &detectContours.shouldRenderPreview);
+
+          //
+          // Id
           char buffer[256];
           strcpy(buffer, detectContours.id.c_str());
 
@@ -214,7 +343,7 @@ class RenderEditableComponentsGUISystem : public ECS::System {
 
           //
           // MaxSize
-          if(detectContours.maxArea.has_value()) {
+          if (detectContours.maxArea.has_value()) {
             ImGui::SliderInt(
                 "contours:max-width",
                 &detectContours.maxArea->width,

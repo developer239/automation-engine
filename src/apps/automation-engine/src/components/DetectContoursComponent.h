@@ -20,4 +20,5 @@ struct DetectContoursComponent {
   App::Size minArea;
   App::Color bboxColor;
   std::optional<App::Size> maxArea;
+  bool shouldRenderPreview = false;
 };

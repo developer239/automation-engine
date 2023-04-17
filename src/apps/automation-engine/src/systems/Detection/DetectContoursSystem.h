@@ -18,22 +18,46 @@ class DetectContoursSystem : public ECS::System {
     for (auto entity : GetSystemEntities()) {
       auto screenshotDebug = screen->latestScreenshot.clone();
       ApplyOperations(entity, screenshotDebug);
-      DetectContours(entity, screenshotDebug);
+      DetectContours(entity, screenshotDebug, screen);
     }
   }
 
  private:
-  void ApplyOperations(ECS::Entity& entity, cv::Mat& inputMatrix) {
+  // Note: possibly generalize
+  void ApplyOperations(ECS::Entity& entity, cv::Mat& screenshotDebug) {
     auto detectionComponent =
         ECS::Registry::Instance().GetComponent<DetectionComponent>(entity);
 
     for (auto& operation : detectionComponent.operations) {
-      operation->Apply(inputMatrix);
+      operation->Apply(screenshotDebug);
     }
   }
 
-  void DetectContours(ECS::Entity& entity, cv::Mat& screenshotDebug) {
+  // Note: possibly generalize
+  void RenderPreview(App::Position offset, cv::Mat screenshotDebug, cv::Mat& outputScreenshot) {
+    if(screenshotDebug.channels() == 1) {
+      cv::cvtColor(screenshotDebug, screenshotDebug, cv::COLOR_GRAY2BGR);
+    }
+
+    for (auto row = 0; row < screenshotDebug.rows; row++) {
+      for (auto col = 0; col < screenshotDebug.cols; col++) {
+        int targetRow = row + offset.y;
+        int targetCol = col + offset.x;
+
+        outputScreenshot.at<cv::Vec3b>(
+            targetRow,
+            targetCol
+        ) = screenshotDebug.at<cv::Vec3b>(row, col);
+      }
+    }
+  }
+
+  void DetectContours(ECS::Entity& entity, cv::Mat& screenshotDebug, std::optional<Devices::Screen>& screen) {
     std::vector<std::vector<cv::Point>> contours;
+
+    if (screenshotDebug.channels() > 1) {
+      cv::cvtColor(screenshotDebug, screenshotDebug, cv::COLOR_BGR2GRAY);
+    }
 
     cv::findContours(
         screenshotDebug,
@@ -41,8 +65,6 @@ class DetectContoursSystem : public ECS::System {
         cv::RETR_TREE,
         cv::CHAIN_APPROX_SIMPLE
     );
-
-    cv::imshow("screenshotDebug", screenshotDebug);
 
     std::vector<std::vector<cv::Point>> contoursVector(contours.size());
     std::vector<cv::Rect> boundRect(contours.size());
@@ -74,6 +96,8 @@ class DetectContoursSystem : public ECS::System {
         ECS::Registry::Instance().GroupEntity(match, group);
 
         App::Position offset = {0, 0};
+        offset.x += *screen->windowX;
+        offset.y += *screen->windowY;
 
         auto detectionComponent =
             ECS::Registry::Instance().GetComponent<DetectionComponent>(entity);
@@ -94,6 +118,10 @@ class DetectContoursSystem : public ECS::System {
             App::Size({rect.width, rect.height}),
             contoursComponent.bboxColor
         );
+
+        if(contoursComponent.shouldRenderPreview) {
+          RenderPreview(offset, screenshotDebug, screen->latestScreenshot);
+        }
       }
     }
   }
