@@ -9,14 +9,14 @@ struct Operation {
   virtual void Apply(cv::Mat& inputMatrix) = 0;
 };
 
-struct MorphologyArguments : public Operation {
-  explicit MorphologyArguments(App::Size size = {0, 0}) : size(size) {}
+struct MorphologyOperation : public Operation {
+  explicit MorphologyOperation(App::Size size = {0, 0}) : size(size) {}
 
   App::Size size;
 };
 
-struct CloseArguments : public MorphologyArguments {
-  explicit CloseArguments(App::Size size) : MorphologyArguments(size) {}
+struct CloseOperation : public MorphologyOperation {
+  explicit CloseOperation(App::Size size) : MorphologyOperation(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
     cv::morphologyEx(
@@ -28,8 +28,8 @@ struct CloseArguments : public MorphologyArguments {
   }
 };
 
-struct DilateArguments : public MorphologyArguments {
-  explicit DilateArguments(App::Size size) : MorphologyArguments(size) {}
+struct DilateOperation : public MorphologyOperation {
+  explicit DilateOperation(App::Size size) : MorphologyOperation(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
     cv::dilate(
@@ -40,8 +40,8 @@ struct DilateArguments : public MorphologyArguments {
   }
 };
 
-struct ErodeArguments : public MorphologyArguments {
-  explicit ErodeArguments(App::Size size) : MorphologyArguments(size) {}
+struct ErodeOperation : public MorphologyOperation {
+  explicit ErodeOperation(App::Size size) : MorphologyOperation(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
     cv::erode(
@@ -52,8 +52,8 @@ struct ErodeArguments : public MorphologyArguments {
   }
 };
 
-struct OpenArguments : public MorphologyArguments {
-  explicit OpenArguments(App::Size size) : MorphologyArguments(size) {}
+struct OpenOperation : public MorphologyOperation {
+  explicit OpenOperation(App::Size size) : MorphologyOperation(size) {}
 
   void Apply(cv::Mat& inputMatrix) override {
     cv::morphologyEx(
@@ -65,8 +65,8 @@ struct OpenArguments : public MorphologyArguments {
   }
 };
 
-struct DetectColorsArguments : public Operation {
-  explicit DetectColorsArguments(
+struct DetectColorsOperation : public Operation {
+  explicit DetectColorsOperation(
       App::Color lowerBound = {0, 0, 0}, App::Color upperBound = {0, 0, 0}
   )
       : lowerBound(lowerBound), upperBound(upperBound) {}
@@ -84,8 +84,8 @@ struct DetectColorsArguments : public Operation {
   App::Color upperBound;
 };
 
-struct CropArguments : public Operation {
-  explicit CropArguments(
+struct CropOperation : public Operation {
+  explicit CropOperation(
       App::Position position = {0, 0}, App::Size size = {0, 0}
   )
       : position(position), size(size) {}

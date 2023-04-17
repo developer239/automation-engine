@@ -76,7 +76,7 @@ class DetectContoursSystem : public ECS::System {
         auto detectionComponent =
             ECS::Registry::Instance().GetComponent<DetectionComponent>(entity);
         for (auto& operation : detectionComponent.operations) {
-          auto cropArgs = dynamic_cast<CropArguments*>(operation.get());
+          auto cropArgs = dynamic_cast<CropOperation*>(operation.get());
           if (cropArgs != nullptr) {
             offset.x = cropArgs->position.x;
             offset.y = cropArgs->position.y;
