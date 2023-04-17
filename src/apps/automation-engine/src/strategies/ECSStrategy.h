@@ -19,6 +19,7 @@
 #include "../layout/LoggingWindow.h"
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
+#include "../systems/Detection/DetectContoursSystem.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
@@ -43,6 +44,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
     ECS::Registry::Instance().AddSystem<RenderBoundingBoxSystem>();
     ECS::Registry::Instance().AddSystem<RenderEditableComponentsGUISystem>();
+    ECS::Registry::Instance().AddSystem<DetectContoursSystem>();
 
     //
     // Initialize windows
