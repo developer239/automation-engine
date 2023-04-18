@@ -183,6 +183,9 @@ class RenderEditableComponentsGUISystem : public ECS::System {
             // Crop
             auto cropArgs = dynamic_cast<CropOperation*>(operation.get());
             if (cropArgs) {
+              ImGui::Spacing();
+              ImGui::Spacing();
+              ImGui::Spacing();
               auto typeName = typeid(*cropArgs).name();
               ImGui::Text(typeName);
               auto labelCrop = typeName + std::string(":lb");
@@ -226,35 +229,71 @@ class RenderEditableComponentsGUISystem : public ECS::System {
                 dynamic_cast<DetectColorsOperation*>(operation.get());
             if (colorsArgs) {
               auto typeName = typeid(*colorsArgs).name();
+              ImGui::Spacing();
+              ImGui::Spacing();
+              ImGui::Spacing();
               ImGui::Text(typeName);
 
-              auto labelLb = typeName + std::string(":lb");
-              float colorLb[3] = {
-                  static_cast<float>(colorsArgs->lowerBound.r) / 255.0f,
-                  static_cast<float>(colorsArgs->lowerBound.g) / 255.0f,
-                  static_cast<float>(colorsArgs->lowerBound.b) / 255.0f};
-              if (ImGui::ColorEdit3(labelLb.c_str(), colorLb)) {
-                colorsArgs->lowerBound.r =
-                    static_cast<Uint8>(colorLb[0] * 255.0f);
-                colorsArgs->lowerBound.g =
-                    static_cast<Uint8>(colorLb[1] * 255.0f);
-                colorsArgs->lowerBound.b =
-                    static_cast<Uint8>(colorLb[2] * 255.0f);
-              }
+              double minValue = 0.0;
+              double maxValue = 255.0;
 
-              auto labelUb = typeName + std::string(":ub");
-              float colorUb[3] = {
-                  static_cast<float>(colorsArgs->upperBound.r) / 255.0f,
-                  static_cast<float>(colorsArgs->upperBound.g) / 255.0f,
-                  static_cast<float>(colorsArgs->upperBound.b) / 255.0f};
-              if (ImGui::ColorEdit3(labelUb.c_str(), colorUb)) {
-                colorsArgs->upperBound.r =
-                    static_cast<Uint8>(colorUb[0] * 255.0f);
-                colorsArgs->upperBound.g =
-                    static_cast<Uint8>(colorUb[1] * 255.0f);
-                colorsArgs->upperBound.b =
-                    static_cast<Uint8>(colorUb[2] * 255.0f);
-              }
+              ImGui::Text("Lower Bound");
+              ImGui::SliderScalar(
+                  "dc:lb:r",
+                  ImGuiDataType_Double,
+                  &colorsArgs->lowerBound.r,
+                  &minValue,
+                  &maxValue,
+                  "%.0f",
+                  ImGuiSliderFlags_None
+              );
+              ImGui::SliderScalar(
+                  "dc:lb:g",
+                  ImGuiDataType_Double,
+                  &colorsArgs->lowerBound.g,
+                  &minValue,
+                  &maxValue,
+                  "%.0f",
+                  ImGuiSliderFlags_None
+              );
+              ImGui::SliderScalar(
+                  "dc:lb:b",
+                  ImGuiDataType_Double,
+                  &colorsArgs->lowerBound.b,
+                  &minValue,
+                  &maxValue,
+                  "%.0f",
+                  ImGuiSliderFlags_None
+              );
+
+              ImGui::Text("Upper Bound");
+              ImGui::SliderScalar(
+                  "dc:up:r",
+                  ImGuiDataType_Double,
+                  &colorsArgs->upperBound.r,
+                  &minValue,
+                  &maxValue,
+                  "%.0f",
+                  ImGuiSliderFlags_None
+              );
+              ImGui::SliderScalar(
+                  "dc:up:g",
+                  ImGuiDataType_Double,
+                  &colorsArgs->upperBound.g,
+                  &minValue,
+                  &maxValue,
+                  "%.0f",
+                  ImGuiSliderFlags_None
+              );
+              ImGui::SliderScalar(
+                  "dc:up:b",
+                  ImGuiDataType_Double,
+                  &colorsArgs->upperBound.b,
+                  &minValue,
+                  &maxValue,
+                  "%.0f",
+                  ImGuiSliderFlags_None
+              );
             }
 
             //
@@ -262,6 +301,9 @@ class RenderEditableComponentsGUISystem : public ECS::System {
             auto morphArgs =
                 dynamic_cast<MorphologyOperation*>(operation.get());
             if (morphArgs) {
+              ImGui::Spacing();
+              ImGui::Spacing();
+              ImGui::Spacing();
               auto typeName = typeid(*morphArgs).name();
               ImGui::Text(typeName);
               //
