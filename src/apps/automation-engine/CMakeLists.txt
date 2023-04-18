@@ -19,8 +19,18 @@ set(SOURCES
         src/systems/RenderBoundingBoxSystem.h
         src/systems/ScriptingSystem.h
         src/layout/LoadScriptWindow.h
+        src/events/ScriptFileSelectedEvent.h
+        src/layout/ManageEntitiesWindow.h
+        src/systems/RenderEditableComponentsGUISystem.h
+        src/components/EditableComponent.h
+        src/structs/Size.h
+        src/structs/Color.h
+        src/structs/Position.h
+        src/components/DetectionComponent.h
+        src/components/DetectContoursComponent.h
+        src/systems/Detection/DetectContoursSystem.h
         ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
-        src/events/ScriptFileSelectedEvent.h src/layout/ManageEntitiesWindow.h src/systems/RenderEditableComponentsGUISystem.h src/components/EditableComponent.h src/structs/Size.h src/structs/Color.h src/structs/Position.h)
+        )
 
 add_executable(${APP_NAME} ${SOURCES})
 

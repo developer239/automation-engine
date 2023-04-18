@@ -13,8 +13,10 @@ struct BoundingBoxComponent {
   int thickness;
 
   explicit BoundingBoxComponent(
-      const App::Position& position = {0, 0}, const App::Size& size = {0, 0},
-      const App::Color& color = {0, 255, 0}, int thickness = 1
+      const App::Position& position = {0, 0},
+      const App::Size& size = {0, 0},
+      const App::Color& color = {0, 255, 0},
+      int thickness = 1
   )
       : position(position), size(size), color(color), thickness(thickness) {}
 };

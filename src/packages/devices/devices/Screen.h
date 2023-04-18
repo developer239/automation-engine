@@ -20,6 +20,7 @@ class Screen {
   std::shared_ptr<int> displayId;
 
   cv::Mat imageOriginal;
+  // TODO: rename to imageOutput
   cv::Mat latestScreenshot;
 
   Screen(int w, int h, int x, int y);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <sol/sol.hpp>
 #include <vector>
 
@@ -26,6 +27,7 @@ class ScriptingSystem : public ECS::System {
     BindEntity();
     BindVector<ECS::Entity>();
     BindPrintTable();
+    BindEditableComponent();
     BindTextLabelComponent();
     BindBoundingBoxComponent();
     BindAppColorStruct();
@@ -51,8 +53,9 @@ class ScriptingSystem : public ECS::System {
     if (event.filePath != *scriptFile || isOldScriptFile) {
       lua.script_file(event.filePath);
 
+      ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
+
       LoadScreenInfo();
-      LoadEntities();
 
       scriptFile = event.filePath;
       scriptFileLoadedAt = std::chrono::system_clock::now();
@@ -77,97 +80,6 @@ class ScriptingSystem : public ECS::System {
     screen = Devices::Screen(screenWidth, screenHeight, screenX, screenY);
   }
 
-  void LoadEntities() {
-    ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
-
-    auto entities = lua["main"]["entities"];
-
-    int i = 1;
-    while (true) {
-      sol::optional<sol::table> hasEntity = entities[i];
-      if (hasEntity == sol::nullopt) {
-        break;
-      }
-
-      sol::table entity = entities[i];
-      ECS::Entity newEntity = ECS::Registry::Instance().CreateEntity();
-
-      if (entity["tag"].valid()) {
-        ECS::Registry::Instance().TagEntity(newEntity, entity["tag"]);
-      }
-
-      const sol::optional<sol::table> groupsTable = entity["groups"];
-      const sol::table defaultTable;
-      const std::vector<std::string> groups =
-          groupsTable ? groupsTable.value().as<std::vector<std::string>>()
-                      : std::vector<std::string>();
-      for (const auto& group : groups) {
-        ECS::Registry::Instance().GroupEntity(newEntity, group);
-      }
-
-      // Components
-
-      sol::optional<sol::table> hasComponents = entity["components"];
-      if (hasComponents != sol::nullopt) {
-        // Editable
-
-        // is entity["isEditable"] true
-        if (entity["isEditable"].valid() && entity["isEditable"]) {
-          ECS::Registry::Instance().AddComponent<EditableComponent>(newEntity);
-        }
-
-        // BoundingBox
-        sol::optional<sol::table> bbox = entity["components"]["boundingBox"];
-        if (bbox != sol::nullopt) {
-          ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
-              newEntity,
-              App::Position(
-                  entity["components"]["boundingBox"]["position"]["x"],
-                  entity["components"]["boundingBox"]["position"]["y"]
-              ),
-              App::Size(
-                  entity["components"]["boundingBox"]["size"]["width"],
-                  entity["components"]["boundingBox"]["size"]["height"]
-              )
-          );
-
-          sol::optional<sol::table> color =
-              entity["components"]["boundingBox"]["color"];
-
-          if (color != sol::nullopt) {
-            ECS::Registry::Instance()
-                .GetComponent<BoundingBoxComponent>(newEntity)
-                .color = App::Color(
-                entity["components"]["boundingBox"]["color"]["r"],
-                entity["components"]["boundingBox"]["color"]["g"],
-                entity["components"]["boundingBox"]["color"]["b"]
-            );
-          }
-        }
-
-        // TextLabel
-        sol::optional<sol::table> textLabel = entity["components"]["textLabel"];
-        if (textLabel != sol::nullopt) {
-          ECS::Registry::Instance().AddComponent<TextLabelComponent>(
-              newEntity,
-              entity["components"]["textLabel"]["text"],
-              App::Position(
-                  entity["components"]["textLabel"]["position"]["x"],
-                  entity["components"]["textLabel"]["position"]["y"]
-              ),
-              App::Color(
-                  entity["components"]["textLabel"]["color"]["r"],
-                  entity["components"]["textLabel"]["color"]["g"],
-                  entity["components"]["textLabel"]["color"]["b"]
-              )
-          );
-        }
-      }
-
-      i++;
-    }
-  }
-
   void BindRegistry() {
     lua.new_usertype<ECS::Registry>(
         "Registry",
@@ -177,26 +89,52 @@ class ScriptingSystem : public ECS::System {
         &ECS::Registry::CreateEntity,
         "killEntity",
         &ECS::Registry::KillEntity,
-        "tagEntity",
-        &ECS::Registry::TagEntity,
         "getEntityByTag",
         &ECS::Registry::GetEntityByTag,
-        "groupEntity",
-        &ECS::Registry::GroupEntity,
-        "getEntityGroups",
-        [this](ECS::Registry& registry, ECS::Entity entity) {
-          std::vector<std::string> groups = registry.GetEntityGroups(entity);
-          return vectorToTable<std::string>(groups);
-        },
         "getEntitiesByGroup",
-        &ECS::Registry::GetEntitiesByGroup,
-        "removeEntityGroup",
-        &ECS::Registry::RemoveEntityGroup,
-        "removeEntityGroups",
-        &ECS::Registry::RemoveEntityGroups,
+        &ECS::Registry::GetEntitiesByGroup
+    );
+  }
+
+  void BindEntity() {
+    lua.new_usertype<ECS::Entity>(
+        "Entity",
+        sol::constructors<ECS::Entity(int)>(),
+        "getId",
+        &ECS::Entity::GetId,
+        sol::meta_function::to_string,
+        &ECS::Entity::ToString,
+        "setTag",
+        [](ECS::Entity entity, const std::string& tag) {
+          ECS::Registry::Instance().TagEntity(entity, tag);
+        },
+        "getTag",
+        [](ECS::Entity entity) {
+          return ECS::Registry::Instance().GetEntityTag(entity);
+        },
+        "addGroup",
+        [](ECS::Entity entity, const std::string& group) {
+          ECS::Registry::Instance().GroupEntity(entity, group);
+        },
+        "getGroups",
+        [this](ECS::Entity entity) {
+          std::vector<std::string> groups =
+              ECS::Registry::Instance().GetEntityGroups(entity);
+          return VectorToTable<std::string>(groups);
+        },
+        "removeGroup",
+        [](ECS::Entity entity, const std::string& group) {
+          ECS::Registry::Instance().RemoveEntityGroup(entity, group);
+        },
+        "removeGroups",
+        [](ECS::Entity entity) {
+          ECS::Registry::Instance().RemoveEntityGroups(entity);
+        },
         "getComponentBoundingBox",
-        [this](ECS::Registry& registry, ECS::Entity entity) {
-          if (!registry.HasComponent<BoundingBoxComponent>(entity)) {
+        [this](ECS::Entity entity) {
+          if (!ECS::Registry::Instance().HasComponent<BoundingBoxComponent>(
+                  entity
+              )) {
             throw std::runtime_error("Entity does not have BoundingBoxComponent"
             );
           }
@@ -204,13 +142,13 @@ class ScriptingSystem : public ECS::System {
           return sol::object(
               lua,
               sol::in_place,
-              registry.GetComponent<BoundingBoxComponent>(entity)
+              ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(
+                  entity
+              )
           );
         },
         "addComponentBoundingBox",
-        [](ECS::Registry& registry,
-           ECS::Entity entity,
-           const sol::table& bboxTable) {
+        [](ECS::Entity entity, const sol::table& bboxTable) {
           auto bbox = BoundingBoxComponent(
               App::Position(
                   bboxTable["position"]["x"],
@@ -228,24 +166,43 @@ class ScriptingSystem : public ECS::System {
               bboxTable["thickness"]
           );
 
-          registry.AddComponent<BoundingBoxComponent>(entity, bbox);
+          ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
+              entity,
+              bbox
+          );
+        },
+        "getComponentEditable",
+        [this](ECS::Entity entity) {
+          if (!ECS::Registry::Instance().HasComponent<EditableComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have EditableComponent");
+          }
+
+          return sol::object(
+              lua,
+              sol::in_place,
+              ECS::Registry::Instance().GetComponent<EditableComponent>(entity)
+          );
+        },
+        "addComponentEditable",
+        [](ECS::Entity entity) {
+          ECS::Registry::Instance().AddComponent<EditableComponent>(entity);
         },
         "getComponentTextLabel",
-        [this](ECS::Registry& registry, ECS::Entity entity) {
-          if (!registry.HasComponent<TextLabelComponent>(entity)) {
+        [this](ECS::Entity entity) {
+          if (!ECS::Registry::Instance().HasComponent<TextLabelComponent>(entity
+              )) {
             throw std::runtime_error("Entity does not have TextLabelComponent");
           }
 
           return sol::object(
               lua,
               sol::in_place,
-              registry.GetComponent<TextLabelComponent>(entity)
+              ECS::Registry::Instance().GetComponent<TextLabelComponent>(entity)
           );
         },
         "addComponentTextLabel",
-        [](ECS::Registry& registry,
-           ECS::Entity entity,
-           const sol::table& bboxTable) {
+        [](ECS::Entity entity, const sol::table& bboxTable) {
           auto textLabel = TextLabelComponent(
               bboxTable["text"],
               App::Position(
@@ -259,19 +216,130 @@ class ScriptingSystem : public ECS::System {
               )
           );
 
-          registry.AddComponent<TextLabelComponent>(entity, textLabel);
-        }
-    );
-  }
+          ECS::Registry::Instance().AddComponent<TextLabelComponent>(
+              entity,
+              textLabel
+          );
+        },
+        "addComponentDetection",
+        [](ECS::Entity entity) {
+          ECS::Registry::Instance().AddComponent<DetectionComponent>(entity);
+        },
+        "addComponentDetectionMorphologyOperation",
+        [](ECS::Entity entity, std::string operationType, const sol::table& data
+        ) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
 
-  void BindEntity() {
-    lua.new_usertype<ECS::Entity>(
-        "Entity",
-        sol::constructors<ECS::Entity(int)>(),
-        "getId",
-        &ECS::Entity::GetId,
-        sol::meta_function::to_string,
-        &ECS::Entity::ToString
+          auto& detectionComponent =
+              ECS::Registry::Instance().GetComponent<DetectionComponent>(entity
+              );
+
+          if (operationType == "close") {
+            detectionComponent.AddArguments(std::make_shared<CloseOperation>(
+                App::Size(data["size"]["width"], data["size"]["height"])
+            ));
+          }
+
+          if (operationType == "dilate") {
+            detectionComponent.AddArguments(std::make_shared<DilateOperation>(
+                App::Size(data["size"]["width"], data["size"]["height"])
+            ));
+          }
+
+          if (operationType == "erode") {
+            detectionComponent.AddArguments(std::make_shared<ErodeOperation>(
+                App::Size(data["size"]["width"], data["size"]["height"])
+            ));
+          }
+
+          if (operationType == "open") {
+            detectionComponent.AddArguments(std::make_shared<OpenOperation>(
+                App::Size(data["size"]["width"], data["size"]["height"])
+            ));
+          }
+        },
+        "addComponentDetectionColorsOperation",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          auto& detectionComponent =
+              ECS::Registry::Instance().GetComponent<DetectionComponent>(entity
+              );
+
+          detectionComponent.AddArguments(
+              std::make_shared<DetectColorsOperation>(
+                  App::Color(
+                      data["lowerBound"]["r"],
+                      data["lowerBound"]["g"],
+                      data["lowerBound"]["b"]
+                  ),
+                  App::Color(
+                      data["upperBound"]["r"],
+                      data["upperBound"]["g"],
+                      data["upperBound"]["b"]
+                  )
+              )
+          );
+        },
+        "addComponentDetectionCropOperation",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          auto& detectionComponent =
+              ECS::Registry::Instance().GetComponent<DetectionComponent>(entity
+              );
+
+          detectionComponent.AddArguments(std::make_shared<CropOperation>(
+              App::Position(data["position"]["x"], data["position"]["y"]),
+              App::Size(data["size"]["width"], data["size"]["height"])
+          ));
+        },
+        "addComponentDetectContours",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          auto detectContoursComponent = DetectContoursComponent(
+              data["id"],
+              App::Size(data["minArea"]["width"], data["minArea"]["height"]),
+              App::Color(
+                  data["bboxColor"]["r"],
+                  data["bboxColor"]["g"],
+                  data["bboxColor"]["b"]
+              )
+          );
+
+          if (data["shouldRenderPreview"].valid()) {
+            detectContoursComponent.shouldRenderPreview =
+                data["shouldRenderPreview"];
+          }
+
+          if (data["bboxThickness"].valid()) {
+            detectContoursComponent.bboxThickness =
+                data["bboxThickness"];
+          }
+
+          if (data["maxArea"].valid()) {
+            detectContoursComponent.maxArea =
+                App::Size(data["maxArea"]["width"], data["maxArea"]["height"]);
+          }
+
+          ECS::Registry::Instance().AddComponent<DetectContoursComponent>(
+              entity,
+              detectContoursComponent
+          );
+        }
     );
   }
 
@@ -318,6 +386,16 @@ class ScriptingSystem : public ECS::System {
 
           return oss.str();
         }
+    );
+  }
+
+  void BindEditableComponent() {
+    lua.new_usertype<EditableComponent>(
+        "EditableComponent",
+        sol::constructors<EditableComponent(), EditableComponent(const bool&)>(
+        ),
+        "isEditable",
+        &EditableComponent::isEditable
     );
   }
 
@@ -426,7 +504,7 @@ class ScriptingSystem : public ECS::System {
   }
 
   template <typename TType>
-  sol::table vectorToTable(const std::vector<TType>& vec) {
+  sol::table VectorToTable(const std::vector<TType>& vec) {
     sol::table result = lua.create_table();
     int index = 1;
 
