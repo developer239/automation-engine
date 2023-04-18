@@ -65,7 +65,7 @@ class ScriptingSystem : public ECS::System {
               .operations =
                   {
                       std::make_shared<CropOperation>(
-                       App::Position(0, 0),
+                       App::Position(379, 230),
                        App::Size(200, 200)
                    ),
                    std::make_shared<DetectColorsOperation>(
