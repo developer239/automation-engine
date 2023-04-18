@@ -104,7 +104,7 @@ class Registry {
   }
 
   [[nodiscard]] std::string GetEntityTag(Entity entity) const {
-    if(!tagPerEntity.empty()) {
+    if (!tagPerEntity.empty()) {
       return tagPerEntity.at(entity.GetId());
     }
 

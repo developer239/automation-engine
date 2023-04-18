@@ -124,8 +124,6 @@ class DetectContoursSystem : public ECS::System {
     }
 
     App::Position offset = {0, 0};
-    offset.x += *screen->windowX;
-    offset.y += *screen->windowY;
 
     auto detectionComponent =
         ECS::Registry::Instance().GetComponent<DetectionComponent>(entity);
@@ -160,7 +158,8 @@ class DetectContoursSystem : public ECS::System {
             match,
             App::Position({targetX, targetY}),
             App::Size({rect.width, rect.height}),
-            contoursComponent.bboxColor
+            contoursComponent.bboxColor,
+                contoursComponent.bboxThickness
         );
       }
     }
