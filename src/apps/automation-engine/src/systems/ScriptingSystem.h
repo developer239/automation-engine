@@ -68,10 +68,6 @@ class ScriptingSystem : public ECS::System {
                        App::Position(0, 0),
                        App::Size(200, 200)
                    ),
-                   std::make_shared<CloseOperation>(App::Size(3, 3)),
-                   std::make_shared<DilateOperation>(App::Size(3, 3)),
-                   std::make_shared<ErodeOperation>(App::Size(3, 3)),
-                   std::make_shared<OpenOperation>(App::Size(3, 3)),
                    std::make_shared<DetectColorsOperation>(
                        App::Color(0, 0, 50),
                        App::Color(255, 65, 255)
@@ -80,37 +76,7 @@ class ScriptingSystem : public ECS::System {
       ECS::Registry::Instance().AddComponent<DetectContoursComponent>(
           newEntity,
           "apple",
-          App::Size(1, 1),
-          App::Color(255, 0, 0)
-      );
-
-      auto anotherEntity = ECS::Registry::Instance().CreateEntity();
-      ECS::Registry::Instance().TagEntity(anotherEntity, "star-detector");
-      ECS::Registry::Instance().GroupEntity(anotherEntity, "start");
-      ECS::Registry::Instance().GroupEntity(anotherEntity, "star group");
-      ECS::Registry::Instance().AddComponent<EditableComponent>(anotherEntity, true);
-      ECS::Registry::Instance().AddComponent<DetectionComponent>(
-          anotherEntity,
-          DetectionComponent{
-              .operations =
-                  {
-                      std::make_shared<CropOperation>(
-                       App::Position(0, 0),
-                       App::Size(200, 200)
-                   ),
-                   std::make_shared<CloseOperation>(App::Size(3, 3)),
-                   std::make_shared<DilateOperation>(App::Size(3, 3)),
-                   std::make_shared<ErodeOperation>(App::Size(3, 3)),
-                   std::make_shared<OpenOperation>(App::Size(3, 3)),
-                   std::make_shared<DetectColorsOperation>(
-                       App::Color(0, 0, 50),
-                       App::Color(255, 65, 255)
-                   )}}
-      );
-      ECS::Registry::Instance().AddComponent<DetectContoursComponent>(
-          anotherEntity,
-          "star",
-          App::Size(1, 1),
+          App::Size(5, 5),
           App::Color(255, 0, 0)
       );
 
