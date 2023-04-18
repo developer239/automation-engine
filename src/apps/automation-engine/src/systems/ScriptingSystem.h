@@ -9,6 +9,7 @@
 #include "events/Bus.h"
 
 #include "../components/EditableComponent.h"
+#include "../components/DetectTextComponent.h"
 
 class ScriptingSystem : public ECS::System {
  public:
@@ -338,6 +339,37 @@ class ScriptingSystem : public ECS::System {
           ECS::Registry::Instance().AddComponent<DetectContoursComponent>(
               entity,
               detectContoursComponent
+          );
+        },
+        "addComponentDetectText",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          auto detectTextComponent = DetectTextComponent(
+              data["id"],
+              App::Color(
+                  data["bboxColor"]["r"],
+                  data["bboxColor"]["g"],
+                  data["bboxColor"]["b"]
+              )
+          );
+
+          if (data["shouldRenderPreview"].valid()) {
+            detectTextComponent.shouldRenderPreview =
+                data["shouldRenderPreview"];
+          }
+
+          if (data["bboxThickness"].valid()) {
+            detectTextComponent.bboxThickness =
+                data["bboxThickness"];
+          }
+
+          ECS::Registry::Instance().AddComponent<DetectTextComponent>(
+              entity,
+              detectTextComponent
           );
         }
     );
