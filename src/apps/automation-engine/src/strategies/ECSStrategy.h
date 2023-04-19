@@ -95,7 +95,8 @@ class ECSStrategy : public Core::IStrategy {
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
-      ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen);
+      ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen
+      );
       ECS::Registry::Instance().GetSystem<DetectTextSystem>().Update(screen);
     }
   }
@@ -115,6 +116,12 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnAfterRender(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance().GetSystem<GUISystem>().AfterRender();
+  }
+
+  ~ECSStrategy() {
+    // for some reason std::unique_ptr<tesseract::TessBaseAPI> api; is not
+    // cleared unless the system is removed
+    ECS::Registry::Instance().RemoveSystem<DetectTextSystem>();
   }
 
  private:
