@@ -43,9 +43,20 @@ void Keyboard::PressAndRelease(int key) {
 int Keyboard::MapASCIIToVirtualKey(char key) {
   auto it = asciiToVirtualKey.find(key);
   if (it == asciiToVirtualKey.end()) {
-    throw std::invalid_argument("Unsupported key");
+    return -1;
   }
+
   return it->second;
+}
+
+char Keyboard::MapVirtualKeyToASCII(int key) {
+  for (auto it = asciiToVirtualKey.begin(); it != asciiToVirtualKey.end(); ++it) {
+    if (it->second == key) {
+      return it->first;
+    }
+  }
+
+  return '\0';
 }
 
 std::map<char, int> Keyboard::asciiToVirtualKey = {

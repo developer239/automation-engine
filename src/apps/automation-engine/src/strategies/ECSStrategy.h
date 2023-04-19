@@ -40,7 +40,7 @@ class ECSStrategy : public Core::IStrategy {
     //
     // Initialize systems
 
-    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen);
+    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen, isRunning);
     ECS::Registry::Instance().AddSystem<ScreenSystem>();
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
@@ -73,26 +73,24 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<LoadScriptWindow>(),
+        std::make_unique<LoadScriptWindow>(isRunning),
         GUISystemLayoutNodePosition::LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<ManageEntitiesWindow>(screen),
         GUISystemLayoutNodePosition::LEFT
     );
-  }
 
-  void HandleEvent(SDL_Event& event) override {
-    Events::Bus::Instance().EmitEvent<KeyPressedEvent>(event);
-  }
-
-  void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance()
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
         .SubscribeToEvents();
     ECS::Registry::Instance().GetSystem<ScriptingSystem>().SubscribeToEvents();
+  }
 
+  void HandleEvent(SDL_Event& event) override {}
+
+  void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance().Update();
 
     if (screen.has_value()) {
@@ -129,4 +127,5 @@ class ECSStrategy : public Core::IStrategy {
 
  private:
   std::optional<Devices::Screen> screen;
+  bool isRunning;
 };

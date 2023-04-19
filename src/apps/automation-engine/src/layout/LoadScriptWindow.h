@@ -14,6 +14,8 @@
 
 class LoadScriptWindow : public IGUISystemWindow {
  public:
+  explicit LoadScriptWindow(bool& isRunning) : isRunning(isRunning) {}
+
   std::vector<MessageEvent> messages = {};
 
   std::string GetName() override { return "Load Script"; }
@@ -57,10 +59,20 @@ class LoadScriptWindow : public IGUISystemWindow {
       ImGuiFileDialog::Instance()->Close();
     }
 
+    if (filePathName.length() > 0) {
+      ImGui::Spacing();
+      ImGui::Spacing();
+      ImGui::Spacing();
+      if (ImGui::Button(isRunning ? "Stop [p]" : "Run [p]")) {
+        isRunning = !isRunning;
+      }
+    }
+
     ImGui::End();
   }
 
  private:
+  bool& isRunning;
   std::string filePathName;
 
   // TODO: run in separate thread

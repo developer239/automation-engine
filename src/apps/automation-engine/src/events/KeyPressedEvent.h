@@ -6,7 +6,8 @@
 
 class KeyPressedEvent : public Events::EventBase {
  public:
-  SDL_Event sdlEvent;
+  std::string asciiSymbol;
 
-  explicit KeyPressedEvent(SDL_Event sdlEvent) { this->sdlEvent = sdlEvent; }
+  explicit KeyPressedEvent(std::string& asciiSymbol)
+      : asciiSymbol(asciiSymbol) {}
 };

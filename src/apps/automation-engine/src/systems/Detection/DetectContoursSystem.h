@@ -6,7 +6,7 @@
 #include "../../components/BoundingBoxComponent.h"
 #include "../../components/DetectContoursComponent.h"
 #include "../../components/DetectionComponent.h"
-#include "./DetectonSystemBase.h"
+#include "./DetectionSystemBase.h"
 
 class DetectContoursSystem : public DetectionSystemBase {
  public:

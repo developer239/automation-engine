@@ -8,13 +8,14 @@
 #include "ecs/System.h"
 #include "events/Bus.h"
 
-#include "../components/EditableComponent.h"
 #include "../components/DetectTextComponent.h"
+#include "../components/EditableComponent.h"
+#include "../services/GlobalKeyboardListener.h"
 
 class ScriptingSystem : public ECS::System {
  public:
-  ScriptingSystem(std::optional<Devices::Screen>& screen)
-      : screen(screen), lua() {
+  ScriptingSystem(std::optional<Devices::Screen>& screen, bool& isRunning)
+      : screen(screen), lua(), isRunning(isRunning) {
     lua.open_libraries(
         sol::lib::base,
         sol::lib::package,
@@ -48,18 +49,13 @@ class ScriptingSystem : public ECS::System {
   }
 
   void OnKeyPressedEvent(KeyPressedEvent& event) {
-    std::cout << "ScriptingSystem::OnKeyPressedEvent" << std::endl;
+    if(event.asciiSymbol == "p") {
+      isRunning = !isRunning;
+    }
   }
 
   void OnFileSelected(ScriptFileSelectedEvent& event) {
-    // NOTE: it seems that ScriptFileSelectedEvent is be emitted multiple times
-    bool isOldScriptFile =
-        std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now() - scriptFileLoadedAt
-        )
-            .count() > 1;
-
-    if (event.filePath != *scriptFile || isOldScriptFile) {
+    if (event.filePath != *scriptFile) {
       lua.script_file(event.filePath);
 
       ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
@@ -67,16 +63,21 @@ class ScriptingSystem : public ECS::System {
       LoadScreenInfo();
 
       scriptFile = event.filePath;
-      scriptFileLoadedAt = std::chrono::system_clock::now();
     }
   }
 
-  void Update() { lua["main"]["onRender"](); }
+  void Update() {
+    if(isRunning) {
+      lua["main"]["onUpdate"]();
+    }
+  }
 
  private:
+  bool& isRunning;
+  GlobalKeyboardListener globalKeyboardListener = GlobalKeyboardListener();
+
   std::optional<Devices::Screen>& screen;
 
-  std::chrono::time_point<std::chrono::system_clock> scriptFileLoadedAt;
   std::optional<std::string> scriptFile;
   sol::state lua;
 

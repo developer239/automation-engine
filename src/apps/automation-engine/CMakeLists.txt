@@ -2,6 +2,7 @@ set(APP_NAME AppAutomationEngine)
 set(APP_FOLDER_NAME automation-engine)
 
 set(SOURCES
+        ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
         src/events/MessageEvent.h
         src/layout/ImageStreamWindow.h
         src/layout/ImageStreamWindowControlsWindow.h
@@ -29,8 +30,11 @@ set(SOURCES
         src/components/DetectionComponent.h
         src/components/DetectContoursComponent.h
         src/systems/Detection/DetectContoursSystem.h
-        ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
-        src/components/DetectTextComponent.h src/systems/Detection/DetectonSystemBase.h src/events/KeyPressedEvent.h)
+        src/components/DetectTextComponent.h
+        src/systems/Detection/DetectionSystemBase.h
+        src/events/KeyPressedEvent.h
+        src/services/GlobalKeyboardListener.cpp
+        )
 
 add_executable(${APP_NAME} ${SOURCES})
 

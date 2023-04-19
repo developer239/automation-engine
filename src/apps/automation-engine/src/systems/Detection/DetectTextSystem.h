@@ -12,7 +12,7 @@
 #include "../../components/DetectContoursComponent.h"
 #include "../../components/DetectTextComponent.h"
 #include "../../components/DetectionComponent.h"
-#include "./DetectonSystemBase.h"
+#include "./DetectionSystemBase.h"
 
 struct PixDeleter {
   void operator()(Pix* pix) const {

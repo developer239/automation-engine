@@ -40,8 +40,9 @@ class Keyboard {
 
   void PressAndRelease(int key);
 
-  // TODO: support special characters
   int MapASCIIToVirtualKey(char key);
+
+  char MapVirtualKeyToASCII(int key);
 
  private:
   static std::map<char, int> asciiToVirtualKey;
