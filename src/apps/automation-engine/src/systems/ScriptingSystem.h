@@ -8,6 +8,7 @@
 #include "ecs/System.h"
 #include "events/Bus.h"
 
+#include "../components/DetectObjectsComponent.h"
 #include "../components/DetectTextComponent.h"
 #include "../components/EditableComponent.h"
 #include "../services/GlobalKeyboardListener.h"
@@ -49,7 +50,7 @@ class ScriptingSystem : public ECS::System {
   }
 
   void OnKeyPressedEvent(KeyPressedEvent& event) {
-    if(event.asciiSymbol == "p") {
+    if (event.asciiSymbol == "p") {
       isRunning = !isRunning;
     }
   }
@@ -67,7 +68,7 @@ class ScriptingSystem : public ECS::System {
   }
 
   void Update() {
-    if(isRunning) {
+    if (isRunning) {
       lua["main"]["onUpdate"]();
     }
   }
@@ -336,8 +337,7 @@ class ScriptingSystem : public ECS::System {
           }
 
           if (data["bboxThickness"].valid()) {
-            detectContoursComponent.bboxThickness =
-                data["bboxThickness"];
+            detectContoursComponent.bboxThickness = data["bboxThickness"];
           }
 
           if (data["maxArea"].valid()) {
@@ -372,13 +372,28 @@ class ScriptingSystem : public ECS::System {
           }
 
           if (data["bboxThickness"].valid()) {
-            detectTextComponent.bboxThickness =
-                data["bboxThickness"];
+            detectTextComponent.bboxThickness = data["bboxThickness"];
           }
 
           ECS::Registry::Instance().AddComponent<DetectTextComponent>(
               entity,
               detectTextComponent
+          );
+        },
+        "addComponentDetectObjects",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          ECS::Registry::Instance().AddComponent<DetectObjectsComponent>(
+              entity,
+              data["id"],
+              data["confidenceThreshold"],
+              data["nonMaximumSuppressionThreshold"],
+              data["pathToModel"],
+              data["pathToClasses"]
           );
         }
     );

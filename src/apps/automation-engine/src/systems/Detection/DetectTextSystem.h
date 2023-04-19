@@ -8,8 +8,6 @@
 #include "devices/Screen.h"
 #include "ecs/System.h"
 
-#include "../../components/BoundingBoxComponent.h"
-#include "../../components/DetectContoursComponent.h"
 #include "../../components/DetectTextComponent.h"
 #include "../../components/DetectionComponent.h"
 #include "./DetectionSystemBase.h"
