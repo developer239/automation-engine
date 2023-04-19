@@ -10,6 +10,7 @@
 
 #include "../components/BoundingBoxComponent.h"
 #include "../components/DetectContoursComponent.h"
+#include "../components/DetectTextComponent.h"
 #include "../components/DetectionComponent.h"
 #include "../components/EditableComponent.h"
 
@@ -398,6 +399,49 @@ class RenderEditableComponentsGUISystem : public ECS::System {
                 detectContours.minArea.height,
                 *screen->height
             );
+          }
+        }
+
+        //
+        // Detect Text
+        auto hasDetectText =
+            ECS::Registry::Instance().HasComponent<DetectTextComponent>(
+                entity
+            );
+        if (hasDetectText) {
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Text("Detect Text");
+
+          auto& detectText =
+              ECS::Registry::Instance().GetComponent<DetectTextComponent>(
+                  entity
+              );
+
+          //
+          // Preview
+          ImGui::Checkbox("Contours", &detectText.shouldRenderPreview);
+
+          //
+          // Id
+          char buffer[256];
+          strcpy(buffer, detectText.id.c_str());
+
+          if (ImGui::InputText("d:text:Id", buffer, 256)) {
+            detectText.id = buffer;
+          }
+
+          //
+          // Color
+          float color[3] = {
+              static_cast<float>(detectText.bboxColor.r) / 255.0f,
+              static_cast<float>(detectText.bboxColor.g) / 255.0f,
+              static_cast<float>(detectText.bboxColor.b) / 255.0f};
+          if (ImGui::ColorEdit3("detectText:Color", color)) {
+            detectText.bboxColor.r = static_cast<Uint8>(color[0] * 255.0f);
+            detectText.bboxColor.g = static_cast<Uint8>(color[1] * 255.0f);
+            detectText.bboxColor.b = static_cast<Uint8>(color[2] * 255.0f);
           }
         }
       }

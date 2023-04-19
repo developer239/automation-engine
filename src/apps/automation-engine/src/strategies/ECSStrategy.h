@@ -12,6 +12,7 @@
 #include "events/Bus.h"
 
 #include "../components/TextLabelComponent.h"
+#include "../events/KeyPressedEvent.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
@@ -20,6 +21,7 @@
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../systems/Detection/DetectContoursSystem.h"
+#include "../systems/Detection/DetectTextSystem.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
@@ -38,13 +40,14 @@ class ECSStrategy : public Core::IStrategy {
     //
     // Initialize systems
 
-    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen);
+    ECS::Registry::Instance().AddSystem<ScriptingSystem>(screen, isRunning);
     ECS::Registry::Instance().AddSystem<ScreenSystem>();
     ECS::Registry::Instance().AddSystem<GUISystem>();
     ECS::Registry::Instance().AddSystem<RenderTextSystem>();
     ECS::Registry::Instance().AddSystem<RenderBoundingBoxSystem>();
     ECS::Registry::Instance().AddSystem<RenderEditableComponentsGUISystem>();
     ECS::Registry::Instance().AddSystem<DetectContoursSystem>();
+    ECS::Registry::Instance().AddSystem<DetectTextSystem>();
 
     //
     // Initialize windows
@@ -70,30 +73,32 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<LoadScriptWindow>(),
+        std::make_unique<LoadScriptWindow>(isRunning),
         GUISystemLayoutNodePosition::LEFT
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<ManageEntitiesWindow>(screen),
         GUISystemLayoutNodePosition::LEFT
     );
-  }
 
-  void HandleEvent(SDL_Event& event) override {}
-
-  void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance()
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
         .SubscribeToEvents();
     ECS::Registry::Instance().GetSystem<ScriptingSystem>().SubscribeToEvents();
+  }
 
+  void HandleEvent(SDL_Event& event) override {}
+
+  void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance().Update();
 
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
-      ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen);
+      ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen
+      );
+      ECS::Registry::Instance().GetSystem<DetectTextSystem>().Update(screen);
     }
   }
 
@@ -114,6 +119,13 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().GetSystem<GUISystem>().AfterRender();
   }
 
+  ~ECSStrategy() {
+    // for some reason std::unique_ptr<tesseract::TessBaseAPI> api; is not
+    // cleared unless the system is removed
+    ECS::Registry::Instance().RemoveSystem<DetectTextSystem>();
+  }
+
  private:
   std::optional<Devices::Screen> screen;
+  bool isRunning;
 };

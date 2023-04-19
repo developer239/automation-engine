@@ -8,12 +8,14 @@
 #include "ecs/System.h"
 #include "events/Bus.h"
 
+#include "../components/DetectTextComponent.h"
 #include "../components/EditableComponent.h"
+#include "../services/GlobalKeyboardListener.h"
 
 class ScriptingSystem : public ECS::System {
  public:
-  ScriptingSystem(std::optional<Devices::Screen>& screen)
-      : screen(screen), lua() {
+  ScriptingSystem(std::optional<Devices::Screen>& screen, bool& isRunning)
+      : screen(screen), lua(), isRunning(isRunning) {
     lua.open_libraries(
         sol::lib::base,
         sol::lib::package,
@@ -40,17 +42,20 @@ class ScriptingSystem : public ECS::System {
         this,
         &ScriptingSystem::OnFileSelected
     );
+    Events::Bus::Instance().SubscribeToEvent<KeyPressedEvent>(
+        this,
+        &ScriptingSystem::OnKeyPressedEvent
+    );
+  }
+
+  void OnKeyPressedEvent(KeyPressedEvent& event) {
+    if(event.asciiSymbol == "p") {
+      isRunning = !isRunning;
+    }
   }
 
   void OnFileSelected(ScriptFileSelectedEvent& event) {
-    // NOTE: it seems that ScriptFileSelectedEvent is be emitted multiple times
-    bool isOldScriptFile =
-        std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now() - scriptFileLoadedAt
-        )
-            .count() > 1;
-
-    if (event.filePath != *scriptFile || isOldScriptFile) {
+    if (event.filePath != *scriptFile) {
       lua.script_file(event.filePath);
 
       ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
@@ -58,16 +63,21 @@ class ScriptingSystem : public ECS::System {
       LoadScreenInfo();
 
       scriptFile = event.filePath;
-      scriptFileLoadedAt = std::chrono::system_clock::now();
     }
   }
 
-  void Update() { lua["main"]["onRender"](); }
+  void Update() {
+    if(isRunning) {
+      lua["main"]["onUpdate"]();
+    }
+  }
 
  private:
+  bool& isRunning;
+  GlobalKeyboardListener globalKeyboardListener = GlobalKeyboardListener();
+
   std::optional<Devices::Screen>& screen;
 
-  std::chrono::time_point<std::chrono::system_clock> scriptFileLoadedAt;
   std::optional<std::string> scriptFile;
   sol::state lua;
 
@@ -338,6 +348,37 @@ class ScriptingSystem : public ECS::System {
           ECS::Registry::Instance().AddComponent<DetectContoursComponent>(
               entity,
               detectContoursComponent
+          );
+        },
+        "addComponentDetectText",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          auto detectTextComponent = DetectTextComponent(
+              data["id"],
+              App::Color(
+                  data["bboxColor"]["r"],
+                  data["bboxColor"]["g"],
+                  data["bboxColor"]["b"]
+              )
+          );
+
+          if (data["shouldRenderPreview"].valid()) {
+            detectTextComponent.shouldRenderPreview =
+                data["shouldRenderPreview"];
+          }
+
+          if (data["bboxThickness"].valid()) {
+            detectTextComponent.bboxThickness =
+                data["bboxThickness"];
+          }
+
+          ECS::Registry::Instance().AddComponent<DetectTextComponent>(
+              entity,
+              detectTextComponent
           );
         }
     );
