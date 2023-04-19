@@ -30,7 +30,7 @@ set(SOURCES
         src/components/DetectContoursComponent.h
         src/systems/Detection/DetectContoursSystem.h
         ../../../externals/ImGuiFileDialog/ImGuiFileDialog.cpp
-        src/components/DetectTextComponent.h src/systems/Detection/DetectonSystemBase.h)
+        src/components/DetectTextComponent.h src/systems/Detection/DetectonSystemBase.h src/events/KeyPressedEvent.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 

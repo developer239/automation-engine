@@ -12,8 +12,10 @@ Loop::Loop(std::vector<IStrategy*> strategies)
 void Loop::Run() {
   while (!shouldQuit) {
     while (SDL_PollEvent(&event)) {
-      for (auto& strategy : strategies) {
-        strategy->HandleEvent(event);
+      if (event.type == SDL_KEYDOWN) {
+        for (auto& strategy : strategies) {
+          strategy->HandleEvent(event);
+        }
       }
 
       if (event.type == SDL_QUIT) {

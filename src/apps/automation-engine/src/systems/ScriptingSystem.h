@@ -41,6 +41,14 @@ class ScriptingSystem : public ECS::System {
         this,
         &ScriptingSystem::OnFileSelected
     );
+    Events::Bus::Instance().SubscribeToEvent<KeyPressedEvent>(
+        this,
+        &ScriptingSystem::OnKeyPressedEvent
+    );
+  }
+
+  void OnKeyPressedEvent(KeyPressedEvent& event) {
+    std::cout << "ScriptingSystem::OnKeyPressedEvent" << std::endl;
   }
 
   void OnFileSelected(ScriptFileSelectedEvent& event) {

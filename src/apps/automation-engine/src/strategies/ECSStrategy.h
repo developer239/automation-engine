@@ -12,6 +12,7 @@
 #include "events/Bus.h"
 
 #include "../components/TextLabelComponent.h"
+#include "../events/KeyPressedEvent.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
@@ -81,7 +82,9 @@ class ECSStrategy : public Core::IStrategy {
     );
   }
 
-  void HandleEvent(SDL_Event& event) override {}
+  void HandleEvent(SDL_Event& event) override {
+    Events::Bus::Instance().EmitEvent<KeyPressedEvent>(event);
+  }
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     ECS::Registry::Instance()
