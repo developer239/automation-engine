@@ -26,9 +26,10 @@ find_package(Lua REQUIRED)
 # Find Sol2
 set(SOL2_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/externals/sol2/include)
 
-# Find Tesseract
+# Find OpenCV & Tesseract
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/tesseract/")
 
+find_package(OpenCV REQUIRED)
 find_package(Tesseract REQUIRED)
 find_package(Leptonica REQUIRED)
 

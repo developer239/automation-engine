@@ -24,7 +24,6 @@ target_link_libraries(${LIB_NAME} PUBLIC Imgui)
 target_link_libraries(${LIB_NAME} PUBLIC "-framework Carbon")
 
 # OpenCV start
-find_package(OpenCV REQUIRED)
 target_link_libraries(${LIB_NAME} PUBLIC ${OpenCV_LIBS})
 
 target_link_libraries(${LIB_NAME} PUBLIC
@@ -71,7 +70,6 @@ target_link_libraries(${LIB_NAME_TEST} PRIVATE
         Utility)
 
 # OpenCV start
-find_package(OpenCV REQUIRED)
 target_link_libraries(${LIB_NAME_TEST} PUBLIC ${OpenCV_LIBS})
 
 target_link_libraries(${LIB_NAME_TEST} PUBLIC

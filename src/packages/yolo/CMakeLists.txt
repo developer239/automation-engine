@@ -11,5 +11,4 @@ target_include_directories(${LIB_NAME} INTERFACE .)
 target_link_libraries(${LIB_NAME} PUBLIC ${ONNXRUNTIME_LIBRARY})
 target_include_directories(${LIB_NAME} PUBLIC ${ONNXRUNTIME_INCLUDE_DIR})
 
-find_package(OpenCV REQUIRED)
 target_link_libraries(${LIB_NAME} PUBLIC ${OpenCV_LIBS})
