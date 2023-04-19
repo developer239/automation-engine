@@ -25,6 +25,7 @@ It is goal is to provide a simple way to automate tasks on a computer by writing
 - [Events](src/packages/events) - Custom minimalistic event bus implementation.
 - [Logger](src/packages/logger) - Custom logger package.
 - [Utility](src/packages/logger) - Utility functions used in packages and apps.
+- [YOLO](src/packages/yolo) - YOLO computer vision implementation
 
 ### Tests
 
