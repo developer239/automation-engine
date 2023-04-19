@@ -34,7 +34,7 @@ set(SOURCES
         src/systems/Detection/DetectionSystemBase.h
         src/events/KeyPressedEvent.h
         src/services/GlobalKeyboardListener.cpp
-        src/components/DetectObjectsComponent.h src/systems/Detection/DetectObjectsSystem.h)
+        src/components/DetectObjectsComponent.h src/systems/Detection/DetectObjectsSystem.h src/components/InstanceSegmentationComponent.h src/systems/Detection/InstanceSegmentationSystem.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 

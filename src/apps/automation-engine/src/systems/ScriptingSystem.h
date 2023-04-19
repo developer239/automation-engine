@@ -395,6 +395,22 @@ class ScriptingSystem : public ECS::System {
               data["pathToModel"],
               data["pathToClasses"]
           );
+        },
+        "addComponentInstanceSegmentation",
+        [](ECS::Entity entity, const sol::table& data) {
+          if (!ECS::Registry::Instance().HasComponent<DetectionComponent>(entity
+              )) {
+            throw std::runtime_error("Entity does not have DetectionComponent");
+          }
+
+          ECS::Registry::Instance().AddComponent<InstanceSegmentationComponent>(
+              entity,
+              data["id"],
+              data["confidenceThreshold"],
+              data["nonMaximumSuppressionThreshold"],
+              data["pathToModel"],
+              data["pathToClasses"]
+          );
         }
     );
   }

@@ -21,8 +21,9 @@
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../systems/Detection/DetectContoursSystem.h"
-#include "../systems/Detection/DetectTextSystem.h"
 #include "../systems/Detection/DetectObjectsSystem.h"
+#include "../systems/Detection/DetectTextSystem.h"
+#include "../systems/Detection/InstanceSegmentationSystem.h"
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
@@ -50,6 +51,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectContoursSystem>();
     ECS::Registry::Instance().AddSystem<DetectTextSystem>();
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
+    ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
 
     //
     // Initialize windows
@@ -102,6 +104,7 @@ class ECSStrategy : public Core::IStrategy {
       );
       ECS::Registry::Instance().GetSystem<DetectTextSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<DetectObjectsSystem>().Update(screen);
+      ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(screen);
     }
   }
 
