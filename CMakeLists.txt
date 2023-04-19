@@ -32,4 +32,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/tesseract/
 find_package(Tesseract REQUIRED)
 find_package(Leptonica REQUIRED)
 
+# ONNX
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/onnx/")
+set(ONNXRUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/externals/onnxruntime-osx-arm64-1.12.1")
+
+find_package(ONNXRUNTIME REQUIRED)
+
 add_subdirectory(src)

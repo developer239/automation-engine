@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+env:
+  ONNXRUNTIME_ROOT: onnxruntime-osx-x86_64-1.12.1
+
 jobs:
   build:
     runs-on: macos-12
@@ -16,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install cmake ninja opencv sdl2 sdl2_ttf sdl2_image sdl2_mixer
+          brew install cmake ninja opencv sdl2 sdl2_ttf sdl2_image sdl2_mixer onnxruntime
 
       - name: Create build directory
         run: mkdir build
