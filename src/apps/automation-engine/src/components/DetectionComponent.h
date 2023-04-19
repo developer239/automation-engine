@@ -99,6 +99,8 @@ struct CropOperation : public Operation {
   App::Size size;
 };
 
+// TODO implement resize operation (keep in mind that drawing bounding boxes and such (offset) needs to take that into account)
+
 struct DetectionComponent {
   std::vector<std::shared_ptr<Operation>> operations = {};
 
