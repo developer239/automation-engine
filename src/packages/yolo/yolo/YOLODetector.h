@@ -11,6 +11,8 @@
 // Enable cuda part 1
 // #include <cuda_provider_factory.h>bl
 
+namespace YOLO {
+
 struct NetConfig {
   float confidenceThreshold;
   float nonMaximumSuppressionThreshold;
@@ -29,21 +31,7 @@ struct BoxInfo {
 
 class YOLODetector {
  public:
-  explicit YOLODetector(const NetConfig& config) {
-    this->confidenceThreshold = config.confidenceThreshold;
-    this->nonMaximumSuppressionThreshold =
-        config.nonMaximumSuppressionThreshold;
-
-    // Enable cuda part 2
-    // OrtStatus* status =
-    // OrtSessionOptionsAppendExecutionProvider_CUDA(sessionOptions, 0);
-    sessionOptions.SetGraphOptimizationLevel(ORT_ENABLE_ALL);
-    ortSession =
-        Ort::Session(ortEnv, config.pathToModel.c_str(), sessionOptions);
-
-    LoadTypeInfo();
-    LoadClasses(config.pathToClasses);
-  }
+  explicit YOLODetector(const NetConfig& config);
 
   void detect(cv::Mat& frame) {
     cv::Mat resizedImage;
@@ -280,3 +268,5 @@ class YOLODetector {
     );
   }
 };
+
+}  // namespace YOLO

@@ -8,6 +8,8 @@
 
 #include "onnxruntime_cxx_api.h"
 
+namespace YOLO {
+
 struct SegNetConfig {
   float confidenceThreshold;
   float nonMaximumSuppressionThreshold;
@@ -300,7 +302,6 @@ class YOLOSegmentor {
   Ort::Session session = Ort::Session(nullptr);
   Ort::MemoryInfo memoryInfo;
 
-
   std::shared_ptr<char> inputName, outputName0, outputName1;
   // NOTE: maybe use smart pointer (although Session::Run expects char*
   std::vector<char*> inputNodeNames;
@@ -548,7 +549,7 @@ class YOLOSegmentor {
       int y = result.bbox.y;
 
       // Draw the bounding box
-      if(shouldDrawBoundingBox) {
+      if (shouldDrawBoundingBox) {
         rectangle(imageWithMask, result.bbox, cv::Scalar(0, 0, 255), 2, 8);
       }
 
@@ -579,3 +580,5 @@ class YOLOSegmentor {
     return imageWithMask;
   }
 };
+
+}  // namespace YOLO

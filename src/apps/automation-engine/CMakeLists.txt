@@ -34,7 +34,7 @@ set(SOURCES
         src/systems/Detection/DetectionSystemBase.h
         src/events/KeyPressedEvent.h
         src/services/GlobalKeyboardListener.cpp
-        src/services/yolo/YOLODetector.h src/services/yolo/YOLOSegmentor.h)
+        )
 
 add_executable(${APP_NAME} ${SOURCES})
 
@@ -46,9 +46,10 @@ target_link_libraries(${APP_NAME} ECS)
 target_link_libraries(${APP_NAME} Devices)
 target_link_libraries(${APP_NAME} Utility)
 target_link_libraries(${APP_NAME} Events)
+target_link_libraries(${APP_NAME} YOLO)
 
-target_link_libraries(${APP_NAME} ${LUA_LIBRARY} ${Tesseract_LIBRARIES} ${Leptonica_LIBRARIES} ${ONNXRUNTIME_LIBRARY})
-target_include_directories(${APP_NAME} PRIVATE ${LUA_INCLUDE_DIR} ${SOL2_INCLUDE_DIRS} ${ONNXRUNTIME_INCLUDE_DIR})
+target_link_libraries(${APP_NAME} ${LUA_LIBRARY} ${Tesseract_LIBRARIES} ${Leptonica_LIBRARIES})
+target_include_directories(${APP_NAME} PRIVATE ${LUA_INCLUDE_DIR} ${SOL2_INCLUDE_DIRS})
 
 include_directories(${Tesseract_INCLUDE_DIRS} ${Leptonica_INCLUDE_DIRS})
 link_directories(${Tesseract_LIBRARY_DIRS} ${Leptonica_LIBRARY_DIRS})

@@ -2,15 +2,15 @@
 #include "core/Loop.h"
 
 #include "./strategies/ECSStrategy.h"
-#include "services/yolo/YOLOSegmentor.h"
+#include "yolo/YOLOSegmentor.h"
 
 int main() {
-  SegNetConfig DetectorConfig = {
+  YOLO::SegNetConfig DetectorConfig = {
       0.3,
       0.3,
       "../../../../models/second-best-n-640-seg.onnx",
       "../../../../models/class.names"};
-  YOLOSegmentor net(DetectorConfig);
+  YOLO::YOLOSegmentor net(DetectorConfig);
 
   CoreImGui::Strategy gui;
   ECSStrategy ecs;
