@@ -95,8 +95,6 @@ class ECSStrategy : public Core::IStrategy {
   void HandleEvent(SDL_Event& event) override {}
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
-    ECS::Registry::Instance().Update();
-
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
@@ -106,6 +104,8 @@ class ECSStrategy : public Core::IStrategy {
       ECS::Registry::Instance().GetSystem<DetectObjectsSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(screen);
     }
+
+    ECS::Registry::Instance().Update();
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
