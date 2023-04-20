@@ -109,10 +109,10 @@ class ECSStrategy : public Core::IStrategy {
       ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(screen);
     }
 
-    ECS::Registry::Instance().Update();
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
     }
+    ECS::Registry::Instance().Update();
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
