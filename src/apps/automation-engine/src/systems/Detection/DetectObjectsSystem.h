@@ -39,7 +39,29 @@ class DetectObjectsSystem : public DetectionSystemBase {
     //
     // Detection logic START
 
-    detectObjectsComponent.net->detect(screenshotDebug);
+    auto boxes = detectObjectsComponent.net->Detect(screenshotDebug);
+
+    for (auto box : boxes) {
+      auto match = ECS::Registry::Instance().CreateEntity();
+      ECS::Registry::Instance().GroupEntity(match, group);
+
+      int targetX = box.x1 + offset.x;
+      int targetY = box.y1 + offset.y;
+
+      auto randomColor = App::Color({
+          rand() % 255,
+          rand() % 255,
+          rand() % 255
+      });
+
+      ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
+          match,
+          App::Position({targetX, targetY}),
+          App::Size({(int)(box.x2-box.x1), (int)(box.y2-box.y1)}),
+          randomColor,
+          3
+      );
+    }
 
     // Detection logic END
     //
