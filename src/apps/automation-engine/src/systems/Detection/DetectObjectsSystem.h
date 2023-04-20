@@ -20,11 +20,13 @@ class DetectObjectsSystem : public DetectionSystemBase {
     for (auto entity : GetSystemEntities()) {
       auto screenshotDebug = screen->latestScreenshot.clone();
       ApplyOperations(entity, screenshotDebug, screen);
-      DetectObjects(entity, screen->latestScreenshot);
+      DetectObjects(entity, screenshotDebug);
     }
   }
 
  private:
+  std::map<int, App::Color> idColorMap;
+
   void DetectObjects(
       ECS::Entity& entity, cv::Mat& screenshotDebug
   ) {
@@ -47,17 +49,18 @@ class DetectObjectsSystem : public DetectionSystemBase {
       int targetX = box.x1 + offset.x;
       int targetY = box.y1 + offset.y;
 
-      auto randomColor = App::Color({
-          rand() % 255,
-          rand() % 255,
-          rand() % 255
-      });
+      if (idColorMap.find(box.label) == idColorMap.end()) {
+        idColorMap.insert(
+            {box.label, App::Color({rand() % 255, rand() % 255, rand() % 255})}
+        );
+      }
+      auto color = idColorMap.at(box.label);
 
       ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
           match,
           App::Position({targetX, targetY}),
           App::Size({(int)(box.x2-box.x1), (int)(box.y2-box.y1)}),
-          randomColor,
+          color,
           3
       );
     }
