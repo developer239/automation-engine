@@ -4,9 +4,9 @@
 #include <sol/sol.hpp>
 #include <vector>
 
-#include "devices/Screen.h"
 #include "devices/Keyboard.h"
 #include "devices/Mouse.h"
+#include "devices/Screen.h"
 #include "ecs/System.h"
 #include "events/Bus.h"
 
@@ -40,6 +40,7 @@ class ScriptingSystem : public ECS::System {
     BindAppSizeStruct();
     BindMouse();
     BindKeyboard();
+    BindUtils();
   }
 
   void SubscribeToEvents() {
@@ -91,6 +92,58 @@ class ScriptingSystem : public ECS::System {
     int screenY = lua["main"]["screen"]["y"];
 
     screen = Devices::Screen(screenWidth, screenHeight, screenX, screenY);
+  }
+
+  void BindUtils() {
+    lua.set_function(
+        "checkCollision",
+        [](ECS::Entity& entityA, ECS::Entity& entityB) {
+          auto& boundingBoxA = ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entityA);
+          auto& boundingBoxB = ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entityB);
+
+          bool xOverlap = boundingBoxA.position.x + boundingBoxA.size.width >= boundingBoxB.position.x &&
+                          boundingBoxB.position.x + boundingBoxB.size.width >= boundingBoxA.position.x;
+          bool yOverlap = boundingBoxA.position.y + boundingBoxA.size.height >= boundingBoxB.position.y &&
+                          boundingBoxB.position.y + boundingBoxB.size.height >= boundingBoxA.position.y;
+
+          bool touching = xOverlap && yOverlap &&
+                          boundingBoxA.position.x < boundingBoxB.position.x + boundingBoxB.size.width &&
+                          boundingBoxB.position.x < boundingBoxA.position.x + boundingBoxA.size.width &&
+                          boundingBoxA.position.y < boundingBoxB.position.y + boundingBoxB.size.height &&
+                          boundingBoxB.position.y < boundingBoxA.position.y + boundingBoxA.size.height;
+
+          return touching;
+        }
+    );
+
+    lua.set_function("getTicks", []() { return SDL_GetTicks(); });
+
+    lua.set_function(
+        "sortByX",
+        [](std::vector<ECS::Entity>& entities, bool descending = false) {
+          std::sort(
+              entities.begin(),
+              entities.end(),
+              [descending](const ECS::Entity& a, const ECS::Entity& b) {
+                if (!descending) {
+                  return ECS::Registry::Instance()
+                             .GetComponent<BoundingBoxComponent>(a)
+                             .position.x <
+                         ECS::Registry::Instance()
+                             .GetComponent<BoundingBoxComponent>(b)
+                             .position.x;
+                }
+
+                return ECS::Registry::Instance()
+                           .GetComponent<BoundingBoxComponent>(a)
+                           .position.x >
+                       ECS::Registry::Instance()
+                           .GetComponent<BoundingBoxComponent>(b)
+                           .position.x;
+              }
+          );
+        }
+    );
   }
 
   void BindRegistry() {

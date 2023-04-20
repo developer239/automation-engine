@@ -63,6 +63,7 @@ class DetectObjectsSystem : public DetectionSystemBase {
           color,
           3
       );
+      ECS::Registry::Instance().GroupEntity(match, box.labelName);
     }
 
     // Detection logic END
