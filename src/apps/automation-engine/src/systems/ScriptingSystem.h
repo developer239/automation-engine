@@ -39,6 +39,7 @@ class ScriptingSystem : public ECS::System {
     BindAppPositionStruct();
     BindAppSizeStruct();
     BindMouse();
+    BindKeyboard();
   }
 
   void SubscribeToEvents() {
@@ -550,6 +551,28 @@ class ScriptingSystem : public ECS::System {
         &Devices::Mouse::Instance,
         "move",
         &Devices::Mouse::Move
+    );
+  }
+
+  void BindKeyboard() {
+    lua.new_usertype<Devices::Keyboard>(
+        "Keyboard",
+        "Instance",
+        &Devices::Keyboard::Instance,
+        "type",
+        &Devices::Keyboard::Type,
+        "clickEnter",
+        &Devices::Keyboard::ClickEnter,
+        "arrowUp",
+        &Devices::Keyboard::ArrowUp,
+        "arrowDown",
+        &Devices::Keyboard::ArrowDown,
+        "arrowLeft",
+        &Devices::Keyboard::ArrowLeft,
+        "arrowRight",
+        &Devices::Keyboard::ArrowRight,
+        "clickEscape",
+        &Devices::Keyboard::ClickEscape
     );
   }
 
