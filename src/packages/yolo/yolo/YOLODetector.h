@@ -33,7 +33,7 @@ class YOLODetector {
  public:
   explicit YOLODetector(const NetConfig& config);
 
-  void detect(cv::Mat& frame) {
+  std::vector<BoxInfo> Detect(cv::Mat& frame) {
     cv::Mat resizedImage;
     resize(frame, resizedImage, cv::Size(this->inputWidth, this->inputHeight));
     this->Normalize(resizedImage);
@@ -105,8 +105,33 @@ class YOLODetector {
 
     NonMaximumSuppression(generatedBoxes);
 
-    // return or draw boxes
-    DrawBoxes(frame, generatedBoxes);
+    return generatedBoxes;
+  }
+
+  void DrawBoxes(cv::Mat& frame, std::vector<BoxInfo> generatedBoxes) {
+    for (auto& generatedBox : generatedBoxes) {
+      int xMin = int(generatedBox.x1);
+      int yMin = int(generatedBox.y1);
+      rectangle(
+          frame,
+          cv::Point(xMin, yMin),
+          cv::Point(int(generatedBox.x2), int(generatedBox.y2)),
+          cv::Scalar(0, 0, 255),
+          2
+      );
+
+      std::string label = cv::format("%.2f", generatedBox.score);
+      label = this->classNames[generatedBox.label] + ":" + label;
+      putText(
+          frame,
+          label,
+          cv::Point(xMin, yMin - 5),
+          cv::FONT_HERSHEY_SIMPLEX,
+          0.75,
+          cv::Scalar(0, 255, 0),
+          1
+      );
+    }
   }
 
  private:
@@ -172,32 +197,6 @@ class YOLODetector {
     }
 
     this->numberOfClasses = classNames.size();
-  }
-
-  void DrawBoxes(cv::Mat& frame, std::vector<BoxInfo> generatedBoxes) {
-    for (auto& generatedBox : generatedBoxes) {
-      int xMin = int(generatedBox.x1);
-      int yMin = int(generatedBox.y1);
-      rectangle(
-          frame,
-          cv::Point(xMin, yMin),
-          cv::Point(int(generatedBox.x2), int(generatedBox.y2)),
-          cv::Scalar(0, 0, 255),
-          2
-      );
-
-      std::string label = cv::format("%.2f", generatedBox.score);
-      label = this->classNames[generatedBox.label] + ":" + label;
-      putText(
-          frame,
-          label,
-          cv::Point(xMin, yMin - 5),
-          cv::FONT_HERSHEY_SIMPLEX,
-          0.75,
-          cv::Scalar(0, 255, 0),
-          1
-      );
-    }
   }
 
   void Normalize(cv::Mat img) {
