@@ -12,7 +12,7 @@ namespace Devices {
 
       Mouse& operator=(const Mouse&) = delete;
 
-      static Mouse& GetInstance() {
+      static Mouse& Instance() {
         static Mouse instance;
         return instance;
       }

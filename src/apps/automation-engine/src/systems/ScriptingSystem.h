@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "devices/Screen.h"
+#include "devices/Keyboard.h"
+#include "devices/Mouse.h"
 #include "ecs/System.h"
 #include "events/Bus.h"
 
@@ -36,6 +38,7 @@ class ScriptingSystem : public ECS::System {
     BindAppColorStruct();
     BindAppPositionStruct();
     BindAppSizeStruct();
+    BindMouse();
   }
 
   void SubscribeToEvents() {
@@ -537,6 +540,16 @@ class ScriptingSystem : public ECS::System {
         &App::Size::width,
         "height",
         &App::Size::height
+    );
+  }
+
+  void BindMouse() {
+    lua.new_usertype<Devices::Mouse>(
+        "Mouse",
+        "Instance",
+        &Devices::Mouse::Instance,
+        "move",
+        &Devices::Mouse::Move
     );
   }
 
