@@ -128,9 +128,19 @@ class YOLOSegmentor {
     std::vector<cv::Mat> inputImages = {inputImage};
     std::vector<std::vector<Segment>> batched_outputs;
 
-    if (BatchDetect(inputImages, batched_outputs)) {
-      return batched_outputs[0];
+    try {
+      auto detectionResult = BatchDetect(inputImages, batched_outputs);
+
+      if (detectionResult) {
+        return batched_outputs[0];
+      }
+    } catch (const Ort::Exception& e) {
+      std::cout << "Ort::Exception: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+      std::cout << "std::exception: " << e.what() << std::endl;
     }
+
+    return std::vector<Segment>();
   }
 
   bool BatchDetect(
@@ -571,8 +581,17 @@ class YOLOSegmentor {
         ceil(netHeight / segHeight * cropH / maskParams.transformParams[1]);
     cv::resize(dest, mask, cv::Size(width, height), cv::INTER_NEAREST);
 
-    // Threshold mask
-    mask = mask(bbox - cv::Point(left, top)) > confidenceThreshold;
+    auto roi = bbox - cv::Point(left, top);
+
+    // TODO: possibly skip mask if out of bounds
+    if (roi.x + roi.width > mask.cols) {
+      roi.width = mask.cols - roi.x;
+    }
+    if (roi.y + roi.height > mask.rows) {
+      roi.height = mask.rows - roi.y;
+    }
+
+    mask = mask(roi) > confidenceThreshold;
 
     output.mask = mask;
   }

@@ -19,18 +19,13 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
     for (auto entity : GetSystemEntities()) {
       auto screenshotDebug = screen->latestScreenshot.clone();
       ApplyOperations(entity, screenshotDebug, screen);
-      InstanceSegmentation(entity, screen->latestScreenshot, screen);
+      InstanceSegmentation(entity, screenshotDebug, screen);
     }
   }
 
  private:
-  // TODO: sometimes crashes the app
-  // libc++abi: terminating with uncaught exception of type cv::Exception:
-  // OpenCV(4.7.0)
-  // /tmp/opencv-20230122-99400-19ne6ip/opencv-4.7.0/modules/core/src/matrix.cpp:809:
-  // error: (-215:Assertion failed) 0 <= roi.x && 0 <= roi.width && roi.x +
-  // roi.width <= m.cols && 0 <= roi.y && 0 <= roi.height && roi.y + roi.height
-  // <= m.rows in function 'Mat'
+  std::map<int, App::Color> idColorMap;
+
   void InstanceSegmentation(
       ECS::Entity& entity, cv::Mat& screenshotDebug,
       std::optional<Devices::Screen>& screen
@@ -57,13 +52,18 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
       int targetX = segment.bbox.x + offset.x;
       int targetY = segment.bbox.y + offset.y;
 
-      auto randomColor = App::Color({rand() % 255, rand() % 255, rand() % 255});
+      if (idColorMap.find(segment.id) == idColorMap.end()) {
+        idColorMap.insert(
+            {segment.id, App::Color({rand() % 255, rand() % 255, rand() % 255})}
+        );
+      }
+      auto color = idColorMap.at(segment.id);
 
       ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
           match,
           App::Position({targetX, targetY}),
           App::Size({segment.bbox.width, segment.bbox.height}),
-          randomColor,
+          color,
           3
       );
     }
