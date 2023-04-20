@@ -6,6 +6,7 @@
 
 #include "../../components/BoundingBoxComponent.h"
 #include "../../components/InstanceSegmentationComponent.h"
+#include "../../components/SegmentMaskComponent.h"
 #include "./DetectionSystemBase.h"
 
 class InstanceSegmentationSystem : public DetectionSystemBase {
@@ -19,17 +20,22 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
     for (auto entity : GetSystemEntities()) {
       auto screenshotDebug = screen->latestScreenshot.clone();
       ApplyOperations(entity, screenshotDebug, screen);
-      DetectObjects(entity, screen->latestScreenshot, screen);
+      InstanceSegmentation(entity, screenshotDebug, screen);
     }
   }
 
  private:
-  void DetectObjects(
+  std::map<int, App::Color> idColorMap;
+
+  void InstanceSegmentation(
       ECS::Entity& entity, cv::Mat& screenshotDebug,
       std::optional<Devices::Screen>& screen
   ) {
-    auto [imageInstanceSegmentationComponent, group] =
-        GetComponentAndGroup<InstanceSegmentationComponent>(entity, "segment-image");
+    auto [instanceSegmentationComponent, group] =
+        GetComponentAndGroup<InstanceSegmentationComponent>(
+            entity,
+            "segment-image"
+        );
 
     KillComponentsInGroup(group);
 
@@ -38,7 +44,29 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
     //
     // Detection logic START
 
-    imageInstanceSegmentationComponent.net->Detect(screenshotDebug);
+    auto segments = instanceSegmentationComponent.net->Detect(screenshotDebug);
+
+    for (auto segment : segments) {
+      auto match = ECS::Registry::Instance().CreateEntity();
+      ECS::Registry::Instance().GroupEntity(match, group);
+
+      segment.bbox.x += offset.x;
+      segment.bbox.y += offset.y;
+
+      if (idColorMap.find(segment.id) == idColorMap.end()) {
+        idColorMap.insert(
+            {segment.id, App::Color({rand() % 255, rand() % 255, rand() % 255})}
+        );
+      }
+      auto color = idColorMap.at(segment.id);
+
+      ECS::Registry::Instance().AddComponent<SegmentMaskComponent>(
+          match,
+          color,
+          segment.bbox,
+          segment.mask
+      );
+    }
 
     // Detection logic END
     //

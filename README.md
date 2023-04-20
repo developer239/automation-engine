@@ -1,5 +1,7 @@
 # Automation Engine
 
+![master](https://github.com/developer239/automation-engine/actions/workflows/ci.yml/badge.svg)
+
 I created this project so that I have an opportunity to learn C++
 
 It is goal is to provide a simple way to automate tasks on a computer by writing scripts in Lua.

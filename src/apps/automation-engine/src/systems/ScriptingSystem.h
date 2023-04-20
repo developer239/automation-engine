@@ -56,15 +56,13 @@ class ScriptingSystem : public ECS::System {
   }
 
   void OnFileSelected(ScriptFileSelectedEvent& event) {
-    if (event.filePath != *scriptFile) {
-      lua.script_file(event.filePath);
+    lua.script_file(event.filePath);
 
-      ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
+    ECS::Registry::Instance().RemoveAllEntitiesFromSystems();
 
-      LoadScreenInfo();
+    LoadScreenInfo();
 
-      scriptFile = event.filePath;
-    }
+    scriptFile = event.filePath;
   }
 
   void Update() {

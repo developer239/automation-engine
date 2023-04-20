@@ -124,13 +124,23 @@ class YOLOSegmentor {
     }
   }
 
-  void Detect(cv::Mat& inputImage) {
+  std::vector<Segment> Detect(cv::Mat& inputImage) {
     std::vector<cv::Mat> inputImages = {inputImage};
     std::vector<std::vector<Segment>> batched_outputs;
 
-    if (BatchDetect(inputImages, batched_outputs)) {
-      inputImage = DrawPredictions(inputImage, batched_outputs[0], classNames);
+    try {
+      auto detectionResult = BatchDetect(inputImages, batched_outputs);
+
+      if (detectionResult) {
+        return batched_outputs[0];
+      }
+    } catch (const Ort::Exception& e) {
+      std::cout << "Ort::Exception: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+      std::cout << "std::exception: " << e.what() << std::endl;
     }
+
+    return std::vector<Segment>();
   }
 
   bool BatchDetect(
@@ -282,6 +292,46 @@ class YOLOSegmentor {
       output.push_back(tempOutput);
     }
     return !output.empty();
+  }
+
+  void DrawSegments(
+      cv::Mat& image, const std::vector<Segment>& results,
+      bool shouldDrawBoundingBox = false
+  ) {
+    cv::Mat imageWithMask = image.clone();
+    for (const auto& result : results) {
+      // Get the bounding box coordinates
+      const int x = result.bbox.x;
+      int y = result.bbox.y;
+
+      // Draw the bounding box
+      if (shouldDrawBoundingBox) {
+        rectangle(imageWithMask, result.bbox, cv::Scalar(0, 0, 255), 2, 8);
+      }
+
+      // Add the mask to the image
+      const cv::Mat mask = result.mask;
+      imageWithMask(result.bbox).setTo(cv::Scalar(0, 0, 255), mask);
+
+      // Add the label to the image
+      const std::string label =
+          classNames[result.id] + ":" + std::to_string(result.confidence);
+      const cv::Size label_size =
+          getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, nullptr);
+      y = std::max(y, label_size.height);
+      const cv::Point label_origin(x, y);
+      putText(
+          imageWithMask,
+          label,
+          label_origin,
+          cv::FONT_HERSHEY_SIMPLEX,
+          0.75,
+          cv::Scalar(0, 255, 0),
+          1
+      );
+    }
+
+    addWeighted(imageWithMask, 0.5, image, 0.5, 0, image);
   }
 
  private:
@@ -531,53 +581,19 @@ class YOLOSegmentor {
         ceil(netHeight / segHeight * cropH / maskParams.transformParams[1]);
     cv::resize(dest, mask, cv::Size(width, height), cv::INTER_NEAREST);
 
-    // Threshold mask
-    mask = mask(bbox - cv::Point(left, top)) > confidenceThreshold;
+    auto roi = bbox - cv::Point(left, top);
 
-    output.mask = mask;
-  }
-
-  cv::Mat DrawPredictions(
-      cv::Mat& image, const std::vector<Segment>& results,
-      const std::vector<std::string>& classNames,
-      bool shouldDrawBoundingBox = false
-  ) {
-    cv::Mat imageWithMask = image.clone();
-    for (const auto& result : results) {
-      // Get the bounding box coordinates
-      const int x = result.bbox.x;
-      int y = result.bbox.y;
-
-      // Draw the bounding box
-      if (shouldDrawBoundingBox) {
-        rectangle(imageWithMask, result.bbox, cv::Scalar(0, 0, 255), 2, 8);
-      }
-
-      // Add the mask to the image
-      const cv::Mat mask = result.mask;
-      imageWithMask(result.bbox).setTo(cv::Scalar(0, 0, 255), mask);
-
-      // Add the label to the image
-      const std::string label =
-          classNames[result.id] + ":" + std::to_string(result.confidence);
-      const cv::Size label_size =
-          getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, nullptr);
-      y = std::max(y, label_size.height);
-      const cv::Point label_origin(x, y);
-      putText(
-          imageWithMask,
-          label,
-          label_origin,
-          cv::FONT_HERSHEY_SIMPLEX,
-          0.75,
-          cv::Scalar(0, 255, 0),
-          1
-      );
+    // TODO: possibly skip mask if out of bounds
+    if (roi.x + roi.width > mask.cols) {
+      roi.width = mask.cols - roi.x;
+    }
+    if (roi.y + roi.height > mask.rows) {
+      roi.height = mask.rows - roi.y;
     }
 
-    addWeighted(imageWithMask, 0.5, image, 0.5, 0, imageWithMask);
+    mask = mask(roi) > confidenceThreshold;
 
-    return imageWithMask;
+    output.mask = mask;
   }
 };
 

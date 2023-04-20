@@ -27,6 +27,7 @@
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
+#include "../systems/RenderSegmentMaskSystem.h"
 #include "../systems/RenderTextSystem.h"
 #include "../systems/ScreenSystem.h"
 #include "../systems/ScriptingSystem.h"
@@ -52,6 +53,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectTextSystem>();
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
     ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
+    ECS::Registry::Instance().AddSystem<RenderSegmentMaskSystem>();
 
     //
     // Initialize windows
@@ -85,6 +87,9 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT
     );
 
+    //
+    // Subscribe to events
+
     ECS::Registry::Instance()
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
@@ -95,8 +100,6 @@ class ECSStrategy : public Core::IStrategy {
   void HandleEvent(SDL_Event& event) override {}
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
-    ECS::Registry::Instance().Update();
-
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
@@ -106,11 +109,16 @@ class ECSStrategy : public Core::IStrategy {
       ECS::Registry::Instance().GetSystem<DetectObjectsSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(screen);
     }
+
+    ECS::Registry::Instance().Update();
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
+          screen
+      );
+      ECS::Registry::Instance().GetSystem<RenderSegmentMaskSystem>().Render(
           screen
       );
     }
