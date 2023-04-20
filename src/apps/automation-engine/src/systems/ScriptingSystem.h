@@ -3,6 +3,9 @@
 #include <memory>
 #include <sol/sol.hpp>
 #include <vector>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 #include "devices/Keyboard.h"
 #include "devices/Mouse.h"
@@ -41,6 +44,7 @@ class ScriptingSystem : public ECS::System {
     BindMouse();
     BindKeyboard();
     BindUtils();
+    BindEventBus();
   }
 
   void SubscribeToEvents() {
@@ -159,6 +163,27 @@ class ScriptingSystem : public ECS::System {
         &ECS::Registry::GetEntityByTag,
         "getEntitiesByGroup",
         &ECS::Registry::GetEntitiesByGroup
+    );
+  }
+
+  void BindEventBus() {
+    lua.new_usertype<Events::Bus>(
+        "Bus",
+        "Instance",
+        &Events::Bus::Instance,
+        "emitMessageEvent",
+        [](Events::Bus& bus, const std::string& message) {
+          std::time_t currentTime = std::time(nullptr);
+          std::tm localTime;
+          localtime_r(&currentTime, &localTime);
+
+          std::ostringstream timeStream;
+          timeStream << "[" << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S") << "] " << message;
+
+          std::string formattedMessage = timeStream.str();
+
+          bus.EmitEvent<MessageEvent>(formattedMessage);
+        }
     );
   }
 
