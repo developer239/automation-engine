@@ -20,14 +20,13 @@ class DetectObjectsSystem : public DetectionSystemBase {
     for (auto entity : GetSystemEntities()) {
       auto screenshotDebug = screen->latestScreenshot.clone();
       ApplyOperations(entity, screenshotDebug, screen);
-      DetectObjects(entity, screen->latestScreenshot, screen);
+      DetectObjects(entity, screen->latestScreenshot);
     }
   }
 
  private:
   void DetectObjects(
-      ECS::Entity& entity, cv::Mat& screenshotDebug,
-      std::optional<Devices::Screen>& screen
+      ECS::Entity& entity, cv::Mat& screenshotDebug
   ) {
     auto [detectObjectsComponent, group] =
         GetComponentAndGroup<DetectObjectsComponent>(entity, "detect-objects");

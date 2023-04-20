@@ -96,7 +96,7 @@ class LoadScriptWindow : public IGUISystemWindow {
       auto diff = std::chrono::milliseconds(currentTime - lastWriteTimeMs);
       auto diffS = diff.count() / 1000;
 
-      if (diffS < 2) {
+      if (diffS < 1) {
         Events::Bus::Instance().EmitEvent<ScriptFileSelectedEvent>(filePathName
         );
       }

@@ -85,6 +85,9 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT
     );
 
+    //
+    // Subscribe to events
+
     ECS::Registry::Instance()
         .GetSystem<GUISystem>()
         .GetWindow<LoggingWindow>()
