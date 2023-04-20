@@ -27,6 +27,7 @@
 #include "../systems/GUISystem/GUISystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
+#include "../systems/RenderSegmentMaskSystem.h"
 #include "../systems/RenderTextSystem.h"
 #include "../systems/ScreenSystem.h"
 #include "../systems/ScriptingSystem.h"
@@ -52,6 +53,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectTextSystem>();
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
     ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
+    ECS::Registry::Instance().AddSystem<RenderSegmentMaskSystem>();
 
     //
     // Initialize windows
@@ -114,6 +116,9 @@ class ECSStrategy : public Core::IStrategy {
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     if (screen.has_value()) {
       ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
+          screen
+      );
+      ECS::Registry::Instance().GetSystem<RenderSegmentMaskSystem>().Render(
           screen
       );
     }

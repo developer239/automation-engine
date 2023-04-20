@@ -6,6 +6,7 @@
 
 #include "../../components/BoundingBoxComponent.h"
 #include "../../components/InstanceSegmentationComponent.h"
+#include "../../components/SegmentMaskComponent.h"
 #include "./DetectionSystemBase.h"
 
 class InstanceSegmentationSystem : public DetectionSystemBase {
@@ -49,8 +50,8 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
       auto match = ECS::Registry::Instance().CreateEntity();
       ECS::Registry::Instance().GroupEntity(match, group);
 
-      int targetX = segment.bbox.x + offset.x;
-      int targetY = segment.bbox.y + offset.y;
+      segment.bbox.x += offset.x;
+      segment.bbox.y += offset.y;
 
       if (idColorMap.find(segment.id) == idColorMap.end()) {
         idColorMap.insert(
@@ -59,12 +60,11 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
       }
       auto color = idColorMap.at(segment.id);
 
-      ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
+      ECS::Registry::Instance().AddComponent<SegmentMaskComponent>(
           match,
-          App::Position({targetX, targetY}),
-          App::Size({segment.bbox.width, segment.bbox.height}),
           color,
-          3
+          segment.bbox,
+          segment.mask
       );
     }
 
