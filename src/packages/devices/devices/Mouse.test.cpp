@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 TEST(MouseTest, MoveTest) {
-  auto& mouse = Devices::Mouse::GetInstance();
+  auto& mouse = Devices::Mouse::Instance();
 
   mouse.Move(100, 100);
 

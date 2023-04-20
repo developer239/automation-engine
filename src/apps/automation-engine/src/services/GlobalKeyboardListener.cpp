@@ -47,7 +47,8 @@ CGEventRef GlobalKeyboardListener::KeyEventCallback(
   if (type == kCGEventKeyUp) {
     int keyCode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
 
-    auto symbol = Devices::Keyboard::GetInstance().MapVirtualKeyToASCII((int) keyCode);
+    auto symbol =
+        Devices::Keyboard::Instance().MapVirtualKeyToASCII((int) keyCode);
     auto symbolString = std::string(1, symbol);
 
     Events::Bus::Instance().EmitEvent<KeyPressedEvent>(symbolString);

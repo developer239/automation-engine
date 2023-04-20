@@ -17,7 +17,7 @@ class Keyboard {
 
   Keyboard& operator=(Keyboard&&) = delete;
 
-  static Keyboard& GetInstance() {
+  static Keyboard& Instance() {
     static Keyboard instance;
     return instance;
   }
