@@ -2,6 +2,9 @@
 
 enum GUISystemLayoutNodePosition {
   LEFT,
+  LEFT_TOP,
+  LEFT_MID,
+  LEFT_BOTTOM,
   RIGHT,
   RIGHT_TOP,
   RIGHT_BOTTOM,

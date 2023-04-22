@@ -55,9 +55,14 @@ class GUISystem : public ECS::System {
 
   std::map<GUISystemLayoutNodePosition, ImGuiID> layoutNodes = {
       {GUISystemLayoutNodePosition::LEFT, 0},
+      {GUISystemLayoutNodePosition::LEFT_TOP, 0},
+      {GUISystemLayoutNodePosition::LEFT_MID, 0},
+      {GUISystemLayoutNodePosition::LEFT_BOTTOM, 0},
       {GUISystemLayoutNodePosition::RIGHT, 0},
       {GUISystemLayoutNodePosition::RIGHT_TOP, 0},
       {GUISystemLayoutNodePosition::RIGHT_BOTTOM, 0},
+      {GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT, 0},
+      {GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT, 0},
   };
 
   void RenderWindows(Core::Renderer& renderer) {
@@ -78,14 +83,14 @@ class GUISystem : public ECS::System {
 
   void BuildNodes(ImGuiID dockSpaceId) {
     auto& leftNode = layoutNodes[GUISystemLayoutNodePosition::LEFT];
+    auto& leftTopNode = layoutNodes[GUISystemLayoutNodePosition::LEFT_TOP];
+    auto& leftMidNode = layoutNodes[GUISystemLayoutNodePosition::LEFT_MID];
+    auto& leftBottomNode = layoutNodes[GUISystemLayoutNodePosition::LEFT_BOTTOM];
     auto& rightNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT];
     auto& rightTopNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT_TOP];
-    auto& rightBottomNode =
-        layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM];
-    auto& rightBottomLeftNode =
-        layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT];
-    auto& rightBottomRightNode =
-        layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT];
+    auto& rightBottomNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM];
+    auto& rightBottomLeftNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM_LEFT];
+    auto& rightBottomRightNode = layoutNodes[GUISystemLayoutNodePosition::RIGHT_BOTTOM_RIGHT];
 
     //
     // Split base window into two
@@ -122,6 +127,19 @@ class GUISystem : public ECS::System {
         ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
 
+    //
+    // Split left window into three
+
+    ImGui::DockBuilderSplitNode(leftNode, ImGuiDir_Up, 0.33f, &leftTopNode, &leftMidNode);
+    ImGui::DockBuilderSplitNode(leftMidNode, ImGuiDir_Up, 0.25f, &leftMidNode, &leftBottomNode);
+
+    ImGui::DockBuilderGetNode(leftTopNode)->LocalFlags |= ImGuiDockNodeFlags_NoDockingSplitMe |
+                                                          ImGuiDockNodeFlags_NoDockingOverMe;
+    ImGui::DockBuilderGetNode(leftMidNode)->LocalFlags |= ImGuiDockNodeFlags_NoDockingSplitMe |
+                                                          ImGuiDockNodeFlags_NoDockingOverMe;
+    ImGui::DockBuilderGetNode(leftBottomNode)->LocalFlags |= ImGuiDockNodeFlags_NoDockingSplitMe |
+                                                             ImGuiDockNodeFlags_NoDockingOverMe;
+
     // Split right bottom window into two
     ImGui::DockBuilderSplitNode(
         ImGui::DockBuilderGetNode(rightBottomNode)->ID,
@@ -142,8 +160,6 @@ class GUISystem : public ECS::System {
     // Dock windows
 
     for (auto& window : windows) {
-      // TODO: should not be tightly coupled with the window pass the position
-      // as separate parameter
       auto position = window.position;
       ImGui::DockBuilderDockWindow(
           window.window->GetName().c_str(),

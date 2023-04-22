@@ -26,7 +26,7 @@ class Keyboard {
 
   virtual void Click(char keyASCII);
 
-  void ClickEnter();
+  void Enter();
 
   void ArrowUp();
 
@@ -36,7 +36,9 @@ class Keyboard {
 
   void ArrowRight();
 
-  void ClickEscape();
+  void Escape();
+
+  void Space();
 
   void PressAndRelease(int key);
 

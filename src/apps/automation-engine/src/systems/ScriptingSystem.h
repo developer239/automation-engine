@@ -1,11 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <sol/sol.hpp>
-#include <vector>
 #include <ctime>
 #include <iomanip>
+#include <memory>
+#include <sol/sol.hpp>
 #include <sstream>
+#include <vector>
 
 #include "devices/Keyboard.h"
 #include "devices/Mouse.h"
@@ -102,19 +102,34 @@ class ScriptingSystem : public ECS::System {
     lua.set_function(
         "checkCollision",
         [](ECS::Entity& entityA, ECS::Entity& entityB) {
-          auto& boundingBoxA = ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entityA);
-          auto& boundingBoxB = ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entityB);
+          auto& boundingBoxA =
+              ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(
+                  entityA
+              );
+          auto& boundingBoxB =
+              ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(
+                  entityB
+              );
 
-          bool xOverlap = boundingBoxA.position.x + boundingBoxA.size.width >= boundingBoxB.position.x &&
-                          boundingBoxB.position.x + boundingBoxB.size.width >= boundingBoxA.position.x;
-          bool yOverlap = boundingBoxA.position.y + boundingBoxA.size.height >= boundingBoxB.position.y &&
-                          boundingBoxB.position.y + boundingBoxB.size.height >= boundingBoxA.position.y;
+          bool xOverlap = boundingBoxA.position.x + boundingBoxA.size.width >=
+                              boundingBoxB.position.x &&
+                          boundingBoxB.position.x + boundingBoxB.size.width >=
+                              boundingBoxA.position.x;
+          bool yOverlap = boundingBoxA.position.y + boundingBoxA.size.height >=
+                              boundingBoxB.position.y &&
+                          boundingBoxB.position.y + boundingBoxB.size.height >=
+                              boundingBoxA.position.y;
 
-          bool touching = xOverlap && yOverlap &&
-                          boundingBoxA.position.x < boundingBoxB.position.x + boundingBoxB.size.width &&
-                          boundingBoxB.position.x < boundingBoxA.position.x + boundingBoxA.size.width &&
-                          boundingBoxA.position.y < boundingBoxB.position.y + boundingBoxB.size.height &&
-                          boundingBoxB.position.y < boundingBoxA.position.y + boundingBoxA.size.height;
+          bool touching =
+              xOverlap && yOverlap &&
+              boundingBoxA.position.x <
+                  boundingBoxB.position.x + boundingBoxB.size.width &&
+              boundingBoxB.position.x <
+                  boundingBoxA.position.x + boundingBoxA.size.width &&
+              boundingBoxA.position.y <
+                  boundingBoxB.position.y + boundingBoxB.size.height &&
+              boundingBoxB.position.y <
+                  boundingBoxA.position.y + boundingBoxA.size.height;
 
           return touching;
         }
@@ -178,7 +193,8 @@ class ScriptingSystem : public ECS::System {
           localtime_r(&currentTime, &localTime);
 
           std::ostringstream timeStream;
-          timeStream << "[" << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S") << "] " << message;
+          timeStream << "[" << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S")
+                     << "] " << message;
 
           std::string formattedMessage = timeStream.str();
 
@@ -639,8 +655,8 @@ class ScriptingSystem : public ECS::System {
         &Devices::Keyboard::Instance,
         "type",
         &Devices::Keyboard::Type,
-        "clickEnter",
-        &Devices::Keyboard::ClickEnter,
+        "enter",
+        &Devices::Keyboard::Enter,
         "arrowUp",
         &Devices::Keyboard::ArrowUp,
         "arrowDown",
@@ -649,8 +665,10 @@ class ScriptingSystem : public ECS::System {
         &Devices::Keyboard::ArrowLeft,
         "arrowRight",
         &Devices::Keyboard::ArrowRight,
-        "clickEscape",
-        &Devices::Keyboard::ClickEscape
+        "escape",
+        &Devices::Keyboard::Escape,
+        "space",
+        &Devices::Keyboard::Space
     );
   }
 

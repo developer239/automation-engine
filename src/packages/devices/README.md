@@ -12,8 +12,8 @@ Keyboard.Click('a')
 keyboard.Type("hello world");
 
 // Special Keys
-keyboard.ClickEnter();
-keyboard.ClickEscape();
+keyboard.Enter();
+keyboard.Escape();
 
 // Arrow controls
 keyboard.ArrowUp();

@@ -15,7 +15,7 @@ void Keyboard::Click(char keyASCII) {
   PressAndRelease(key);
 }
 
-void Keyboard::ClickEnter() { PressAndRelease(52); }
+void Keyboard::Enter() { PressAndRelease(52); }
 
 void Keyboard::ArrowUp() { PressAndRelease(126); }
 
@@ -111,8 +111,12 @@ std::map<char, int> Keyboard::asciiToVirtualKey = {
     {'`', 50},
 };
 
-  void Keyboard::ClickEscape() {
+  void Keyboard::Escape() {
     PressAndRelease(53);
+  }
+
+  void Keyboard::Space() {
+    PressAndRelease(49);
   }
 
 }  // namespace Devices

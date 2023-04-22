@@ -43,7 +43,7 @@ class LoadScriptWindow : public IGUISystemWindow {
           "Choose File",
           ".lua",
           // TODO: development value remove in production
-          "/Users/michaljarnot/IdeaProjects/swords-and-souls-scripts/dist/"
+          "/Users/michaljarnot/IdeaProjects/flappy-bird-script/dist/"
       );
     }
 

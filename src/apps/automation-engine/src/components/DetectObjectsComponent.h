@@ -11,8 +11,10 @@
 
 struct DetectObjectsComponent {
   explicit DetectObjectsComponent(
-      std::string id = "", float confidenceThreshold = 0.3,
-      float nonMaximumSuppressionThreshold = 0.3, std::string pathToModel = "",
+      std::string id = "",
+      float confidenceThreshold = 0.3,
+      float nonMaximumSuppressionThreshold = 0.3,
+      std::string pathToModel = "",
       std::string pathToClasses = ""
   )
       : id(std::move(id)) {

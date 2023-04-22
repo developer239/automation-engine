@@ -76,15 +76,15 @@ class ECSStrategy : public Core::IStrategy {
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<ImageStreamWindowControls>(screen),
-        GUISystemLayoutNodePosition::LEFT
+        GUISystemLayoutNodePosition::LEFT_TOP
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<LoadScriptWindow>(isRunning),
-        GUISystemLayoutNodePosition::LEFT
+        GUISystemLayoutNodePosition::LEFT_MID
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<ManageEntitiesWindow>(screen),
-        GUISystemLayoutNodePosition::LEFT
+        GUISystemLayoutNodePosition::LEFT_BOTTOM
     );
 
     //
