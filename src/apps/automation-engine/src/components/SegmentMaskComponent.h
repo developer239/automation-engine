@@ -11,12 +11,16 @@ struct SegmentMaskComponent {
   App::Color color;
   cv::Rect bbox;
   cv::Mat mask;
-  bool shouldDrawBbox = true;
+  bool shouldDrawMask = true;
+  // TODO: remove this
+  bool shouldDrawBbox = false;
 
   explicit SegmentMaskComponent(
       const App::Color& color = {0, 255, 0},
       const cv::Rect& bbox = {0, 0, 0, 0}, cv::Mat  mask = cv::Mat(),
-      bool shouldDrawBbox = true
+      bool shouldDrawMask = true,
+      // TODO: remove this
+      bool shouldDrawBbox = false
   )
-      : color(color), bbox(bbox), mask(std::move(mask)), shouldDrawBbox(shouldDrawBbox) {}
+      : color(color), bbox(bbox), mask(std::move(mask)), shouldDrawMask(shouldDrawMask), shouldDrawBbox(shouldDrawBbox) {}
 };

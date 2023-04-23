@@ -35,7 +35,11 @@ class RenderSegmentMaskSystem : public ECS::System {
 
         // TODO: prevent error (happens when objects out of screen?)
         try {
-          imageWithMask(component.bbox).setTo(component.color.ToScalar(), component.mask);
+          if (component.shouldDrawMask) {
+            imageWithMask(component.bbox)
+                .setTo(component.color.ToScalar(), component.mask);
+          }
+
         } catch (cv::Exception& e) {
           std::cout << "Error: " << e.what() << std::endl;
         }

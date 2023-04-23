@@ -501,3 +501,9 @@ objectDetector.addComponentDetectObjects({
 </details>
 
 ![object-detection-1](docs/object-detection-1.png)
+
+#### Flappy Bird YOLO Instance Segmentation
+
+It is also possible to load ONNX models to run instance segmentation this allows us to do precise automation logic or more complex image operations like object inpainting (PoC)
+
+![object-detection-1](docs/inpaint-1.png)

@@ -37,6 +37,9 @@ struct MaskParams {
 
 class YOLOSegmentor {
  public:
+  std::vector<std::string> classNames;
+  int numberOfClasses;
+
   YOLOSegmentor(const SegNetConfig& config)
       : memoryInfo(Ort::MemoryInfo::CreateCpu(
             OrtAllocatorType::OrtDeviceAllocator,
@@ -337,9 +340,6 @@ class YOLOSegmentor {
   }
 
  private:
-  std::vector<std::string> classNames;
-  int numberOfClasses;
-
   float confidenceThreshold;
   float nonMaximumSuppressionThreshold;
   int segChannels;

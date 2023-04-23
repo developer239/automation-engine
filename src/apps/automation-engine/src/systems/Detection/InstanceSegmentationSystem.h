@@ -60,19 +60,63 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
       }
       auto color = idColorMap.at(segment.id);
 
+      ECS::Registry::Instance().AddComponent<BoundingBoxComponent>(
+          match,
+          App::Position(segment.bbox.x, segment.bbox.y),
+          App::Size(segment.bbox.width, segment.bbox.height),
+          color,
+          0
+      );
       ECS::Registry::Instance().AddComponent<SegmentMaskComponent>(
           match,
           color,
           segment.bbox,
-          segment.mask
+          segment.mask,
+          true
       );
-//      ECS::Registry::Instance().GroupEntity(
-//          match,
-//          segment.labelName
-//      );
+      ECS::Registry::Instance().GroupEntity(match, segment.labelName);
     }
 
     // Detection logic END
     //
+  }
+
+  // TODO: optimize and inpaint once not for every segment
+  void inPaint(
+      std::optional<Devices::Screen>& screen, cv::Mat mask, cv::Rect bbox
+  ) {
+    if (!screen || screen->latestScreenshot.empty()) {
+      std::cerr << "Error: Screen not provided or latestScreenshot is empty!"
+                << std::endl;
+      return;
+    }
+
+    cv::Mat fullSizeMask =
+        cv::Mat::zeros(screen->latestScreenshot.size(), mask.type());
+
+    cv::Mat dilatedMask;
+    int dilationSize = 4;
+    cv::Mat kernel = cv::getStructuringElement(
+        cv::MORPH_ELLIPSE,
+        cv::Size(2 * dilationSize + 1, 2 * dilationSize + 1),
+        cv::Point(dilationSize, dilationSize)
+    );
+    cv::dilate(mask, dilatedMask, kernel);
+
+    if (bbox.size() != dilatedMask.size()) {
+      std::cerr << "Error: bbox size and dilatedMask size do not match!"
+                << std::endl;
+      return;
+    }
+
+    dilatedMask.copyTo(fullSizeMask(bbox));
+
+    cv::inpaint(
+        screen->latestScreenshot,
+        fullSizeMask,
+        screen->latestScreenshot,
+        4,
+        cv::INPAINT_TELEA
+    );
   }
 };

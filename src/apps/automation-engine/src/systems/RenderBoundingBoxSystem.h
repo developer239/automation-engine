@@ -22,14 +22,16 @@ class RenderBoundingBoxSystem : public ECS::System {
             ECS::Registry::Instance().GetComponent<BoundingBoxComponent>(entity
             );
 
-        cv::rectangle(
-            imageOutput,
-            {component.position.x, component.position.y},
-            {component.position.x + component.size.width,
-             component.position.y + component.size.height},
-            component.color.ToScalar(),
-            component.thickness
-        );
+        if (component.thickness > 0) {
+          cv::rectangle(
+              imageOutput,
+              {component.position.x, component.position.y},
+              {component.position.x + component.size.width,
+               component.position.y + component.size.height},
+              component.color.ToScalar(),
+              component.thickness
+          );
+        }
       }
     }
   }
