@@ -76,7 +76,13 @@ class ScriptingSystem : public ECS::System {
 
   void Update() {
     if (isRunning) {
-      lua["main"]["onUpdate"]();
+      try {
+        lua["main"]["onUpdate"]();
+      } catch (const sol::error& error) {
+        std::cout << "Error: " << error.what() << std::endl;
+      } catch (const std::exception& error) {
+        std::cout << "Error: " << error.what() << std::endl;
+      }
     }
   }
 

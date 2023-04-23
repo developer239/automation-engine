@@ -66,6 +66,10 @@ class InstanceSegmentationSystem : public DetectionSystemBase {
           segment.bbox,
           segment.mask
       );
+//      ECS::Registry::Instance().GroupEntity(
+//          match,
+//          segment.labelName
+//      );
     }
 
     // Detection logic END

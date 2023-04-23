@@ -27,6 +27,7 @@ struct Segment {
   float confidence;
   cv::Rect bbox;
   cv::Mat mask;
+  std::string labelName;
 };
 
 struct MaskParams {
@@ -266,6 +267,7 @@ class YOLOSegmentor {
         result.id = classIds[idx];
         result.confidence = confidences[idx];
         result.bbox = boxes[idx] & holeImgRect;
+        result.labelName = classNames[classIds[idx]];
         tempMaskProposals.push_back(pickedProposals[idx]);
         tempOutput.push_back(result);
       }
