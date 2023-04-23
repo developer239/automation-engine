@@ -104,11 +104,11 @@ class Registry {
   }
 
   [[nodiscard]] std::string GetEntityTag(Entity entity) const {
-    if (!tagPerEntity.empty()) {
+    if (!tagPerEntity.empty() && entity.GetId() < tagPerEntity.size()) {
       return tagPerEntity.at(entity.GetId());
     }
 
-    return "";
+    return "no-tag";
   }
 
   std::vector<std::string> GetEntityGroups(Entity entity) const {
