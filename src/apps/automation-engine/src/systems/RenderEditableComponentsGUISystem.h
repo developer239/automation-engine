@@ -13,6 +13,7 @@
 #include "../components/DetectTextComponent.h"
 #include "../components/DetectionComponent.h"
 #include "../components/EditableComponent.h"
+#include "../components/OdometerComponent.h"
 
 class RenderEditableComponentsGUISystem : public ECS::System {
  public:
@@ -405,9 +406,7 @@ class RenderEditableComponentsGUISystem : public ECS::System {
         //
         // Detect Text
         auto hasDetectText =
-            ECS::Registry::Instance().HasComponent<DetectTextComponent>(
-                entity
-            );
+            ECS::Registry::Instance().HasComponent<DetectTextComponent>(entity);
         if (hasDetectText) {
           ImGui::Spacing();
           ImGui::Spacing();
@@ -415,8 +414,7 @@ class RenderEditableComponentsGUISystem : public ECS::System {
           ImGui::Text("Detect Text");
 
           auto& detectText =
-              ECS::Registry::Instance().GetComponent<DetectTextComponent>(
-                  entity
+              ECS::Registry::Instance().GetComponent<DetectTextComponent>(entity
               );
 
           //
@@ -443,6 +441,26 @@ class RenderEditableComponentsGUISystem : public ECS::System {
             detectText.bboxColor.g = static_cast<Uint8>(color[1] * 255.0f);
             detectText.bboxColor.b = static_cast<Uint8>(color[2] * 255.0f);
           }
+        }
+
+        //
+        // Odometer
+        auto hasOdometer =
+            ECS::Registry::Instance().HasComponent<OdometerComponent>(entity);
+        if (hasOdometer) {
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Spacing();
+          ImGui::Text("Odometer");
+
+          auto& odometerComponent =
+              ECS::Registry::Instance().GetComponent<OdometerComponent>(entity);
+
+          //
+          // Preview
+          ImGui::Checkbox("O: Is Running", &odometerComponent.isRunning);
+          ImGui::Checkbox("O: Arrow", &odometerComponent.shouldDrawArrow);
+          ImGui::Checkbox("O: Matches", &odometerComponent.shouldDebugMatches);
         }
       }
     }

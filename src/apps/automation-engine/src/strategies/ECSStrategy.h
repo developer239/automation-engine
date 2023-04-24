@@ -25,6 +25,7 @@
 #include "../systems/Detection/DetectTextSystem.h"
 #include "../systems/Detection/InstanceSegmentationSystem.h"
 #include "../systems/GUISystem/GUISystem.h"
+#include "../systems/OdometerSystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
 #include "../systems/RenderSegmentMaskSystem.h"
@@ -54,6 +55,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
     ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
     ECS::Registry::Instance().AddSystem<RenderSegmentMaskSystem>();
+    ECS::Registry::Instance().AddSystem<OdometerSystem>();
 
     //
     // Initialize windows
@@ -106,10 +108,21 @@ class ECSStrategy : public Core::IStrategy {
       );
       ECS::Registry::Instance().GetSystem<DetectTextSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<DetectObjectsSystem>().Update(screen);
-      ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(screen);
+      ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(
+          screen
+      );
     }
 
     if (screen.has_value()) {
+      // TODO: create a generic way to throttle system updates and system renders
+      static auto lastTime = 0;
+      auto currentTime = SDL_GetTicks();
+
+      if (currentTime - lastTime > 100) {
+        lastTime = currentTime;
+        ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
+      }
+
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
     }
     ECS::Registry::Instance().Update();

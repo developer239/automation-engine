@@ -125,8 +125,12 @@ class Registry {
     }
   }
 
-  Entity GetEntityByTag(const std::string& tag) const {
-    return entityPerTag.at(tag);
+  [[nodiscard]] Entity GetEntityByTag(const std::string& tag) const {
+    try {
+      return entityPerTag.at(tag);
+    } catch (const std::out_of_range& e) {
+      throw std::runtime_error("No entity with tag " + tag);
+    }
   }
 
   void RemoveEntityTag(Entity entity) {
