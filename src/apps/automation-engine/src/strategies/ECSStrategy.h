@@ -118,7 +118,7 @@ class ECSStrategy : public Core::IStrategy {
       static auto lastTime = 0;
       auto currentTime = SDL_GetTicks();
 
-      if (currentTime - lastTime > 100) {
+      if (currentTime - lastTime > 50) {
         lastTime = currentTime;
         ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
       }

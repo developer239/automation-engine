@@ -34,11 +34,12 @@ class OdometerSystem : public ECS::System {
       }
 
       auto entity = entities[0];
-      auto odometerComponent =
+      auto& odometerComponent =
           ECS::Registry::Instance().GetEntityComponent<OdometerComponent>(entity
           );
 
       if(!odometerComponent.isRunning) {
+        odometerComponent.SetDefaultMinimap();
         return;
       }
 
@@ -173,16 +174,32 @@ class OdometerSystem : public ECS::System {
 
       //
       // Calculate horizontal and vertical displacement in pixels
-      cv::Mat H_decomposed = H(cv::Range(0, 2), cv::Range(0, 3));
-      cv::Mat translation = H_decomposed.col(2);
+      std::vector<float> horizontal_displacements, vertical_displacements;
+      for (size_t i = 0; i < points1.size(); ++i) {
+        if (inliersMask.at<uchar>(i)) {
+          float dx = points2[i].x - points1[i].x;
+          float dy = points2[i].y - points1[i].y;
 
-      float horizontal_displacement = translation.at<double>(0);
-      float vertical_displacement = translation.at<double>(1);
+          horizontal_displacements.push_back(dx);
+          vertical_displacements.push_back(dy);
+        }
+      }
+
+      // Compute the median displacement
+      std::nth_element(horizontal_displacements.begin(),
+                       horizontal_displacements.begin() + horizontal_displacements.size() / 2,
+                       horizontal_displacements.end());
+      float horizontal_displacement = horizontal_displacements[horizontal_displacements.size() / 2];
+
+      std::nth_element(vertical_displacements.begin(),
+                       vertical_displacements.begin() + vertical_displacements.size() / 2,
+                       vertical_displacements.end());
+      float vertical_displacement = vertical_displacements[vertical_displacements.size() / 2];
 
       //
       // Display arrow in the direction of the displacement
 
-      if(odometerComponent.shouldDrawArrow || true) {
+      if(odometerComponent.shouldDrawArrow) {
         cv::Point2f arrowStartPoint(frame1.cols / 2.0f, frame1.rows / 2.0f);
         cv::Point2f arrowEndPoint(
             arrowStartPoint.x + horizontal_displacement,
@@ -200,6 +217,42 @@ class OdometerSystem : public ECS::System {
             0.3
         );
       }
+
+      if(std::abs(horizontal_displacement) < 5) {
+        horizontal_displacement = 0;
+      }
+      if(std::abs(horizontal_displacement) > 150) {
+        horizontal_displacement = 150;
+      }
+      if(std::abs(vertical_displacement) > 150) {
+        vertical_displacement = 150;
+      }
+      if(std::abs(vertical_displacement) < 5) {
+        vertical_displacement = 0;
+      }
+
+
+      //
+      // Update minimap
+      // Calculate the new position based on the displacement
+      int scale = 10;
+      cv::Point newPosition(
+          odometerComponent.currentPosition.x - (horizontal_displacement),
+          odometerComponent.currentPosition.y - (vertical_displacement)
+      );
+
+      // Draw a line between the old and new positions on the minimap
+      cv::line(
+          odometerComponent.minimap,
+          odometerComponent.currentPosition,
+          newPosition,
+          cv::Scalar(0, 255, 0),
+          2
+      );
+
+      // Update the current position
+      odometerComponent.currentPosition = newPosition;
+      cv::imshow("Odometer Minimap", odometerComponent.minimap);
 
       prevFrame = currentFrame;
     } catch (const std::exception& e) {
