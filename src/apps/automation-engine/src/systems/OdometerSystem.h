@@ -174,27 +174,11 @@ class OdometerSystem : public ECS::System {
 
       //
       // Calculate horizontal and vertical displacement in pixels
-      std::vector<float> horizontal_displacements, vertical_displacements;
-      for (size_t i = 0; i < points1.size(); ++i) {
-        if (inliersMask.at<uchar>(i)) {
-          float dx = points2[i].x - points1[i].x;
-          float dy = points2[i].y - points1[i].y;
+      cv::Mat H_decomposed = H(cv::Range(0, 2), cv::Range(0, 3));
+      cv::Mat translation = H_decomposed.col(2);
 
-          horizontal_displacements.push_back(dx);
-          vertical_displacements.push_back(dy);
-        }
-      }
-
-      // Compute the median displacement
-      std::nth_element(horizontal_displacements.begin(),
-                       horizontal_displacements.begin() + horizontal_displacements.size() / 2,
-                       horizontal_displacements.end());
-      float horizontal_displacement = horizontal_displacements[horizontal_displacements.size() / 2];
-
-      std::nth_element(vertical_displacements.begin(),
-                       vertical_displacements.begin() + vertical_displacements.size() / 2,
-                       vertical_displacements.end());
-      float vertical_displacement = vertical_displacements[vertical_displacements.size() / 2];
+      float horizontal_displacement = translation.at<double>(0);
+      float vertical_displacement = translation.at<double>(1);
 
       //
       // Display arrow in the direction of the displacement
