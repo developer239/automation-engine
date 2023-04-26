@@ -17,6 +17,7 @@ struct OdometerComponent {
   bool isRunning = false;
   bool shouldDrawArrow = false;
   bool shouldDebugMatches = false;
+  bool shouldDrawMinimap = true;
   std::vector<std::string> ignoreAreas = {"odometer-area-ignore"};
 
   cv::Mat minimap;
@@ -25,9 +26,9 @@ struct OdometerComponent {
   float scale_factor = 0.1f;
 
   void SetDefaultMinimap() {
-    int size = 1000;
+    int size = 250;
     minimap = cv::Mat::zeros(size, size, CV_8UC3);
-    currentPosition = cv::Point((size/2)/scale_factor, (size/2)/scale_factor);
+    currentPosition = cv::Point((size/2), (size/2));
     path = {};
   }
 };

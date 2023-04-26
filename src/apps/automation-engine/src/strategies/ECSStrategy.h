@@ -115,13 +115,13 @@ class ECSStrategy : public Core::IStrategy {
 
     if (screen.has_value()) {
       // TODO: create a generic way to throttle system updates and system renders
-      static auto lastTime = 0;
-      auto currentTime = SDL_GetTicks();
-
-      if (currentTime - lastTime > 50) {
-        lastTime = currentTime;
+//      static auto lastTime = 0;
+//      auto currentTime = SDL_GetTicks();
+//
+//      if (currentTime - lastTime > 50) {
+//        lastTime = currentTime;
         ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
-      }
+//      }
 
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
     }

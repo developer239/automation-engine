@@ -229,42 +229,71 @@ class OdometerSystem : public ECS::System {
       odometerComponent.currentPosition = newPosition;
       odometerComponent.minimap.setTo(cv::Scalar(0, 0, 0));
 
-      if (odometerComponent.path.size() > 2) {
-        for (size_t i = 1; i < odometerComponent.path.size(); ++i) {
-          cv::Point scaled_prev_position(
-              odometerComponent.path[i - 1].x * odometerComponent.scale_factor,
-              odometerComponent.path[i - 1].y * odometerComponent.scale_factor
-          );
+      DrawMinimapAroundCurrentPosition(odometerComponent);
 
-          cv::Point scaled_current_position(
-              odometerComponent.path[i].x * odometerComponent.scale_factor,
-              odometerComponent.path[i].y * odometerComponent.scale_factor
-          );
-
-          cv::line(
-              odometerComponent.minimap,
-              scaled_current_position,
-              scaled_prev_position,
-              cv::Scalar(0, 255, 0),
-              3
-          );
-        }
+      if(odometerComponent.shouldDrawMinimap) {
+        cv::Rect roi(
+            0,
+            0,
+            odometerComponent.minimap.cols,
+            odometerComponent.minimap.rows
+        );
+        cv::Mat destinationROI = screen->latestScreenshot(roi);
+        odometerComponent.minimap.copyTo(destinationROI);
       }
-      cv::circle(
-          odometerComponent.minimap,
-          {
-                  int(odometerComponent.currentPosition.x * odometerComponent.scale_factor),
-                  int(odometerComponent.currentPosition.y * odometerComponent.scale_factor)
-          },
-          6,
-          cv::Scalar(255, 0, 0),
-          3
-      );
-      cv::imshow("Odometer Minimap", odometerComponent.minimap);
 
       prevFrame = currentFrame;
     } catch (const std::exception& e) {
       std::cout << "OdometerSystem: " << e.what() << std::endl;
     }
+  }
+
+  void DrawMinimapAroundCurrentPosition(OdometerComponent& component) {
+    auto mat = component.minimap;
+    auto currentPosition = component.currentPosition;
+    auto path = component.path;
+
+    if (path.size() < 2) {
+      return;
+    }
+
+    auto minimapCenter = cv::Point(mat.cols / 2, mat.rows / 2);
+    auto offsetFromCurrentPosition = cv::Point(
+        minimapCenter.x - currentPosition.x,
+        minimapCenter.y - currentPosition.y
+    );
+
+    for (int i = 1; i < path.size(); ++i) {
+      auto point1 = path[i - 1];
+      auto point2 = path[i];
+
+      auto point1OnMinimap = cv::Point(
+          ((point1.x + offsetFromCurrentPosition.x) * component.scale_factor) +
+              (mat.cols / 2) - 10,
+          ((point1.y + offsetFromCurrentPosition.y) * component.scale_factor) +
+              (mat.rows / 2) - 10
+      );
+      auto point2OnMinimap = cv::Point(
+          ((point2.x + offsetFromCurrentPosition.x) * component.scale_factor) +
+              (mat.cols / 2) - 10,
+          ((point2.y + offsetFromCurrentPosition.y) * component.scale_factor) +
+              (mat.rows / 2) - 10
+      );
+
+      cv::line(mat, point1OnMinimap, point2OnMinimap, cv::Scalar(0, 255, 0), 3);
+    }
+
+    cv::circle(
+        component.minimap,
+        {int(((component.currentPosition.x + offsetFromCurrentPosition.x) *
+              component.scale_factor) +
+             (mat.cols / 2) - 10),
+         int(((component.currentPosition.y + offsetFromCurrentPosition.y) *
+              component.scale_factor) +
+             (mat.rows / 2) - 10)},
+        3,
+        cv::Scalar(255, 0, 0),
+        3
+    );
   }
 };

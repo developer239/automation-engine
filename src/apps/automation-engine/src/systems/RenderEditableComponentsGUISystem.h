@@ -461,6 +461,7 @@ class RenderEditableComponentsGUISystem : public ECS::System {
           ImGui::Checkbox("O: Is Running", &odometerComponent.isRunning);
           ImGui::Checkbox("O: Arrow", &odometerComponent.shouldDrawArrow);
           ImGui::Checkbox("O: Matches", &odometerComponent.shouldDebugMatches);
+          ImGui::Checkbox("O: Minimap", &odometerComponent.shouldDrawMinimap);
         }
       }
     }
