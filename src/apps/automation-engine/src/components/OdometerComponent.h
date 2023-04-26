@@ -21,10 +21,13 @@ struct OdometerComponent {
 
   cv::Mat minimap;
   cv::Point currentPosition;
+  std::vector<cv::Point> path;
+  float scale_factor = 0.1f;
 
   void SetDefaultMinimap() {
     int size = 1000;
     minimap = cv::Mat::zeros(size, size, CV_8UC3);
-    currentPosition = cv::Point(size/2, size/2);
+    currentPosition = cv::Point((size/2)/scale_factor, (size/2)/scale_factor);
+    path = {};
   }
 };

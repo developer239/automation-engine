@@ -38,12 +38,13 @@ class OdometerSystem : public ECS::System {
           ECS::Registry::Instance().GetEntityComponent<OdometerComponent>(entity
           );
 
-      if(!odometerComponent.isRunning) {
+      if (!odometerComponent.isRunning) {
         odometerComponent.SetDefaultMinimap();
         return;
       }
 
-      // TODO: should be limited by screen->width and screen-height (position is fine)
+      // TODO: should be limited by screen->width and screen-height (position is
+      // fine)
       auto targetAreaBBox =
           ECS::Registry::Instance().GetEntityComponent<BoundingBoxComponent>(
               entity
@@ -95,13 +96,14 @@ class OdometerSystem : public ECS::System {
       std::vector<std::vector<cv::DMatch>> knnMatches;
       matcher->knnMatch(descriptors1, descriptors2, knnMatches, 2);
 
-      // TODO: should be limited by screen->width and screen-height (position is fine)
+      // TODO: should be limited by screen->width and screen-height (position is
+      // fine)
       // TODO: support n entities (for example detected mobs that are moving and
       // corrupt the result) Ignore known entities (for example player area)
       // that might corrupt the result. We are only interested in the background
       // TODO: or experiment and for example group matches by direction/angle
-      // and use the largest group (this should kind of filter out moving particles from
-      // the screen)
+      // and use the largest group (this should kind of filter out moving
+      // particles from the screen)
       auto playerEntity = ECS::Registry::Instance().GetEntityByTag("player");
       auto ignoreAreaBBox =
           ECS::Registry::Instance().GetEntityComponent<BoundingBoxComponent>(
@@ -183,7 +185,7 @@ class OdometerSystem : public ECS::System {
       //
       // Display arrow in the direction of the displacement
 
-      if(odometerComponent.shouldDrawArrow) {
+      if (odometerComponent.shouldDrawArrow) {
         cv::Point2f arrowStartPoint(frame1.cols / 2.0f, frame1.rows / 2.0f);
         cv::Point2f arrowEndPoint(
             arrowStartPoint.x + horizontal_displacement,
@@ -202,40 +204,62 @@ class OdometerSystem : public ECS::System {
         );
       }
 
-      if(std::abs(horizontal_displacement) < 5) {
+      if (std::abs(horizontal_displacement) < 5) {
         horizontal_displacement = 0;
       }
-      if(std::abs(horizontal_displacement) > 150) {
+      if (std::abs(horizontal_displacement) > 150) {
         horizontal_displacement = 150;
       }
-      if(std::abs(vertical_displacement) > 150) {
+      if (std::abs(vertical_displacement) > 150) {
         vertical_displacement = 150;
       }
-      if(std::abs(vertical_displacement) < 5) {
+      if (std::abs(vertical_displacement) < 5) {
         vertical_displacement = 0;
       }
-
 
       //
       // Update minimap
       // Calculate the new position based on the displacement
-      int scale = 10;
       cv::Point newPosition(
           odometerComponent.currentPosition.x - (horizontal_displacement),
           odometerComponent.currentPosition.y - (vertical_displacement)
       );
 
-      // Draw a line between the old and new positions on the minimap
-      cv::line(
-          odometerComponent.minimap,
-          odometerComponent.currentPosition,
-          newPosition,
-          cv::Scalar(0, 255, 0),
-          2
-      );
-
-      // Update the current position
+      odometerComponent.path.push_back(newPosition);
       odometerComponent.currentPosition = newPosition;
+      odometerComponent.minimap.setTo(cv::Scalar(0, 0, 0));
+
+      if (odometerComponent.path.size() > 2) {
+        for (size_t i = 1; i < odometerComponent.path.size(); ++i) {
+          cv::Point scaled_prev_position(
+              odometerComponent.path[i - 1].x * odometerComponent.scale_factor,
+              odometerComponent.path[i - 1].y * odometerComponent.scale_factor
+          );
+
+          cv::Point scaled_current_position(
+              odometerComponent.path[i].x * odometerComponent.scale_factor,
+              odometerComponent.path[i].y * odometerComponent.scale_factor
+          );
+
+          cv::line(
+              odometerComponent.minimap,
+              scaled_current_position,
+              scaled_prev_position,
+              cv::Scalar(0, 255, 0),
+              3
+          );
+        }
+      }
+      cv::circle(
+          odometerComponent.minimap,
+          {
+                  int(odometerComponent.currentPosition.x * odometerComponent.scale_factor),
+                  int(odometerComponent.currentPosition.y * odometerComponent.scale_factor)
+          },
+          6,
+          cv::Scalar(255, 0, 0),
+          3
+      );
       cv::imshow("Odometer Minimap", odometerComponent.minimap);
 
       prevFrame = currentFrame;
