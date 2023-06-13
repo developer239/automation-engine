@@ -513,6 +513,15 @@ class ScriptingSystem : public ECS::System {
               data["pathToModel"],
               data["pathToClasses"]
           );
+        },
+        "addComponentOdometer",
+        [](ECS::Entity entity, const sol::table& data) {
+          ECS::Registry::Instance().AddComponent<OdometerComponent>(
+              entity,
+              data["isRunning"],
+              data["shouldDrawArrow"],
+              data["shouldDebugMatches"]
+          );
         }
     );
   }

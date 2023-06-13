@@ -46,6 +46,12 @@ declare interface IDetectContoursComponent {
   shouldRenderPreview?: boolean
 }
 
+declare interface IOdometerComponent {
+  isRunning: boolean
+  shouldDrawArrow: boolean
+  shouldDebugMatches: boolean
+}
+
 declare interface IDetectTextComponent {
   id: string
   bboxColor: IColor
@@ -138,8 +144,8 @@ declare class Entity {
   addComponentDetection(): void
 
   addComponentDetectionMorphologyOperation(
-    type: 'close' | 'open' | 'erode' | 'dilate',
-    operation: MorphologyOperation
+      type: 'close' | 'open' | 'erode' | 'dilate',
+      operation: MorphologyOperation
   ): void
 
   addComponentDetectionColorsOperation(operation: IDetectColorsOperation): void
@@ -153,7 +159,11 @@ declare class Entity {
   addComponentDetectObjects(component: IDetectObjectsComponent): void
 
   addComponentInstanceSegmentation(
-    component: IInstanceSegmentationComponent
+      component: IInstanceSegmentationComponent
+  ): void
+
+  addComponentOdometer(
+      component: IOdometerComponent
   ): void
 }
 
@@ -207,9 +217,9 @@ declare function printTable(this: void, table: any): void
 declare function getTicks(): number
 
 declare function sortByX(
-  this: void,
-  entities: Entity[],
-  descending: boolean
+    this: void,
+    entities: Entity[],
+    descending: boolean
 ): void
 
 declare function checkCollision(this: void, a: Entity, b: Entity): boolean
