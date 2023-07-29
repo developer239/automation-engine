@@ -20,6 +20,7 @@
 #include "../layout/LoggingWindow.h"
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
+#include "../services/Map.h"
 #include "../systems/Detection/DetectContoursSystem.h"
 #include "../systems/Detection/DetectObjectsSystem.h"
 #include "../systems/Detection/DetectTextSystem.h"
@@ -114,18 +115,111 @@ class ECSStrategy : public Core::IStrategy {
     }
 
     if (screen.has_value()) {
-      // TODO: create a generic way to throttle system updates and system renders
-//      static auto lastTime = 0;
-//      auto currentTime = SDL_GetTicks();
-//
-//      if (currentTime - lastTime > 50) {
-//        lastTime = currentTime;
-        ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
-//      }
+      // TODO: create a generic way to throttle system updates and system
+      // renders
+      //      static auto lastTime = 0;
+      //      auto currentTime = SDL_GetTicks();
+      //
+      //      if (currentTime - lastTime > 50) {
+      //        lastTime = currentTime;
+      ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
+      //      }
 
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
     }
     ECS::Registry::Instance().Update();
+
+    if (isRunning) {
+      minimap = screen->latestScreenshot.clone();
+      cv::cvtColor(minimap, minimapBinary, cv::COLOR_BGR2GRAY);
+      cv::threshold(
+          minimapBinary,
+          minimapBinary,
+          100,
+          255,
+          cv::THRESH_BINARY
+      );
+
+      // close
+      cv::Mat element = cv::getStructuringElement(
+          cv::MORPH_RECT,
+          cv::Size(3, 3),
+          cv::Point(1, 1)
+      );
+
+      // clear noise
+      cv::morphologyEx(
+          minimapBinary,
+          minimapBinary,
+          cv::MORPH_OPEN,
+          element
+      );
+      if (mappedArea.empty()) {
+        mappedArea = minimap.clone();
+        cv::cvtColor(mappedArea, mappedAreaBinary, cv::COLOR_BGR2GRAY);
+        cv::threshold(
+            mappedAreaBinary,
+            mappedAreaBinary,
+            100,
+            255,
+            cv::THRESH_BINARY
+        );
+
+        // close
+        cv::Mat element = cv::getStructuringElement(
+            cv::MORPH_RECT,
+            cv::Size(3, 3),
+            cv::Point(1, 1)
+        );
+
+        // clear noise
+        cv::morphologyEx(
+            mappedAreaBinary,
+            mappedAreaBinary,
+            cv::MORPH_OPEN,
+            element
+        );
+      } else {
+        auto result = stitch(mappedArea, minimap, mappedAreaLastLocation);
+        mappedArea = result.stitched;
+        mappedAreaLastLocation = result.matchLoc;
+
+        auto mappedAreaView = mappedArea.clone();
+        auto lastKnownMappedAreaLocation = mappedAreaLastLocation;
+        cv::rectangle(
+            mappedAreaView,
+            lastKnownMappedAreaLocation,
+            cv::Point(
+                lastKnownMappedAreaLocation.x + minimap.cols,
+                lastKnownMappedAreaLocation.y + minimap.rows
+            ),
+            cv::Scalar(0, 0, 255),
+            2,
+            8,
+            0
+        );
+        cv::imshow("mapped area", mappedArea);
+
+        auto resultBinary = stitch(mappedAreaBinary, minimapBinary, mappedAreaLastLocation);
+        mappedAreaBinary = resultBinary.stitched;
+        mappedAreaLastLocationBinary = resultBinary.matchLoc;
+        auto mappedAreaBinaryView = mappedArea.clone();
+        auto lastKnownMappedAreaLocationBinary = mappedAreaLastLocationBinary;
+        cv::rectangle(
+            mappedAreaBinaryView,
+            lastKnownMappedAreaLocationBinary,
+            cv::Point(
+                lastKnownMappedAreaLocationBinary.x + minimap.cols,
+                lastKnownMappedAreaLocationBinary.y + minimap.rows
+            ),
+            cv::Scalar(0, 0, 255),
+            2,
+            8,
+            0
+        );
+        cv::imshow("mapped area binary", mappedAreaBinary);
+      }
+    }
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
@@ -157,4 +251,12 @@ class ECSStrategy : public Core::IStrategy {
  private:
   std::optional<Devices::Screen> screen;
   bool isRunning;
+
+  cv::Mat minimap;
+  cv::Mat minimapBinary;
+  cv::Mat mappedArea;
+  cv::Mat mappedAreaBinary;
+  cv::Point mappedAreaLastLocation;
+  cv::Point mappedAreaLastLocationBinary;
+  cv::Mat mapView;
 };
