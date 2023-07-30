@@ -200,24 +200,24 @@ class ECSStrategy : public Core::IStrategy {
         );
         cv::imshow("mapped area", mappedArea);
 
-        auto resultBinary = stitch(mappedAreaBinary, minimapBinary, mappedAreaLastLocation);
-        mappedAreaBinary = resultBinary.stitched;
-        mappedAreaLastLocationBinary = resultBinary.matchLoc;
-        auto mappedAreaBinaryView = mappedArea.clone();
-        auto lastKnownMappedAreaLocationBinary = mappedAreaLastLocationBinary;
-        cv::rectangle(
-            mappedAreaBinaryView,
-            lastKnownMappedAreaLocationBinary,
-            cv::Point(
-                lastKnownMappedAreaLocationBinary.x + minimap.cols,
-                lastKnownMappedAreaLocationBinary.y + minimap.rows
-            ),
-            cv::Scalar(0, 0, 255),
-            2,
-            8,
-            0
-        );
-        cv::imshow("mapped area binary", mappedAreaBinary);
+//        auto resultBinary = stitch(mappedAreaBinary, minimapBinary, mappedAreaLastLocation);
+//        mappedAreaBinary = resultBinary.stitched;
+//        mappedAreaLastLocationBinary = resultBinary.matchLoc;
+//        auto mappedAreaBinaryView = mappedArea.clone();
+//        auto lastKnownMappedAreaLocationBinary = mappedAreaLastLocationBinary;
+//        cv::rectangle(
+//            mappedAreaBinaryView,
+//            lastKnownMappedAreaLocationBinary,
+//            cv::Point(
+//                lastKnownMappedAreaLocationBinary.x + minimap.cols,
+//                lastKnownMappedAreaLocationBinary.y + minimap.rows
+//            ),
+//            cv::Scalar(0, 0, 255),
+//            2,
+//            8,
+//            0
+//        );
+//        cv::imshow("mapped area binary", mappedAreaBinary);
       }
     }
   }

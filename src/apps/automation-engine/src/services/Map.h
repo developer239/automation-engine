@@ -130,7 +130,7 @@ cv::Point templateMatch(cv::Mat& image, cv::Mat& target) {
 // must be less or equal to MOVE_BY and can't be too high (otherwise the result
 // is gonna be finding itself over and over again)
 // if < than MOVE_BY then it
-int MOVE_BY_CROP = 10;
+int MOVE_BY_CROP = 300;
 
 struct StitchResult {
   cv::Mat stitched;
@@ -139,7 +139,7 @@ struct StitchResult {
 
 StitchResult stitch(
     const cv::Mat& mapped, const cv::Mat& next, const cv::Point& playerLocation,
-    int offset = 10
+    int offset = 100
 ) {
   // Convert to 3 channels if necessary
   cv::Mat nextConverted, mappedConverted;
