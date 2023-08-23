@@ -13,6 +13,8 @@
 
 #include "../components/TextLabelComponent.h"
 #include "../events/KeyPressedEvent.h"
+#include "../layout/CartographyLocalizerWindow.h"
+#include "../layout/CartographyMapperWindow.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
@@ -21,12 +23,12 @@
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../services/Map.h"
+#include "../systems/CartographySystem.h"
 #include "../systems/Detection/DetectContoursSystem.h"
 #include "../systems/Detection/DetectObjectsSystem.h"
 #include "../systems/Detection/DetectTextSystem.h"
 #include "../systems/Detection/InstanceSegmentationSystem.h"
 #include "../systems/GUISystem/GUISystem.h"
-#include "../systems/OdometerSystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
 #include "../systems/RenderSegmentMaskSystem.h"
@@ -56,7 +58,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
     ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
     ECS::Registry::Instance().AddSystem<RenderSegmentMaskSystem>();
-    ECS::Registry::Instance().AddSystem<OdometerSystem>();
+    ECS::Registry::Instance().AddSystem<CartographySystem>(screen,isRunning);
 
     //
     // Initialize windows
@@ -90,6 +92,17 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT_BOTTOM
     );
 
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<CartographyMapperWindow>(
+            ECS::Registry::Instance().GetSystem<CartographySystem>(), screen
+        ),
+        GUISystemLayoutNodePosition::LEFT_TOP
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<CartographyLocalizerWindow>(),
+        GUISystemLayoutNodePosition::LEFT_TOP
+    );
+
     //
     // Subscribe to events
 
@@ -112,114 +125,11 @@ class ECSStrategy : public Core::IStrategy {
       ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(
           screen
       );
-    }
-
-    if (screen.has_value()) {
-      // TODO: create a generic way to throttle system updates and system
-      // renders
-      //      static auto lastTime = 0;
-      //      auto currentTime = SDL_GetTicks();
-      //
-      //      if (currentTime - lastTime > 50) {
-      //        lastTime = currentTime;
-      ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
-      //      }
-
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
+      ECS::Registry::Instance().GetSystem<CartographySystem>().Update();
     }
+
     ECS::Registry::Instance().Update();
-
-    if (isRunning) {
-      minimap = screen->latestScreenshot.clone();
-      cv::cvtColor(minimap, minimapBinary, cv::COLOR_BGR2GRAY);
-      cv::threshold(
-          minimapBinary,
-          minimapBinary,
-          100,
-          255,
-          cv::THRESH_BINARY
-      );
-
-      // close
-      cv::Mat element = cv::getStructuringElement(
-          cv::MORPH_RECT,
-          cv::Size(3, 3),
-          cv::Point(1, 1)
-      );
-
-      // clear noise
-      cv::morphologyEx(
-          minimapBinary,
-          minimapBinary,
-          cv::MORPH_OPEN,
-          element
-      );
-      if (mappedArea.empty()) {
-        mappedArea = minimap.clone();
-        cv::cvtColor(mappedArea, mappedAreaBinary, cv::COLOR_BGR2GRAY);
-        cv::threshold(
-            mappedAreaBinary,
-            mappedAreaBinary,
-            100,
-            255,
-            cv::THRESH_BINARY
-        );
-
-        // close
-        cv::Mat element = cv::getStructuringElement(
-            cv::MORPH_RECT,
-            cv::Size(3, 3),
-            cv::Point(1, 1)
-        );
-
-        // clear noise
-        cv::morphologyEx(
-            mappedAreaBinary,
-            mappedAreaBinary,
-            cv::MORPH_OPEN,
-            element
-        );
-      } else {
-        auto result = stitch(mappedArea, minimap, mappedAreaLastLocation);
-        mappedArea = result.stitched;
-        mappedAreaLastLocation = result.matchLoc;
-
-        auto mappedAreaView = mappedArea.clone();
-        auto lastKnownMappedAreaLocation = mappedAreaLastLocation;
-        cv::rectangle(
-            mappedAreaView,
-            lastKnownMappedAreaLocation,
-            cv::Point(
-                lastKnownMappedAreaLocation.x + minimap.cols,
-                lastKnownMappedAreaLocation.y + minimap.rows
-            ),
-            cv::Scalar(0, 0, 255),
-            2,
-            8,
-            0
-        );
-        cv::imshow("mapped area", mappedArea);
-
-//        auto resultBinary = stitch(mappedAreaBinary, minimapBinary, mappedAreaLastLocation);
-//        mappedAreaBinary = resultBinary.stitched;
-//        mappedAreaLastLocationBinary = resultBinary.matchLoc;
-//        auto mappedAreaBinaryView = mappedArea.clone();
-//        auto lastKnownMappedAreaLocationBinary = mappedAreaLastLocationBinary;
-//        cv::rectangle(
-//            mappedAreaBinaryView,
-//            lastKnownMappedAreaLocationBinary,
-//            cv::Point(
-//                lastKnownMappedAreaLocationBinary.x + minimap.cols,
-//                lastKnownMappedAreaLocationBinary.y + minimap.rows
-//            ),
-//            cv::Scalar(0, 0, 255),
-//            2,
-//            8,
-//            0
-//        );
-//        cv::imshow("mapped area binary", mappedAreaBinary);
-      }
-    }
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
@@ -251,12 +161,4 @@ class ECSStrategy : public Core::IStrategy {
  private:
   std::optional<Devices::Screen> screen;
   bool isRunning;
-
-  cv::Mat minimap;
-  cv::Mat minimapBinary;
-  cv::Mat mappedArea;
-  cv::Mat mappedAreaBinary;
-  cv::Point mappedAreaLastLocation;
-  cv::Point mappedAreaLastLocationBinary;
-  cv::Mat mapView;
 };
