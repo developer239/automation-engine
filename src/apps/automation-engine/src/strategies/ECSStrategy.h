@@ -14,6 +14,7 @@
 #include "../components/TextLabelComponent.h"
 #include "../events/KeyPressedEvent.h"
 #include "../layout/CartographyLocalizerWindow.h"
+#include "../layout/CartographyMappedViewWindow.h"
 #include "../layout/CartographyMapperWindow.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
@@ -101,6 +102,10 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<CartographyLocalizerWindow>(),
         GUISystemLayoutNodePosition::LEFT_TOP
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<CartographyMappedViewWindow>(screen),
+        GUISystemLayoutNodePosition::RIGHT_TOP
     );
 
     //

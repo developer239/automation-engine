@@ -1,10 +1,11 @@
 #pragma once
 
-#include "devices/Screen.h"
-#include "ecs/System.h"
 #include "../services/Map.h"
 #include "../structs/Position.h"
 #include "../structs/Size.h"
+#include "ScreenSystem.h"
+#include "devices/Screen.h"
+#include "ecs/System.h"
 
 struct ROI {
   App::Size size;
@@ -48,30 +49,59 @@ class CartographySystem : public ECS::System {
       // TODO: we can for example use minimap to figure out position and stitch together center of the screen)
       mapped = result.stitched;
       lastLocation = result.matchLoc;
-
-      // TODO: move to render
-      auto mappedAreaView = mapped.clone();
-      auto lastKnownMappedAreaLocation = lastLocation;
-      cv::rectangle(
-          mappedAreaView,
-          lastKnownMappedAreaLocation,
-          cv::Point(
-              lastKnownMappedAreaLocation.x + captured.cols,
-              lastKnownMappedAreaLocation.y + captured.rows
-          ),
-          cv::Scalar(0, 0, 255),
-          2,
-          8,
-          0
-      );
-      cv::imshow("mapped area", mapped);
     }
+  }
+
+  void Clear() { SDL_DestroyTexture(texture); }
+
+  ScreenRenderMetadata Render(
+      Core::Renderer& renderer
+  ) {
+    cvMatrixAsSDLTexture(mapped, renderer);
+
+    ImVec2 windowSize = ImGui::GetWindowSize();
+
+    float scale = std::min(
+        windowSize.x / mapped.cols,
+        windowSize.y / mapped.rows
+    );
+    int scaledWidth = mapped.cols * scale;
+    int scaledHeight = mapped.rows * scale;
+
+    ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
+    auto cursor = ImVec2(
+        (windowSize.x - imageSize.x) / 2,
+        (windowSize.y - imageSize.y) / 2
+    );
+    ImGui::SetCursorPos(cursor);
+    ImGui::Image(
+        (void*)(intptr_t)texture,
+        ImVec2(scaledWidth, scaledHeight - 10)
+    );
+
+    return {cursor, scale};
   }
 
  private:
   std::optional<Devices::Screen>& screen;
   bool& isRunning;
 
-  // TODO: move to render
-  cv::Mat mappedView;
+  SDL_Texture* texture{};
+
+  // TODO: create generic helper
+  void cvMatrixAsSDLTexture(cv::Mat& mapped, Core::Renderer& renderer) {
+    texture = SDL_CreateTexture(
+        renderer.Get().get(),
+        SDL_PIXELFORMAT_BGR24,
+        SDL_TEXTUREACCESS_STREAMING,
+        mapped.cols,
+        mapped.rows
+    );
+    SDL_UpdateTexture(
+        texture,
+        nullptr,
+        (void*)mapped.data,
+        mapped.step1()
+    );
+  }
 };

@@ -34,7 +34,7 @@ set(SOURCES
         src/systems/Detection/DetectionSystemBase.h
         src/events/KeyPressedEvent.h
         src/services/GlobalKeyboardListener.cpp
-        src/components/DetectObjectsComponent.h src/systems/Detection/DetectObjectsSystem.h src/components/InstanceSegmentationComponent.h src/systems/Detection/InstanceSegmentationSystem.h src/components/SegmentMaskComponent.h src/systems/RenderSegmentMaskSystem.h src/systems/OdometerSystem.h src/components/OdometerComponent.h src/services/Map.h src/systems/CartographySystem.h src/layout/CartographyMapperWindow.h src/layout/CartographyLocalizerWindow.h)
+        src/components/DetectObjectsComponent.h src/systems/Detection/DetectObjectsSystem.h src/components/InstanceSegmentationComponent.h src/systems/Detection/InstanceSegmentationSystem.h src/components/SegmentMaskComponent.h src/systems/RenderSegmentMaskSystem.h src/systems/OdometerSystem.h src/components/OdometerComponent.h src/services/Map.h src/systems/CartographySystem.h src/layout/CartographyMapperWindow.h src/layout/CartographyLocalizerWindow.h src/layout/CartographyMappedViewWindow.h)
 
 add_executable(${APP_NAME} ${SOURCES})
 
