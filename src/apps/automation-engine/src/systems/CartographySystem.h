@@ -14,6 +14,8 @@ struct ROI {
 
 class CartographySystem : public ECS::System {
  public:
+  bool isMapping = false;
+
   ROI regionToScan = {
       App::Size(115, 90),
       App::Position(1218, 100),
@@ -21,7 +23,10 @@ class CartographySystem : public ECS::System {
   };
   cv::Mat captured;
   cv::Mat mapped;
+
+  bool isLocalizing = false;
   cv::Point lastLocation;
+  App::Size lastLocationRegion = App::Size(0, 0);
 
   explicit CartographySystem(
       std::optional<Devices::Screen>& screen, bool& isRunning
@@ -29,8 +34,7 @@ class CartographySystem : public ECS::System {
       : screen(screen), isRunning(isRunning){};
 
   void Update() {
-    // TODO: only map if isRunning and isMapping
-    if (isRunning) {
+    if (isRunning && isMapping) {
       captured = screen->latestScreenshot(cv::Rect(
           regionToScan.location.x,
           regionToScan.location.y,
@@ -45,28 +49,51 @@ class CartographySystem : public ECS::System {
 
       auto result = stitch(mapped, captured, lastLocation);
 
-      // TODO: use matchLoc to stitch not captured but ROI areaToMap or something like that (so that
-      // TODO: we can for example use minimap to figure out position and stitch together center of the screen)
+      // TODO: use matchLoc to stitch not captured but ROI areaToMap or
+      // something like that (so that
+      // TODO: we can for example use minimap to figure out position and stitch
+      // together center of the screen)
       mapped = result.stitched;
       lastLocation = result.matchLoc;
+    }
+
+    if (isLocalizing) {
+      auto mappedView = mapped.clone();
+      auto capturedView = captured.clone();
+      // TODO: figure out why does template match convert colors aggressively
+      auto result = templateMatch(mappedView, capturedView);
+      lastLocation = result;
+      lastLocationRegion = App::Size(captured.cols, captured.rows);
     }
   }
 
   void Clear() { SDL_DestroyTexture(texture); }
 
-  ScreenRenderMetadata Render(
-      Core::Renderer& renderer
-  ) {
-    cvMatrixAsSDLTexture(mapped, renderer);
+  ScreenRenderMetadata Render(Core::Renderer& renderer) {
+    auto mappedView = mapped.clone();
+
+    if (isLocalizing) {
+      cv::rectangle(
+          mappedView,
+          lastLocation,
+          cv::Point(
+              lastLocation.x + lastLocationRegion.width,
+              lastLocation.y + lastLocationRegion.height
+          ),
+          cv::Scalar(0, 255, 0),
+          2,
+          8
+      );
+    }
+
+    cvMatrixAsSDLTexture(mappedView, renderer);
 
     ImVec2 windowSize = ImGui::GetWindowSize();
 
-    float scale = std::min(
-        windowSize.x / mapped.cols,
-        windowSize.y / mapped.rows
-    );
-    int scaledWidth = mapped.cols * scale;
-    int scaledHeight = mapped.rows * scale;
+    float scale =
+        std::min(windowSize.x / mappedView.cols, windowSize.y / mappedView.rows);
+    int scaledWidth = mappedView.cols * scale;
+    int scaledHeight = mappedView.rows * scale;
 
     ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
     auto cursor = ImVec2(
@@ -97,11 +124,6 @@ class CartographySystem : public ECS::System {
         mapped.cols,
         mapped.rows
     );
-    SDL_UpdateTexture(
-        texture,
-        nullptr,
-        (void*)mapped.data,
-        mapped.step1()
-    );
+    SDL_UpdateTexture(texture, nullptr, (void*)mapped.data, mapped.step1());
   }
 };

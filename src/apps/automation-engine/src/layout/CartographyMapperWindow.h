@@ -27,6 +27,31 @@ class CartographyMapperWindow : public IGUISystemWindow {
       SaveMappedAsPNG();
     }
 
+    if (cartographySystem.isLocalizing) {
+      ImGui::Text("Localizing");
+      if (ImGui::Button("Stop localizing")) {
+        cartographySystem.isLocalizing = !cartographySystem.isLocalizing;
+      }
+    } else {
+      ImGui::Text("Not localizing");
+      if (ImGui::Button("Start localizing")) {
+        cartographySystem.isLocalizing = !cartographySystem.isLocalizing;
+      }
+    }
+
+    if (cartographySystem.isMapping) {
+      ImGui::Text("Mapping");
+      if (ImGui::Button("Stop mapping")) {
+        cartographySystem.isMapping = !cartographySystem.isMapping;
+      }
+    } else {
+      ImGui::Text("Not Mapping");
+      if (ImGui::Button("Start mapping")) {
+        cartographySystem.isMapping = !cartographySystem.isMapping;
+      }
+    }
+
+
     // Preview
     if (!cartographySystem.captured.empty()) {
       // draw captured
@@ -65,18 +90,8 @@ class CartographyMapperWindow : public IGUISystemWindow {
           screenHeight - region.size.height
       );
 
-      ImGui::SliderInt(
-          "Width",
-          &region.size.width,
-          10,
-          screenWidth
-      );
-      ImGui::SliderInt(
-          "Height",
-          &region.size.height,
-          10,
-          screenHeight
-      );
+      ImGui::SliderInt("Width", &region.size.width, 10, screenWidth);
+      ImGui::SliderInt("Height", &region.size.height, 10, screenHeight);
     }
 
     ImGui::End();
@@ -106,11 +121,6 @@ class CartographyMapperWindow : public IGUISystemWindow {
         captured.cols,
         captured.rows
     );
-    SDL_UpdateTexture(
-        texture,
-        nullptr,
-        (void*)captured.data,
-        captured.step1()
-    );
+    SDL_UpdateTexture(texture, nullptr, (void*)captured.data, captured.step1());
   }
 };

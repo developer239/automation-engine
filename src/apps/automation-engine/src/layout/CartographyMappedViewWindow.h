@@ -37,6 +37,7 @@ class CartographyMappedViewWindow : public IGUISystemWindow {
         cursorTopLeft.y + screenRenderMetadata.cursor.y
     );
 
+    // TODO: remove render text system
     ECS::Registry::Instance().GetSystem<RenderTextSystem>().Render(
         renderer,
         screenCursor,
