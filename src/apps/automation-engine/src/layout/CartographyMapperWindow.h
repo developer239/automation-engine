@@ -3,6 +3,7 @@
 #include <vector>
 #include "imgui.h"
 
+#include "../../../../../externals/ImGuiFileDialog/ImGuiFileDialog.h"
 #include "../systems/CartographySystem.h"
 #include "../systems/GUISystem/GUISystem.structs.h"
 #include "../systems/GUISystem/IGUISystemWindow.h"
@@ -22,6 +23,25 @@ class CartographyMapperWindow : public IGUISystemWindow {
     ImGui::Begin(GetName().c_str());
 
     ROI& region = cartographySystem.regionToScan;
+
+    if (ImGui::Button("Open Map File Dialog")) {
+      ImGuiFileDialog::Instance()->OpenDialog(
+          "ChooseFileDlgKeyMap",
+          "Choose File",
+          ".png",
+          "../../../../"
+      );
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKeyMap")) {
+      if (ImGuiFileDialog::Instance()->IsOk()) {
+        auto filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+
+        cartographySystem.mapped = cv::imread(filePathName);
+      }
+
+      ImGuiFileDialog::Instance()->Close();
+    }
 
     if (ImGui::Button("Save Mapped as PNG")) {
       SaveMappedAsPNG();

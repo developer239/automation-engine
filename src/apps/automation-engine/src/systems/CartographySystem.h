@@ -34,14 +34,16 @@ class CartographySystem : public ECS::System {
       : screen(screen), isRunning(isRunning){};
 
   void Update() {
-    if (isRunning && isMapping) {
+    if(isRunning) {
       captured = screen->latestScreenshot(cv::Rect(
           regionToScan.location.x,
           regionToScan.location.y,
           regionToScan.size.width,
           regionToScan.size.height
       ));
+    }
 
+    if (isRunning && isMapping) {
       if (mapped.empty()) {
         mapped = captured.clone();
         return;
