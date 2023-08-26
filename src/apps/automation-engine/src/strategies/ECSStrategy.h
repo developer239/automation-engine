@@ -132,9 +132,9 @@ class ECSStrategy : public Core::IStrategy {
       screenSystemTaskManager.Execute([this]() {
         std::lock_guard<std::mutex> lock(screenMutex);
         ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
-      });
-
-      cartographyTaskManager.Execute([]() {
+        // Mapping needs to happen in the same thread so that it has access to the correct scree frame
+        // Localisation needs to happen in a separate thread because it is slow and it is better to get the
+        // information later and have a small lag than to block the thread
         ECS::Registry::Instance().GetSystem<CartographySystem>().Update();
       });
     }
