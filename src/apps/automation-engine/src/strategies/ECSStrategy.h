@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include "core/AssetStore.h"
 #include "core/IStrategy.h"
 #include "core/Renderer.h"
@@ -23,6 +24,7 @@
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
 #include "../services/Map.h"
+#include "../services/ParallelTaskManager.h"
 #include "../systems/CartographySystem.h"
 #include "../systems/Detection/DetectContoursSystem.h"
 #include "../systems/Detection/DetectObjectsSystem.h"
@@ -58,7 +60,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
     ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
     ECS::Registry::Instance().AddSystem<RenderSegmentMaskSystem>();
-    ECS::Registry::Instance().AddSystem<CartographySystem>(screen,isRunning);
+    ECS::Registry::Instance().AddSystem<CartographySystem>(screen, isRunning);
 
     //
     // Initialize windows
@@ -94,7 +96,8 @@ class ECSStrategy : public Core::IStrategy {
 
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<CartographyMapperWindow>(
-            ECS::Registry::Instance().GetSystem<CartographySystem>(), screen
+            ECS::Registry::Instance().GetSystem<CartographySystem>(),
+            screen
         ),
         GUISystemLayoutNodePosition::LEFT_MID
     );
@@ -117,7 +120,6 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     if (screen.has_value()) {
-      ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen
       );
       ECS::Registry::Instance().GetSystem<DetectTextSystem>().Update(screen);
@@ -126,7 +128,15 @@ class ECSStrategy : public Core::IStrategy {
           screen
       );
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
-      ECS::Registry::Instance().GetSystem<CartographySystem>().Update();
+
+      screenSystemTaskManager.Execute([this]() {
+        std::lock_guard<std::mutex> lock(screenMutex);
+        ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+      });
+
+      cartographyTaskManager.Execute([]() {
+        ECS::Registry::Instance().GetSystem<CartographySystem>().Update();
+      });
     }
 
     ECS::Registry::Instance().Update();
@@ -134,12 +144,16 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     if (screen.has_value()) {
-      ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
-          screen
-      );
-      ECS::Registry::Instance().GetSystem<RenderSegmentMaskSystem>().Render(
-          screen
-      );
+      screenSystemTaskManager.Execute([this]() {
+        std::lock_guard<std::mutex> lock(screenMutex);
+
+        ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
+            screen
+        );
+        ECS::Registry::Instance().GetSystem<RenderSegmentMaskSystem>().Render(
+            screen
+        );
+      });
     }
 
     ECS::Registry::Instance().GetSystem<GUISystem>().Render(renderer);
@@ -160,5 +174,11 @@ class ECSStrategy : public Core::IStrategy {
 
  private:
   std::optional<Devices::Screen> screen;
+  std::mutex screenMutex;
+
   bool isRunning;
+
+  ParallelTaskManager cartographyTaskManager;
+  ParallelTaskManager screenSystemTaskManager;
+  ParallelTaskManager drawDebugDataTaskManger;
 };
