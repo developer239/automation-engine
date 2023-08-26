@@ -73,7 +73,7 @@ cv::Point templateMatch(cv::Mat& image, cv::Mat& target) {
 // must be less or equal to MOVE_BY and can't be too high (otherwise the result
 // is gonna be finding itself over and over again)
 // if < than MOVE_BY then it
-int MOVE_BY_CROP = 10;
+int MOVE_BY_CROP = 50;
 
 struct StitchResult {
   cv::Mat stitched;
@@ -82,34 +82,22 @@ struct StitchResult {
 
 StitchResult stitch(
     const cv::Mat& mapped, const cv::Mat& next, const cv::Point& playerLocation,
-    int offset = 10
+    int offset = 250
 ) {
-  // Convert to 3 channels if necessary
-  cv::Mat nextConverted, mappedConverted;
-
-  if (mapped.channels() == 1)
-    cvtColor(mapped, mappedConverted, cv::COLOR_GRAY2BGR);
-  else
-    mappedConverted = mapped;
-
-  if (next.channels() == 1)
-    cvtColor(next, nextConverted, cv::COLOR_GRAY2BGR);
-  else
-    nextConverted = next;
 
   auto nextSmaller = cropArea(
-      nextConverted,
+      next,
       MOVE_BY_CROP,
       MOVE_BY_CROP,
-      nextConverted.cols - MOVE_BY_CROP * 2,
-      nextConverted.rows - MOVE_BY_CROP * 2
+      next.cols - MOVE_BY_CROP * 2,
+      next.rows - MOVE_BY_CROP * 2
   );
 
   auto x = std::max(0, playerLocation.x - offset);
   auto y = std::max(0, playerLocation.y - offset);
 
   cv::Mat areaOfInterest =
-      cropArea(mappedConverted.clone(), x, y, mappedConverted.cols - x, mappedConverted.rows - y);
+      cropArea(mapped.clone(), x, y, mapped.cols - x, mapped.rows - y);
 
   cv::Point matchLoc = templateMatch(areaOfInterest, nextSmaller);
 
@@ -117,13 +105,13 @@ StitchResult stitch(
       std::max(0, matchLoc.x + x - MOVE_BY_CROP),
       std::max(0, matchLoc.y + y - MOVE_BY_CROP)};
 
-  int stitchedCols = std::max(mappedConverted.cols, normalizeMatchLoc.x + nextConverted.cols);
-  int stitchedRows = std::max(mappedConverted.rows, normalizeMatchLoc.y + nextConverted.rows);
+  int stitchedCols = std::max(mapped.cols, normalizeMatchLoc.x + next.cols);
+  int stitchedRows = std::max(mapped.rows, normalizeMatchLoc.y + next.rows);
 
   cv::Mat stitched(stitchedRows, stitchedCols, CV_8UC3, cv::Scalar(255));
 
-  mappedConverted.copyTo(stitched(cv::Rect(0, 0, mappedConverted.cols, mappedConverted.rows)));
-  nextConverted.copyTo(stitched(cv::Rect(normalizeMatchLoc.x, normalizeMatchLoc.y, nextConverted.cols, nextConverted.rows)));
+  mapped.copyTo(stitched(cv::Rect(0, 0, mapped.cols, mapped.rows)));
+  next.copyTo(stitched(cv::Rect(normalizeMatchLoc.x, normalizeMatchLoc.y, next.cols, next.rows)));
 
   return {stitched, normalizeMatchLoc};
 }

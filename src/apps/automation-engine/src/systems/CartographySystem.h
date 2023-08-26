@@ -17,8 +17,8 @@ class CartographySystem : public ECS::System {
   bool isMapping = false;
 
   ROI regionToScan = {
-      App::Size(115, 90),
-      App::Position(1218, 100),
+      App::Size(1200, 650),
+      App::Position(25, 175),
 
   };
   cv::Mat captured;
