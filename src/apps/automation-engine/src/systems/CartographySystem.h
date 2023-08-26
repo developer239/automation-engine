@@ -22,7 +22,7 @@ class CartographySystem : public ECS::System {
 
   };
   int stitchOffset = 250;
-  int stitchMoveByCrop = 50;
+  int stitchMoveByCrop = 200;
   cv::Mat captured;
   cv::Mat mapped;
 

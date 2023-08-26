@@ -107,19 +107,56 @@ StitchResult stitch(
   // Find where nextSmaller is in areaOfInterest
   auto templateMatchResult = templateMatch(areaOfInterest, nextSmaller);
 
-  cv::Point normalizeMatchLoc = {
-      std::max(0, templateMatchResult.location.x + x - MOVE_BY_CROP),
-      std::max(0, templateMatchResult.location.y + y - MOVE_BY_CROP)};
+  std::cout << "Match confidence: " << templateMatchResult.confidence
+            << std::endl;
+  std::cout << "Match location: " << templateMatchResult.location << std::endl;
 
-  int stitchedCols = std::max(mapped.cols, normalizeMatchLoc.x + next.cols);
-  int stitchedRows = std::max(mapped.rows, normalizeMatchLoc.y + next.rows);
+  cv::Point normalizeMatchLoc = {
+      templateMatchResult.location.x + x - MOVE_BY_CROP,
+      templateMatchResult.location.y + y - MOVE_BY_CROP};
+
+  std::cout << "Normalized match location: " << normalizeMatchLoc << std::endl;
+
+  // Adjust the match location to be within the image boundaries
+  cv::Point adjustedMatchLoc = {
+      std::max(0, normalizeMatchLoc.x),
+      std::max(0, normalizeMatchLoc.y)};
+
+  // Calculate the offset of the stitched image to offset match location
+  // adjustment
+  cv::Point stitchedOffset = {
+      std::max(0, -normalizeMatchLoc.x),
+      std::max(0, -normalizeMatchLoc.y)};
+
+  int nextOverflowX =
+      std::max(0, normalizeMatchLoc.x + next.cols - mapped.cols);
+  int nextOverflowY =
+      std::max(0, normalizeMatchLoc.y + next.rows - mapped.rows);
+  int stitchedCols = mapped.cols + stitchedOffset.x + nextOverflowX;
+  int stitchedRows = mapped.rows + stitchedOffset.y + nextOverflowY;
+
+  std::cout << "Stitched dimensions: " << stitchedCols << " cols "
+            << stitchedRows << " rows" << std::endl;
 
   cv::Mat stitched(stitchedRows, stitchedCols, CV_8UC3, cv::Scalar(255));
 
-  mapped.copyTo(stitched(cv::Rect(0, 0, mapped.cols, mapped.rows)));
-  next.copyTo(stitched(
-      cv::Rect(normalizeMatchLoc.x, normalizeMatchLoc.y, next.cols, next.rows)
+  std::cout << "Adjusted match location: " << adjustedMatchLoc << std::endl;
+  std::cout << "Stitched offset: " << stitchedOffset << std::endl;
+  std::cout << "mapped dimensions: " << mapped.cols << " cols " << mapped.rows
+            << " rows" << std::endl;
+
+  mapped.copyTo(stitched(
+      cv::Rect(stitchedOffset.x, stitchedOffset.y, mapped.cols, mapped.rows)
   ));
 
-  return {stitched, normalizeMatchLoc};
+  next.copyTo(stitched(
+      cv::Rect(adjustedMatchLoc.x, adjustedMatchLoc.y, next.cols, next.rows)
+  ));
+
+  return {
+      stitched,
+      {
+          normalizeMatchLoc.x + stitchedOffset.x,
+          normalizeMatchLoc.y + stitchedOffset.y,
+      }};
 }
