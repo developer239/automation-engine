@@ -21,6 +21,8 @@ class CartographySystem : public ECS::System {
       App::Position(25, 175),
 
   };
+  int stitchOffset = 250;
+  int stitchMoveByCrop = 50;
   cv::Mat captured;
   cv::Mat mapped;
 
@@ -49,7 +51,7 @@ class CartographySystem : public ECS::System {
         return;
       }
 
-      auto result = stitch(mapped, captured, lastLocation);
+      auto result = stitch(mapped, captured, lastLocation, stitchOffset, stitchMoveByCrop);
 
       // TODO: use matchLoc to stitch not captured but ROI areaToMap or
       // something like that (so that

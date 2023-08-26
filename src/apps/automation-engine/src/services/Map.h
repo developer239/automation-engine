@@ -70,11 +70,6 @@ cv::Point templateMatch(cv::Mat& image, cv::Mat& target) {
   return matchLoc;
 }
 
-// must be less or equal to MOVE_BY and can't be too high (otherwise the result
-// is gonna be finding itself over and over again)
-// if < than MOVE_BY then it
-int MOVE_BY_CROP = 50;
-
 struct StitchResult {
   cv::Mat stitched;
   cv::Point matchLoc;
@@ -82,7 +77,12 @@ struct StitchResult {
 
 StitchResult stitch(
     const cv::Mat& mapped, const cv::Mat& next, const cv::Point& playerLocation,
-    int offset = 250
+    // I don't remember what this does
+    int offset,
+    // must be less or equal to MOVE_BY and can't be too high (otherwise the result
+    // is gonna be finding itself over and over again)
+    // if < than MOVE_BY then it
+    int MOVE_BY_CROP
 ) {
 
   auto nextSmaller = cropArea(

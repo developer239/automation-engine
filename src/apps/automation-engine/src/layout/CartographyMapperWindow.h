@@ -47,6 +47,25 @@ class CartographyMapperWindow : public IGUISystemWindow {
       SaveMappedAsPNG();
     }
 
+    if (ImGui::Button("Clear Map")) {
+      cartographySystem.mapped = cv::Mat();
+      cartographySystem.lastLocation = cv::Point();
+      cartographySystem.lastLocationRegion = App::Size(0, 0);
+    }
+
+    ImGui::SliderInt(
+        "Stitch offset",
+        &cartographySystem.stitchOffset,
+        0,
+        300
+    );
+    ImGui::SliderInt(
+        "Stitch Move By Crop",
+        &cartographySystem.stitchMoveByCrop,
+        0,
+        200
+    );
+
     if (cartographySystem.isLocalizing) {
       ImGui::Text("Localizing");
       if (ImGui::Button("Stop localizing")) {
@@ -70,7 +89,6 @@ class CartographyMapperWindow : public IGUISystemWindow {
         cartographySystem.isMapping = !cartographySystem.isMapping;
       }
     }
-
 
     // Preview
     if (!cartographySystem.captured.empty()) {
