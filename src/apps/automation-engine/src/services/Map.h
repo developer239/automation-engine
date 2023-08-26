@@ -32,7 +32,12 @@ cv::Mat cropArea(const cv::Mat& maze, int x, int y, int width, int height) {
   return maze(roi);
 }
 
-cv::Point templateMatch(cv::Mat& image, cv::Mat& target) {
+struct TemplateMatchResult {
+  cv::Point location;
+  double confidence;
+};
+
+TemplateMatchResult templateMatch(cv::Mat& image, cv::Mat& target) {
   // Ensure image is 2D or grayscale
   if (image.channels() > 1) {
     cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
@@ -61,13 +66,10 @@ cv::Point templateMatch(cv::Mat& image, cv::Mat& target) {
   double maxVal;
   cv::Point minLoc;
   cv::Point maxLoc;
-  cv::Point matchLoc;
 
   minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat());
 
-  matchLoc = maxLoc;
-
-  return matchLoc;
+  return {.location = maxLoc, .confidence = maxVal};
 }
 
 struct StitchResult {
@@ -79,12 +81,13 @@ StitchResult stitch(
     const cv::Mat& mapped, const cv::Mat& next, const cv::Point& playerLocation,
     // I don't remember what this does
     int offset,
-    // must be less or equal to MOVE_BY and can't be too high (otherwise the result
-    // is gonna be finding itself over and over again)
-    // if < than MOVE_BY then it
+    // I don't remember why I wrote this comment
+    // must be less or equal to MOVE_BY and can't be too high (otherwise the
+    // result is gonna be finding itself over and over again) if < than MOVE_BY
+    // then it
     int MOVE_BY_CROP
 ) {
-
+  // Make "next" matrix to stitch smaller so that we can do template matching
   auto nextSmaller = cropArea(
       next,
       MOVE_BY_CROP,
@@ -93,17 +96,20 @@ StitchResult stitch(
       next.rows - MOVE_BY_CROP * 2
   );
 
+  // To prevent false positives and improve performance we don't want to do the
+  // template matching on the whole image, but only on a smaller area around the
+  // player (or where we believe the player is)
   auto x = std::max(0, playerLocation.x - offset);
   auto y = std::max(0, playerLocation.y - offset);
-
   cv::Mat areaOfInterest =
       cropArea(mapped.clone(), x, y, mapped.cols - x, mapped.rows - y);
 
-  cv::Point matchLoc = templateMatch(areaOfInterest, nextSmaller);
+  // Find where nextSmaller is in areaOfInterest
+  auto templateMatchResult = templateMatch(areaOfInterest, nextSmaller);
 
   cv::Point normalizeMatchLoc = {
-      std::max(0, matchLoc.x + x - MOVE_BY_CROP),
-      std::max(0, matchLoc.y + y - MOVE_BY_CROP)};
+      std::max(0, templateMatchResult.location.x + x - MOVE_BY_CROP),
+      std::max(0, templateMatchResult.location.y + y - MOVE_BY_CROP)};
 
   int stitchedCols = std::max(mapped.cols, normalizeMatchLoc.x + next.cols);
   int stitchedRows = std::max(mapped.rows, normalizeMatchLoc.y + next.rows);
@@ -111,7 +117,9 @@ StitchResult stitch(
   cv::Mat stitched(stitchedRows, stitchedCols, CV_8UC3, cv::Scalar(255));
 
   mapped.copyTo(stitched(cv::Rect(0, 0, mapped.cols, mapped.rows)));
-  next.copyTo(stitched(cv::Rect(normalizeMatchLoc.x, normalizeMatchLoc.y, next.cols, next.rows)));
+  next.copyTo(stitched(
+      cv::Rect(normalizeMatchLoc.x, normalizeMatchLoc.y, next.cols, next.rows)
+  ));
 
   return {stitched, normalizeMatchLoc};
 }

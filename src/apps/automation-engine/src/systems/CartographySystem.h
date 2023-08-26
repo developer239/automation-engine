@@ -66,7 +66,7 @@ class CartographySystem : public ECS::System {
       auto capturedView = captured.clone();
       // TODO: figure out why does template match convert colors aggressively
       auto result = templateMatch(mappedView, capturedView);
-      lastLocation = result;
+      lastLocation = result.location;
       lastLocationRegion = App::Size(captured.cols, captured.rows);
     }
   }
