@@ -60,6 +60,9 @@ class CartographySystem : public ECS::System {
   // size of the regionToScan in the map image
   App::Size regionLocationSize = App::Size(0, 0);
 
+  // x, y coordinates of the player in the map image
+  cv::Point playerLocation;
+
   explicit CartographySystem(
       std::optional<Devices::Screen>& screen, bool& isRunning
   )
@@ -68,6 +71,7 @@ class CartographySystem : public ECS::System {
   void setRegionData(const cv::Point& location, const App::Size& size) {
     regionLocation = location;
     regionLocationSize = size;
+    playerLocation = cv::Point(location.x + size.width/2, location.y + size.height/2);
   }
 
   void setMap(const cv::Mat& newMap) {
@@ -344,15 +348,16 @@ class CartographySystem : public ECS::System {
     auto mappedView = map.clone();
 
     if (isLocalizing) {
-      // draw rectangle last location center
+      // draw rectangle for last location center
       auto markerWidth = 100;
       auto markerHeight = 150;
 
       auto markerTopLeft = cv::Point(
-          regionLocation.x + regionLocationSize.width / 2 - markerWidth / 2,
-          regionLocation.y + regionLocationSize.height / 2 - markerHeight / 2
+          playerLocation.x - markerWidth / 2,
+          playerLocation.y - markerHeight / 2
       );
 
+      // Draw bounding rectangle around the region.
       cv::rectangle(
           mappedView,
           regionLocation,
@@ -361,10 +366,11 @@ class CartographySystem : public ECS::System {
               regionLocation.y + regionLocationSize.height
           ),
           cv::Scalar(0, 255, 0),
-          5,
+          20,
           0
       );
 
+      // Draw rectangle to indicate player's position.
       cv::rectangle(
           mappedView,
           markerTopLeft,
@@ -373,7 +379,7 @@ class CartographySystem : public ECS::System {
               markerTopLeft.y + markerHeight
           ),
           cv::Scalar(0, 255, 0),
-          5,
+          20,
           0
       );
     }
