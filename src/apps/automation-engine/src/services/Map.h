@@ -142,7 +142,7 @@ StitchResult stitch(
 
   std::cout << "Adjusted match location: " << adjustedMatchLoc << std::endl;
   std::cout << "Stitched offset: " << stitchedOffset << std::endl;
-  std::cout << "mapped dimensions: " << mapped.cols << " cols " << mapped.rows
+  std::cout << "map dimensions: " << mapped.cols << " cols " << mapped.rows
             << " rows" << std::endl;
 
   mapped.copyTo(stitched(

@@ -15,20 +15,29 @@ struct ROI {
 class CartographySystem : public ECS::System {
  public:
   bool isMapping = false;
+  bool isLocalizing = false;
 
+  // We only want to scan part of the screen area that has distinctive features such as a minimap
   ROI regionToScan = {
       App::Size(1200, 650),
       App::Position(25, 175),
 
   };
-  int stitchOffset = 250;
-  int stitchMoveByCrop = 200;
-  cv::Mat captured;
-  cv::Mat mapped;
 
-  bool isLocalizing = false;
-  cv::Point lastLocation;
-  App::Size lastLocationRegion = App::Size(0, 0);
+  // we don't want to run template matching on the whole map image, but only on a smaller area around the scannedRegion
+  int stitchOuterVisibleOffsetOnMapped = 250;
+  // in order for template matching to work we can only use a small part of the scannedRegion
+  int stitchInnerOffsetForCrop = 200;
+
+  // cv:Mat that contains image of the scanned region that we want to add to map
+  cv::Mat scannedRegion;
+  // cv:Mat that contains the stitched image of the scanned regions
+  cv::Mat map;
+
+  // x, y coordinates of the regionToScan in the map image
+  cv::Point regionLocation;
+  // size of the regionToScan in the map image
+  App::Size regionLocationSize = App::Size(0, 0);
 
   explicit CartographySystem(
       std::optional<Devices::Screen>& screen, bool& isRunning
@@ -37,7 +46,7 @@ class CartographySystem : public ECS::System {
 
   void Update() {
     if (isRunning) {
-      captured = screen->latestScreenshot(cv::Rect(
+      scannedRegion = screen->latestScreenshot(cv::Rect(
           regionToScan.location.x,
           regionToScan.location.y,
           regionToScan.size.width,
@@ -46,25 +55,25 @@ class CartographySystem : public ECS::System {
     }
 
     if (isRunning && isMapping) {
-      if (mapped.empty()) {
-        mapped = captured.clone();
+      if (map.empty()) {
+        map = scannedRegion.clone();
         return;
       }
 
       auto result = stitch(
-          mapped,
-          captured,
-          lastLocation,
-          stitchOffset,
-          stitchMoveByCrop
+          map,
+          scannedRegion,
+          regionLocation,
+          stitchOuterVisibleOffsetOnMapped,
+          stitchInnerOffsetForCrop
       );
 
-      // TODO: use matchLoc to stitch not captured but ROI areaToMap or
+      // TODO: use matchLoc to stitch not scannedRegion but ROI areaToMap or
       // something like that (so that
       // TODO: we can for example use minimap to figure out position and stitch
       // together center of the screen)
-      mapped = result.stitched;
-      lastLocation = result.matchLoc;
+      map = result.stitched;
+      regionLocation = result.matchLoc;
     }
 
     if (isLocalizing) {
@@ -74,53 +83,53 @@ class CartographySystem : public ECS::System {
 
   void performLocalization(bool useWholeImage = false) {
     if (useWholeImage) {
-      auto mappedView = mapped.clone();
-      auto capturedView = captured.clone();
+      auto mappedView = map.clone();
+      auto capturedView = scannedRegion.clone();
       auto result = templateMatch(mappedView, capturedView);
-      lastLocation = result.location;
-      lastLocationRegion = App::Size(captured.cols, captured.rows);
+      regionLocation = result.location;
+      regionLocationSize = App::Size(scannedRegion.cols, scannedRegion.rows);
     } else {
       double capturedCropRatio = 1.0;
       double mappedAreaMultiplier = 2.0;
 
-      // 1. Crop the central area from the captured image based on the given
+      // 1. Crop the central area from the scannedRegion image based on the given
       // ratio
-      int capturedCropWidth = captured.cols * capturedCropRatio;
-      int capturedCropHeight = captured.rows * capturedCropRatio;
-      int capturedOffsetX = (captured.cols - capturedCropWidth) / 2;
-      int capturedOffsetY = (captured.rows - capturedCropHeight) / 2;
+      int capturedCropWidth = scannedRegion.cols * capturedCropRatio;
+      int capturedCropHeight = scannedRegion.rows * capturedCropRatio;
+      int capturedOffsetX = (scannedRegion.cols - capturedCropWidth) / 2;
+      int capturedOffsetY = (scannedRegion.rows - capturedCropHeight) / 2;
 
-      cv::Mat capturedCropped = captured(cv::Rect(
+      cv::Mat capturedCropped = scannedRegion(cv::Rect(
           capturedOffsetX,
           capturedOffsetY,
           capturedCropWidth,
           capturedCropHeight
       ));
 
-      // 2. Determine the region in the mapped image around the lastLocation
-      // for template matching. The size is based on the cropped captured
+      // 2. Determine the region in the map image around the regionLocation
+      // for template matching. The size is based on the cropped scannedRegion
       // region, but multiplied by mappedAreaMultiplier.
       int mappedAreaWidth = capturedCropped.cols * mappedAreaMultiplier;
       int mappedAreaHeight = capturedCropped.rows * mappedAreaMultiplier;
 
-      // Calculate the offsets for the mapped area so that the capturedCropped
+      // Calculate the offsets for the map area so that the capturedCropped
       // area is roughly in the center
       int mappedOffsetX = (mappedAreaWidth - capturedCropped.cols) / 2;
       int mappedOffsetY = (mappedAreaHeight - capturedCropped.rows) / 2;
 
       // Adjust for the last location coordinates
-      int x = lastLocation.x - mappedOffsetX;
-      int y = lastLocation.y - mappedOffsetY;
+      int x = regionLocation.x - mappedOffsetX;
+      int y = regionLocation.y - mappedOffsetY;
 
-      // Ensure we don't go out of bounds for the mapped image
+      // Ensure we don't go out of bounds for the map image
       if (x < 0) x = 0;
       if (y < 0) y = 0;
-      if (x + mappedAreaWidth > mapped.cols) x = mapped.cols - mappedAreaWidth;
-      if (y + mappedAreaHeight > mapped.rows)
-        y = mapped.rows - mappedAreaHeight;
+      if (x + mappedAreaWidth > map.cols) x = map.cols - mappedAreaWidth;
+      if (y + mappedAreaHeight > map.rows)
+        y = map.rows - mappedAreaHeight;
 
       cv::Mat mappedSearchRegion =
-          mapped(cv::Rect(x, y, mappedAreaWidth, mappedAreaHeight));
+          map(cv::Rect(x, y, mappedAreaWidth, mappedAreaHeight));
 
       // 3. Now, perform the template matching
       auto result = templateMatch(mappedSearchRegion, capturedCropped);
@@ -128,15 +137,15 @@ class CartographySystem : public ECS::System {
           cv::Point(result.location.x + x, result.location.y + y);
 
       // Update last location
-      lastLocation = normalizedResultLocation;
-      lastLocationRegion = App::Size(captured.cols, captured.rows);
+      regionLocation = normalizedResultLocation;
+      regionLocationSize = App::Size(scannedRegion.cols, scannedRegion.rows);
     }
   }
 
   void Clear() { SDL_DestroyTexture(texture); }
 
   ScreenRenderMetadata Render(Core::Renderer& renderer) {
-    auto mappedView = mapped.clone();
+    auto mappedView = map.clone();
 
     if (isLocalizing) {
       // draw rectangle last location center
@@ -144,16 +153,16 @@ class CartographySystem : public ECS::System {
       auto markerHeight = 150;
 
       auto markerTopLeft = cv::Point(
-          lastLocation.x + lastLocationRegion.width / 2 - markerWidth / 2,
-          lastLocation.y + lastLocationRegion.height / 2 - markerHeight / 2
+          regionLocation.x + regionLocationSize.width / 2 - markerWidth / 2,
+          regionLocation.y + regionLocationSize.height / 2 - markerHeight / 2
       );
 
       cv::rectangle(
           mappedView,
-          lastLocation,
+          regionLocation,
           cv::Point(
-              lastLocation.x + lastLocationRegion.width,
-              lastLocation.y + lastLocationRegion.height
+              regionLocation.x + regionLocationSize.width,
+              regionLocation.y + regionLocationSize.height
           ),
           cv::Scalar(0, 255, 0),
           5,

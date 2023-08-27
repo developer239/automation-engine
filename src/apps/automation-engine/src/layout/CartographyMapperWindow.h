@@ -37,7 +37,7 @@ class CartographyMapperWindow : public IGUISystemWindow {
       if (ImGuiFileDialog::Instance()->IsOk()) {
         auto filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 
-        cartographySystem.mapped = cv::imread(filePathName);
+        cartographySystem.map = cv::imread(filePathName);
       }
 
       ImGuiFileDialog::Instance()->Close();
@@ -48,12 +48,12 @@ class CartographyMapperWindow : public IGUISystemWindow {
     }
 
     if (ImGui::Button("Clear Map")) {
-      cartographySystem.mapped = cv::Mat();
-      cartographySystem.lastLocation = cv::Point();
-      cartographySystem.lastLocationRegion = App::Size(0, 0);
+      cartographySystem.map = cv::Mat();
+      cartographySystem.regionLocation = cv::Point();
+      cartographySystem.regionLocationSize = App::Size(0, 0);
     }
     if (ImGui::Button("Clear Location")) {
-      cartographySystem.lastLocation = cv::Point();
+      cartographySystem.regionLocation = cv::Point();
     }
     if (ImGui::Button("Localize on whole image")) {
       cartographySystem.performLocalization(true);
@@ -61,13 +61,13 @@ class CartographyMapperWindow : public IGUISystemWindow {
 
     ImGui::SliderInt(
         "Stitch offset",
-        &cartographySystem.stitchOffset,
+        &cartographySystem.stitchOuterVisibleOffsetOnMapped,
         0,
         300
     );
     ImGui::SliderInt(
         "Stitch Move By Crop",
-        &cartographySystem.stitchMoveByCrop,
+        &cartographySystem.stitchInnerOffsetForCrop,
         0,
         200
     );
@@ -97,18 +97,18 @@ class CartographyMapperWindow : public IGUISystemWindow {
     }
 
     // Preview
-    if (!cartographySystem.captured.empty()) {
-      // draw captured
-      cvMatrixAsSDLTexture(cartographySystem.captured, renderer);
+    if (!cartographySystem.scannedRegion.empty()) {
+      // draw scannedRegion
+      cvMatrixAsSDLTexture(cartographySystem.scannedRegion, renderer);
 
       ImVec2 windowSize = ImGui::GetWindowSize();
 
       float scale = std::min(
-          windowSize.x / cartographySystem.captured.cols,
-          windowSize.y / cartographySystem.captured.rows
+          windowSize.x / cartographySystem.scannedRegion.cols,
+          windowSize.y / cartographySystem.scannedRegion.rows
       );
-      int scaledWidth = cartographySystem.captured.cols * scale;
-      int scaledHeight = cartographySystem.captured.rows * scale;
+      int scaledWidth = cartographySystem.scannedRegion.cols * scale;
+      int scaledHeight = cartographySystem.scannedRegion.rows * scale;
 
       ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
       ImGui::Image(
@@ -149,10 +149,10 @@ class CartographyMapperWindow : public IGUISystemWindow {
   SDL_Texture* texture{};
 
   void SaveMappedAsPNG() {
-    if (!cartographySystem.mapped.empty()) {
+    if (!cartographySystem.map.empty()) {
       // ../../../../ is project root
-      std::string filename = "../../../../mapped.png";
-      cv::imwrite(filename, cartographySystem.mapped);
+      std::string filename = "../../../../map.png";
+      cv::imwrite(filename, cartographySystem.map);
     }
   }
 
