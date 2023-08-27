@@ -52,6 +52,12 @@ class CartographyMapperWindow : public IGUISystemWindow {
       cartographySystem.lastLocation = cv::Point();
       cartographySystem.lastLocationRegion = App::Size(0, 0);
     }
+    if (ImGui::Button("Clear Location")) {
+      cartographySystem.lastLocation = cv::Point();
+    }
+    if (ImGui::Button("Localize on whole image")) {
+      cartographySystem.performLocalization(true);
+    }
 
     ImGui::SliderInt(
         "Stitch offset",

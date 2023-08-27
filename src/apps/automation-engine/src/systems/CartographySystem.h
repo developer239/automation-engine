@@ -68,11 +68,67 @@ class CartographySystem : public ECS::System {
     }
 
     if (isLocalizing) {
+      performLocalization();
+    }
+  }
+
+  void performLocalization(bool useWholeImage = false) {
+    if (useWholeImage) {
       auto mappedView = mapped.clone();
       auto capturedView = captured.clone();
-      // TODO: figure out why does template match convert colors aggressively
       auto result = templateMatch(mappedView, capturedView);
       lastLocation = result.location;
+      lastLocationRegion = App::Size(captured.cols, captured.rows);
+    } else {
+      double capturedCropRatio = 1.0;
+      double mappedAreaMultiplier = 2.0;
+
+      // 1. Crop the central area from the captured image based on the given
+      // ratio
+      int capturedCropWidth = captured.cols * capturedCropRatio;
+      int capturedCropHeight = captured.rows * capturedCropRatio;
+      int capturedOffsetX = (captured.cols - capturedCropWidth) / 2;
+      int capturedOffsetY = (captured.rows - capturedCropHeight) / 2;
+
+      cv::Mat capturedCropped = captured(cv::Rect(
+          capturedOffsetX,
+          capturedOffsetY,
+          capturedCropWidth,
+          capturedCropHeight
+      ));
+
+      // 2. Determine the region in the mapped image around the lastLocation
+      // for template matching. The size is based on the cropped captured
+      // region, but multiplied by mappedAreaMultiplier.
+      int mappedAreaWidth = capturedCropped.cols * mappedAreaMultiplier;
+      int mappedAreaHeight = capturedCropped.rows * mappedAreaMultiplier;
+
+      // Calculate the offsets for the mapped area so that the capturedCropped
+      // area is roughly in the center
+      int mappedOffsetX = (mappedAreaWidth - capturedCropped.cols) / 2;
+      int mappedOffsetY = (mappedAreaHeight - capturedCropped.rows) / 2;
+
+      // Adjust for the last location coordinates
+      int x = lastLocation.x - mappedOffsetX;
+      int y = lastLocation.y - mappedOffsetY;
+
+      // Ensure we don't go out of bounds for the mapped image
+      if (x < 0) x = 0;
+      if (y < 0) y = 0;
+      if (x + mappedAreaWidth > mapped.cols) x = mapped.cols - mappedAreaWidth;
+      if (y + mappedAreaHeight > mapped.rows)
+        y = mapped.rows - mappedAreaHeight;
+
+      cv::Mat mappedSearchRegion =
+          mapped(cv::Rect(x, y, mappedAreaWidth, mappedAreaHeight));
+
+      // 3. Now, perform the template matching
+      auto result = templateMatch(mappedSearchRegion, capturedCropped);
+      auto normalizedResultLocation =
+          cv::Point(result.location.x + x, result.location.y + y);
+
+      // Update last location
+      lastLocation = normalizedResultLocation;
       lastLocationRegion = App::Size(captured.cols, captured.rows);
     }
   }
