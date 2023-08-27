@@ -36,7 +36,7 @@ class CartographySystem : public ECS::System {
       : screen(screen), isRunning(isRunning){};
 
   void Update() {
-    if(isRunning) {
+    if (isRunning) {
       captured = screen->latestScreenshot(cv::Rect(
           regionToScan.location.x,
           regionToScan.location.y,
@@ -51,7 +51,13 @@ class CartographySystem : public ECS::System {
         return;
       }
 
-      auto result = stitch(mapped, captured, lastLocation, stitchOffset, stitchMoveByCrop);
+      auto result = stitch(
+          mapped,
+          captured,
+          lastLocation,
+          stitchOffset,
+          stitchMoveByCrop
+      );
 
       // TODO: use matchLoc to stitch not captured but ROI areaToMap or
       // something like that (so that
@@ -77,6 +83,15 @@ class CartographySystem : public ECS::System {
     auto mappedView = mapped.clone();
 
     if (isLocalizing) {
+      // draw rectangle last location center
+      auto markerWidth = 100;
+      auto markerHeight = 150;
+
+      auto markerTopLeft = cv::Point(
+          lastLocation.x + lastLocationRegion.width / 2 - markerWidth / 2,
+          lastLocation.y + lastLocationRegion.height / 2 - markerHeight / 2
+      );
+
       cv::rectangle(
           mappedView,
           lastLocation,
@@ -85,8 +100,20 @@ class CartographySystem : public ECS::System {
               lastLocation.y + lastLocationRegion.height
           ),
           cv::Scalar(0, 255, 0),
-          2,
-          8
+          5,
+          0
+      );
+
+      cv::rectangle(
+          mappedView,
+          markerTopLeft,
+          cv::Point(
+              markerTopLeft.x + markerWidth,
+              markerTopLeft.y + markerHeight
+          ),
+          cv::Scalar(0, 255, 0),
+          5,
+          0
       );
     }
 
@@ -94,8 +121,10 @@ class CartographySystem : public ECS::System {
 
     ImVec2 windowSize = ImGui::GetWindowSize();
 
-    float scale =
-        std::min(windowSize.x / mappedView.cols, windowSize.y / mappedView.rows);
+    float scale = std::min(
+        windowSize.x / mappedView.cols,
+        windowSize.y / mappedView.rows
+    );
     int scaledWidth = mappedView.cols * scale;
     int scaledHeight = mappedView.rows * scale;
 
