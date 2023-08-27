@@ -74,6 +74,52 @@ class CartographySystem : public ECS::System {
   )
       : screen(screen), isRunning(isRunning){};
 
+  void projectWalkableAreaOntoScreenshot() {
+    // Ensure there's a valid screen available
+    if (!screen.has_value() || screen->latestScreenshot.empty()) {
+      return;  // exit if the screen or screenshot is not available
+    }
+
+    cv::Mat& screenshot = screen->latestScreenshot;
+
+    // Calculate the bounding rectangle for the cropped region
+    int x = playerLocation.x - screenshot.cols / 2;
+    int y = playerLocation.y - screenshot.rows / 2;
+    int width = screenshot.cols;
+    int height = screenshot.rows;
+
+    // Ensure the bounding rectangle is within the bounds of the walkableMask
+    if (x < 0) {
+      width += x;  // reduce the width by the overflow amount
+      x = 0;
+    }
+    if (y < 0) {
+      height += y;  // reduce the height by the overflow amount
+      y = 0;
+    }
+    if (x + width > walkableMask.cols) {
+      width = walkableMask.cols - x;
+    }
+    if (y + height > walkableMask.rows) {
+      height = walkableMask.rows - y;
+    }
+
+    cv::Rect cropRect(x, y, width, height);
+
+    // Crop the region from the walkableMask
+    cv::Mat croppedWalkable = walkableMask(cropRect);
+
+    // Project the cropped region onto the screenshot
+    for (int j = 0; j < croppedWalkable.rows; j++) {
+      for (int i = 0; i < croppedWalkable.cols; i++) {
+        if (croppedWalkable.at<uchar>(j, i) == 255) {  // check if pixel is walkable
+          // You can blend or replace pixel color, here's a simple replace approach:
+          screenshot.at<cv::Vec3b>(j, i) = cv::Vec3b(0, 255, 0);  // Set to green
+        }
+      }
+    }
+  }
+
   void generateWalkableArea() {
     if (!isGeneratingWalkableArea || map.empty()) {
       return;
@@ -298,6 +344,7 @@ class CartographySystem : public ECS::System {
 
     if (isGeneratingWalkableArea) {
       generateWalkableArea();
+      projectWalkableAreaOntoScreenshot();
     }
   }
 
