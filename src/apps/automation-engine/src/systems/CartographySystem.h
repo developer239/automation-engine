@@ -55,6 +55,9 @@ class CartographySystem : public ECS::System {
   // cv:Mat that contains the stitched image of the scanned regions
   cv::Mat map;
 
+  // cv::Mat that contains mask of walkable areas in the map
+  cv::Mat walkableMask;
+
   // x, y coordinates of the regionToScan in the map image
   cv::Point regionLocation;
   // size of the regionToScan in the map image
@@ -71,11 +74,20 @@ class CartographySystem : public ECS::System {
   void setRegionData(const cv::Point& location, const App::Size& size) {
     regionLocation = location;
     regionLocationSize = size;
-    playerLocation = cv::Point(location.x + size.width/2, location.y + size.height/2);
+    playerLocation =
+        cv::Point(location.x + size.width / 2, location.y + size.height / 2);
   }
 
-  void setMap(const cv::Mat& newMap) {
-    map = newMap.clone();  // Deep copy to avoid possible external modifications
+  void setMap(
+      const cv::Mat& newMap, std::optional<cv::Mat> walkableMask = std::nullopt
+  ) {
+    map = newMap.clone();
+
+    if (walkableMask.has_value()) {
+      walkableMask = walkableMask.value().clone();
+    } else {
+      walkableMask = cv::Mat(map.rows, map.cols, CV_8UC1, cv::Scalar(0));
+    }
   }
 
   cv::Mat cropArea(const cv::Mat& maze, int x, int y, int width, int height) {
@@ -145,14 +157,15 @@ class CartographySystem : public ECS::System {
     return {.location = maxLoc, .confidence = maxVal};
   }
 
-  StitchResult stitch() {
+  void performMapping() {
     const cv::Mat& mapped = map;
     const cv::Mat& next = scannedRegion;
     const cv::Point& playerLocation = regionLocation;
     int offset = stitchOuterVisibleOffsetOnMapped;
     int MOVE_BY_CROP = stitchInnerOffsetForCrop;
 
-    // Make "next" matrix to stitch smaller so that we can do template matching
+    // Make "next" matrix to performMapping smaller so that we can do template
+    // matching
     auto nextSmaller = cropArea(
         next,
         MOVE_BY_CROP,
@@ -212,6 +225,14 @@ class CartographySystem : public ECS::System {
     std::cout << "map dimensions: " << mapped.cols << " cols " << mapped.rows
               << " rows" << std::endl;
 
+    // TODO: copy walkableMask to new bigger matrix at correct offset
+    //  cv::Mat blah(stitched.rows, stitched.cols, CV_8UC1, cv::Scalar(0));
+    //    walkableMask.copyTo(blah(
+    //        cv::Rect(stitchedOffset.x, stitchedOffset.y, walkableMask.cols,
+    //        walkableMask.rows)
+    //    ));
+    //  pass to setMap
+
     mapped.copyTo(stitched(
         cv::Rect(stitchedOffset.x, stitchedOffset.y, mapped.cols, mapped.rows)
     ));
@@ -220,12 +241,18 @@ class CartographySystem : public ECS::System {
         cv::Rect(adjustedMatchLoc.x, adjustedMatchLoc.y, next.cols, next.rows)
     ));
 
-    return {
-        stitched,
+    setMap(stitched);
+
+    setRegionData(
         {
             normalizeMatchLoc.x + stitchedOffset.x,
             normalizeMatchLoc.y + stitchedOffset.y,
-        }};
+        },
+        {
+            regionToScan.location.x,
+            regionToScan.location.y,
+        }
+    );
   }
 
   void Update() {
@@ -244,17 +271,7 @@ class CartographySystem : public ECS::System {
         return;
       }
 
-      auto result = stitch();
-
-      setMap(result.stitched);
-
-      setRegionData(
-          result.matchLoc,
-          {
-              regionToScan.location.x,
-              regionToScan.location.y,
-          }
-      );
+      performMapping();
     }
 
     if (isLocalizing) {

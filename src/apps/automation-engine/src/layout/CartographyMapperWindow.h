@@ -38,6 +38,12 @@ class CartographyMapperWindow : public IGUISystemWindow {
         auto filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 
         cartographySystem.map = cv::imread(filePathName);
+        cartographySystem.walkableMask = cv::Mat(
+            cartographySystem.map.rows,
+            cartographySystem.map.cols,
+            CV_8UC1,
+            cv::Scalar(0)
+        );
       }
 
       ImGuiFileDialog::Instance()->Close();
