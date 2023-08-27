@@ -12,21 +12,33 @@ struct ROI {
   App::Position location;
 };
 
+struct CroppedData {
+  // renamed to scannedCropped
+  cv::Mat capturedCropped;
+  // TODO: rename to mapSearchRegion
+  cv::Mat mappedSearchRegion;
+  int offsetX;
+  int offsetY;
+};
+
 class CartographySystem : public ECS::System {
  public:
   bool isMapping = false;
   bool isLocalizing = false;
 
-  // We only want to scan part of the screen area that has distinctive features such as a minimap
+  // We only want to scan part of the screen area that has distinctive features
+  // such as a minimap
   ROI regionToScan = {
       App::Size(1200, 650),
       App::Position(25, 175),
 
   };
 
-  // we don't want to run template matching on the whole map image, but only on a smaller area around the scannedRegion
+  // we don't want to run template matching on the whole map image, but only on
+  // a smaller area around the scannedRegion
   int stitchOuterVisibleOffsetOnMapped = 250;
-  // in order for template matching to work we can only use a small part of the scannedRegion
+  // in order for template matching to work we can only use a small part of the
+  // scannedRegion
   int stitchInnerOffsetForCrop = 200;
 
   // cv:Mat that contains image of the scanned region that we want to add to map
@@ -81,62 +93,77 @@ class CartographySystem : public ECS::System {
     }
   }
 
+  CroppedData computeCroppedRegions(
+      const cv::Mat& fullImage, const cv::Mat& scannedRegion,
+      const cv::Point& desiredLocation, double capturedCropRatio,
+      double mappedAreaMultiplier
+  ) {
+    // 1. Crop the central area from the scannedRegion image based on the given
+    // ratio
+    int capturedCropWidth = scannedRegion.cols * capturedCropRatio;
+    int capturedCropHeight = scannedRegion.rows * capturedCropRatio;
+    int capturedOffsetX = (scannedRegion.cols - capturedCropWidth) / 2;
+    int capturedOffsetY = (scannedRegion.rows - capturedCropHeight) / 2;
+
+    cv::Mat capturedCropped = scannedRegion(cv::Rect(
+        capturedOffsetX,
+        capturedOffsetY,
+        capturedCropWidth,
+        capturedCropHeight
+    ));
+
+    // 2. Determine the region in the full image around the desiredLocation
+    int mappedAreaWidth = capturedCropped.cols * mappedAreaMultiplier;
+    int mappedAreaHeight = capturedCropped.rows * mappedAreaMultiplier;
+    int mappedOffsetX = (mappedAreaWidth - capturedCropped.cols) / 2;
+    int mappedOffsetY = (mappedAreaHeight - capturedCropped.rows) / 2;
+
+    // Adjust for the desired location coordinates
+    int x = desiredLocation.x - mappedOffsetX;
+    int y = desiredLocation.y - mappedOffsetY;
+
+    // Ensure we don't go out of bounds for the full image
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x + mappedAreaWidth > fullImage.cols)
+      x = fullImage.cols - mappedAreaWidth;
+    if (y + mappedAreaHeight > fullImage.rows)
+      y = fullImage.rows - mappedAreaHeight;
+
+    cv::Mat mappedSearchRegion =
+        fullImage(cv::Rect(x, y, mappedAreaWidth, mappedAreaHeight));
+
+    return {capturedCropped, mappedSearchRegion, x, y};
+  }
+
   void performLocalization(bool useWholeImage = false) {
     if (useWholeImage) {
       auto mappedView = map.clone();
       auto capturedView = scannedRegion.clone();
       auto result = templateMatch(mappedView, capturedView);
+
       regionLocation = result.location;
       regionLocationSize = App::Size(scannedRegion.cols, scannedRegion.rows);
     } else {
       double capturedCropRatio = 1.0;
       double mappedAreaMultiplier = 2.0;
 
-      // 1. Crop the central area from the scannedRegion image based on the given
-      // ratio
-      int capturedCropWidth = scannedRegion.cols * capturedCropRatio;
-      int capturedCropHeight = scannedRegion.rows * capturedCropRatio;
-      int capturedOffsetX = (scannedRegion.cols - capturedCropWidth) / 2;
-      int capturedOffsetY = (scannedRegion.rows - capturedCropHeight) / 2;
+      auto croppedRegions = computeCroppedRegions(
+          map,
+          scannedRegion,
+          regionLocation,
+          capturedCropRatio,
+          mappedAreaMultiplier
+      );
+      auto result = templateMatch(
+          croppedRegions.mappedSearchRegion,
+          croppedRegions.capturedCropped
+      );
+      auto normalizedResultLocation = cv::Point(
+          result.location.x + croppedRegions.offsetX,
+          result.location.y + croppedRegions.offsetY
+      );
 
-      cv::Mat capturedCropped = scannedRegion(cv::Rect(
-          capturedOffsetX,
-          capturedOffsetY,
-          capturedCropWidth,
-          capturedCropHeight
-      ));
-
-      // 2. Determine the region in the map image around the regionLocation
-      // for template matching. The size is based on the cropped scannedRegion
-      // region, but multiplied by mappedAreaMultiplier.
-      int mappedAreaWidth = capturedCropped.cols * mappedAreaMultiplier;
-      int mappedAreaHeight = capturedCropped.rows * mappedAreaMultiplier;
-
-      // Calculate the offsets for the map area so that the capturedCropped
-      // area is roughly in the center
-      int mappedOffsetX = (mappedAreaWidth - capturedCropped.cols) / 2;
-      int mappedOffsetY = (mappedAreaHeight - capturedCropped.rows) / 2;
-
-      // Adjust for the last location coordinates
-      int x = regionLocation.x - mappedOffsetX;
-      int y = regionLocation.y - mappedOffsetY;
-
-      // Ensure we don't go out of bounds for the map image
-      if (x < 0) x = 0;
-      if (y < 0) y = 0;
-      if (x + mappedAreaWidth > map.cols) x = map.cols - mappedAreaWidth;
-      if (y + mappedAreaHeight > map.rows)
-        y = map.rows - mappedAreaHeight;
-
-      cv::Mat mappedSearchRegion =
-          map(cv::Rect(x, y, mappedAreaWidth, mappedAreaHeight));
-
-      // 3. Now, perform the template matching
-      auto result = templateMatch(mappedSearchRegion, capturedCropped);
-      auto normalizedResultLocation =
-          cv::Point(result.location.x + x, result.location.y + y);
-
-      // Update last location
       regionLocation = normalizedResultLocation;
       regionLocationSize = App::Size(scannedRegion.cols, scannedRegion.rows);
     }
