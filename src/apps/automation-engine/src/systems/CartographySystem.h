@@ -65,6 +65,15 @@ class CartographySystem : public ECS::System {
   )
       : screen(screen), isRunning(isRunning){};
 
+  void setRegionData(const cv::Point& location, const App::Size& size) {
+    regionLocation = location;
+    regionLocationSize = size;
+  }
+
+  void setMap(const cv::Mat& newMap) {
+    map = newMap.clone();  // Deep copy to avoid possible external modifications
+  }
+
   cv::Mat cropArea(const cv::Mat& maze, int x, int y, int width, int height) {
     // Check that x and y are within the image boundaries
     if (x < 0 || y < 0 || x >= maze.cols || y >= maze.rows) {
@@ -85,10 +94,12 @@ class CartographySystem : public ECS::System {
     // image
     if (x + width > maze.cols || y + height > maze.rows) {
       std::cout << "Region of interest exceeds image dimensions: x + width = "
-                << (x + width) << ", y + height = " << (y + height) << std::endl;
+                << (x + width) << ", y + height = " << (y + height)
+                << std::endl;
       std::cout << "Maze dimensions: " << maze.cols << " x " << maze.rows
                 << std::endl;
-      throw std::invalid_argument("Region of interest exceeds image dimensions.");
+      throw std::invalid_argument("Region of interest exceeds image dimensions."
+      );
     }
 
     cv::Rect roi(x, y, width, height);
@@ -146,9 +157,9 @@ class CartographySystem : public ECS::System {
         next.rows - MOVE_BY_CROP * 2
     );
 
-    // To prevent false positives and improve performance we don't want to do the
-    // template matching on the whole image, but only on a smaller area around the
-    // player (or where we believe the player is)
+    // To prevent false positives and improve performance we don't want to do
+    // the template matching on the whole image, but only on a smaller area
+    // around the player (or where we believe the player is)
     auto x = std::max(0, playerLocation.x - offset);
     auto y = std::max(0, playerLocation.y - offset);
     cv::Mat areaOfInterest =
@@ -159,13 +170,15 @@ class CartographySystem : public ECS::System {
 
     std::cout << "Match confidence: " << templateMatchResult.confidence
               << std::endl;
-    std::cout << "Match location: " << templateMatchResult.location << std::endl;
+    std::cout << "Match location: " << templateMatchResult.location
+              << std::endl;
 
     cv::Point normalizeMatchLoc = {
         templateMatchResult.location.x + x - MOVE_BY_CROP,
         templateMatchResult.location.y + y - MOVE_BY_CROP};
 
-    std::cout << "Normalized match location: " << normalizeMatchLoc << std::endl;
+    std::cout << "Normalized match location: " << normalizeMatchLoc
+              << std::endl;
 
     // Adjust the match location to be within the image boundaries
     cv::Point adjustedMatchLoc = {
@@ -234,7 +247,14 @@ class CartographySystem : public ECS::System {
       // TODO: we can for example use minimap to figure out position and stitch
       // together center of the screen)
       map = result.stitched;
-      regionLocation = result.matchLoc;
+
+      setRegionData(
+          result.matchLoc,
+          {
+              regionToScan.location.x,
+              regionToScan.location.y,
+          }
+      );
     }
 
     if (isLocalizing) {
@@ -291,8 +311,10 @@ class CartographySystem : public ECS::System {
       auto capturedView = scannedRegion.clone();
       auto result = templateMatch(mappedView, capturedView);
 
-      regionLocation = result.location;
-      regionLocationSize = App::Size(scannedRegion.cols, scannedRegion.rows);
+      setRegionData(
+          result.location,
+          App::Size(scannedRegion.cols, scannedRegion.rows)
+      );
     } else {
       double capturedCropRatio = 1.0;
       double mappedAreaMultiplier = 2.0;
@@ -313,8 +335,10 @@ class CartographySystem : public ECS::System {
           result.location.y + croppedRegions.offsetY
       );
 
-      regionLocation = normalizedResultLocation;
-      regionLocationSize = App::Size(scannedRegion.cols, scannedRegion.rows);
+      setRegionData(
+          normalizedResultLocation,
+          App::Size(scannedRegion.cols, scannedRegion.rows)
+      );
     }
   }
 
