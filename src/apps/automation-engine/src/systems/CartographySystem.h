@@ -69,6 +69,8 @@ class CartographySystem : public ECS::System {
   // x, y coordinates of the player in the map image
   cv::Point playerLocation;
 
+  cv::Point debugPathFindingTarget;
+
   explicit CartographySystem(
       std::optional<Devices::Screen>& screen, bool& isRunning
   )
@@ -112,12 +114,27 @@ class CartographySystem : public ECS::System {
     // Project the cropped region onto the screenshot
     for (int j = 0; j < croppedWalkable.rows; j++) {
       for (int i = 0; i < croppedWalkable.cols; i++) {
-        if (croppedWalkable.at<uchar>(j, i) == 255) {  // check if pixel is walkable
-          // You can blend or replace pixel color, here's a simple replace approach:
-          screenshot.at<cv::Vec3b>(j, i) = cv::Vec3b(0, 255, 0);  // Set to green
+        if (croppedWalkable.at<uchar>(j, i) ==
+            255) {  // check if pixel is walkable
+          // You can blend or replace pixel color, here's a simple replace
+          // approach:
+          screenshot.at<cv::Vec3b>(j, i) =
+              cv::Vec3b(0, 255, 0);  // Set to green
         }
       }
     }
+
+    // project pathfinding target onto screenshot
+    cv::circle(
+        screenshot,
+        {
+            debugPathFindingTarget.x - x,
+            debugPathFindingTarget.y - y,
+        },
+        walkableRadius,
+        cv::Scalar(255, 255, 0),
+        -1
+    );
   }
 
   void generateWalkableArea() {
@@ -430,7 +447,72 @@ class CartographySystem : public ECS::System {
 
   void Clear() { SDL_DestroyTexture(texture); }
 
+  void setTarget() {
+    ImVec2 mousePos = ImGui::GetMousePos();
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 windowSize = ImGui::GetWindowSize();
+    ImVec2 relativeMousePos =
+        ImVec2(mousePos.x - windowPos.x, mousePos.y - windowPos.y);
+
+    float tabBarHeight =
+        ImGui::GetFrameHeight();  // Estimate the tab bar height
+
+    // Check if relativeMousePos is within the bounds of the window, excluding
+    // the tab bar
+    if (relativeMousePos.x >= 0 && relativeMousePos.x <= windowSize.x &&
+        relativeMousePos.y >= tabBarHeight &&
+        relativeMousePos.y <= windowSize.y) {
+      //      std::cout << "Absolute mouse position: x=" << mousePos.x
+      //                << ", y=" << mousePos.y << std::endl;
+      //      std::cout << "Relative mouse position to window (below the tab
+      //      bar): x="
+      //                << relativeMousePos.x << ", y=" << relativeMousePos.y
+      //                << std::endl;
+    }
+
+    // Calculate mouse position relative to the top-left corner of the scaled
+    // map image
+    ImVec2 posRelativeToScaledMap =
+        ImVec2(relativeMousePos.x - cursor.x, relativeMousePos.y - cursor.y);
+
+    // Check if the cursor is within the scaled map image bounds
+    if (posRelativeToScaledMap.x >= 0 &&
+        posRelativeToScaledMap.x <= scaledWidth &&
+        posRelativeToScaledMap.y >= 0 &&
+        posRelativeToScaledMap.y <= scaledHeight) {
+      // Calculate mouse position relative to the original map
+      ImVec2 posRelativeToMap = ImVec2(
+          posRelativeToScaledMap.x / scale,
+          posRelativeToScaledMap.y / scale
+      );
+
+      //      std::cout << "Mouse position relative to map: x=" <<
+      //      posRelativeToMap.x
+      //                << ", y=" << posRelativeToMap.y << std::endl;
+      //      std::cout << "Player location: x=" << playerLocation.x
+      //                << ", y=" << playerLocation.y << std::endl;
+
+      // if mouse down mark position
+      if (ImGui::IsMouseDown(ImGuiMouseButton_Left)
+          // prevent changing tab from clearing the target
+          && relativeMousePos.y > 200) {
+        std::cout << "Marking target at: x=" << posRelativeToMap.x
+                  << ", y=" << posRelativeToMap.y << std::endl;
+        debugPathFindingTarget = {
+            static_cast<int>(posRelativeToMap.x),
+            static_cast<int>(posRelativeToMap.y)};
+      }
+    }
+  }
+
+  int scaledHeight;
+  int scaledWidth;
+  ImVec2 cursor;
+  float scale;
+
   ScreenRenderMetadata Render(Core::Renderer& renderer) {
+    setTarget();
+
     auto mappedView = map.clone();
 
     if (isLocalizing) {
@@ -477,19 +559,30 @@ class CartographySystem : public ECS::System {
       mappedView = mappedView + walkableMaskBGR;
     }
 
+    if (isGeneratingWalkableArea) {
+      cv::circle(
+          mappedView,
+          cv::Point(debugPathFindingTarget.x, debugPathFindingTarget.y),
+          10,
+          cv::Scalar(255, 255, 0),
+          10,
+          -1
+      );
+    }
+
     cvMatrixAsSDLTexture(mappedView, renderer);
 
     ImVec2 windowSize = ImGui::GetWindowSize();
 
-    float scale = std::min(
+    scale = std::min(
         windowSize.x / mappedView.cols,
         windowSize.y / mappedView.rows
     );
-    int scaledWidth = mappedView.cols * scale;
-    int scaledHeight = mappedView.rows * scale;
+    scaledWidth = mappedView.cols * scale;
+    scaledHeight = mappedView.rows * scale;
 
     ImVec2 imageSize = ImVec2(scaledWidth, scaledHeight);
-    auto cursor = ImVec2(
+    cursor = ImVec2(
         (windowSize.x - imageSize.x) / 2,
         (windowSize.y - imageSize.y) / 2
     );
