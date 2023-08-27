@@ -236,17 +236,13 @@ class CartographySystem : public ECS::System {
 
     if (isRunning && isMapping) {
       if (map.empty()) {
-        map = scannedRegion.clone();
+        setMap(scannedRegion);
         return;
       }
 
       auto result = stitch();
 
-      // TODO: use matchLoc to stitch not scannedRegion but ROI areaToMap or
-      // something like that (so that
-      // TODO: we can for example use minimap to figure out position and stitch
-      // together center of the screen)
-      map = result.stitched;
+      setMap(result.stitched);
 
       setRegionData(
           result.matchLoc,
