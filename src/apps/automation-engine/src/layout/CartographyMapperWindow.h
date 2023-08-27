@@ -90,6 +90,18 @@ class CartographyMapperWindow : public IGUISystemWindow {
       }
     }
 
+    if (cartographySystem.isGeneratingWalkableArea) {
+      ImGui::Text("Is generating walkable area");
+      if (ImGui::Button("Stop generating walkable area")) {
+        cartographySystem.isGeneratingWalkableArea = !cartographySystem.isGeneratingWalkableArea;
+      }
+    } else {
+      ImGui::Text("Not generating walkable area");
+      if (ImGui::Button("Start generating walkable area")) {
+        cartographySystem.isGeneratingWalkableArea = !cartographySystem.isGeneratingWalkableArea;
+      }
+    }
+
     if (cartographySystem.isMapping) {
       ImGui::Text("Mapping");
       if (ImGui::Button("Stop mapping")) {

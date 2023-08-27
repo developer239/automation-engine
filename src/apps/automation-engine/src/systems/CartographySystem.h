@@ -35,6 +35,9 @@ class CartographySystem : public ECS::System {
   bool isMapping = false;
   bool isLocalizing = false;
 
+  bool isGeneratingWalkableArea = false;
+  int walkableRadius = 50;
+
   // We only want to scan part of the screen area that has distinctive features
   // such as a minimap
   ROI regionToScan = {
@@ -70,6 +73,21 @@ class CartographySystem : public ECS::System {
       std::optional<Devices::Screen>& screen, bool& isRunning
   )
       : screen(screen), isRunning(isRunning){};
+
+  void generateWalkableArea() {
+    if (!isGeneratingWalkableArea || map.empty()) {
+      return;
+    }
+
+    // Define a circle centered on the playerLocation with the given radius
+    cv::circle(
+        walkableMask,
+        playerLocation,
+        walkableRadius,
+        cv::Scalar(255),
+        -1
+    );
+  }
 
   void setRegionData(const cv::Point& location, const App::Size& size) {
     regionLocation = location;
@@ -277,6 +295,10 @@ class CartographySystem : public ECS::System {
     if (isLocalizing) {
       performLocalization();
     }
+
+    if (isGeneratingWalkableArea) {
+      generateWalkableArea();
+    }
   }
 
   CroppedData computeCroppedRegions(
@@ -399,6 +421,13 @@ class CartographySystem : public ECS::System {
           20,
           0
       );
+    }
+
+    // draw walkable mask on mappedView
+    if (isGeneratingWalkableArea) {
+      cv::Mat walkableMaskBGR;
+      cv::cvtColor(walkableMask, walkableMaskBGR, cv::COLOR_GRAY2BGR);
+      mappedView = mappedView + walkableMaskBGR;
     }
 
     cvMatrixAsSDLTexture(mappedView, renderer);
