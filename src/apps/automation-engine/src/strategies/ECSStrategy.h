@@ -23,7 +23,6 @@
 #include "../layout/LoggingWindow.h"
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
-#include "../services/Map.h"
 #include "../services/ParallelTaskManager.h"
 #include "../systems/CartographySystem.h"
 #include "../systems/Detection/DetectContoursSystem.h"
