@@ -53,11 +53,43 @@ class CartographyMapperWindow : public IGUISystemWindow {
       SaveMappedAsPNG();
     }
 
+    if (ImGui::Button("Open Walkable File Dialog")) {
+      ImGuiFileDialog::Instance()->OpenDialog(
+          "ChooseFileDlgKeyWalkable",
+          "Choose File",
+          ".png",
+          "../../../../"
+      );
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKeyWalkable")) {
+      if (ImGuiFileDialog::Instance()->IsOk()) {
+        auto filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+
+        auto maskRBG = cv::imread(filePathName);
+        auto maskCV_8UC1 = cv::Mat(
+            maskRBG.rows,
+            maskRBG.cols,
+            CV_8UC1,
+            cv::Scalar(0)
+        );
+        cv::cvtColor(maskRBG, maskCV_8UC1, cv::COLOR_BGR2GRAY);
+        cartographySystem.walkableMask = maskCV_8UC1;
+      }
+
+      ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGui::Button("Save Walkable as PNG")) {
+      SaveWalkableAreaAsPNG();
+    }
+
     if (ImGui::Button("Clear Map")) {
       cartographySystem.map = cv::Mat();
       cartographySystem.regionLocation = cv::Point();
       cartographySystem.regionLocationSize = App::Size(0, 0);
     }
+
     if (ImGui::Button("Clear Location")) {
       cartographySystem.regionLocation = cv::Point();
     }
@@ -171,6 +203,14 @@ class CartographyMapperWindow : public IGUISystemWindow {
       // ../../../../ is project root
       std::string filename = "../../../../map.png";
       cv::imwrite(filename, cartographySystem.map);
+    }
+  }
+
+  void SaveWalkableAreaAsPNG() {
+    if (!cartographySystem.map.empty()) {
+      // ../../../../ is project root
+      std::string filename = "../../../../walkable.png";
+      cv::imwrite(filename, cartographySystem.walkableMask);
     }
   }
 

@@ -36,7 +36,7 @@ class CartographySystem : public ECS::System {
   bool isLocalizing = false;
 
   bool isGeneratingWalkableArea = false;
-  int walkableRadius = 50;
+  int walkableRadius = 40;
 
   // We only want to scan part of the screen area that has distinctive features
   // such as a minimap
@@ -495,7 +495,7 @@ class CartographySystem : public ECS::System {
       // if mouse down mark position
       if (ImGui::IsMouseDown(ImGuiMouseButton_Left)
           // prevent changing tab from clearing the target
-          && relativeMousePos.y > 200) {
+          && relativeMousePos.y > 20) {
         std::cout << "Marking target at: x=" << posRelativeToMap.x
                   << ", y=" << posRelativeToMap.y << std::endl;
         debugPathFindingTarget = {
