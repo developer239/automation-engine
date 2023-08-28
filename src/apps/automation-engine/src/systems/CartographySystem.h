@@ -36,7 +36,7 @@ class CartographySystem : public ECS::System {
   bool isLocalizing = false;
 
   bool isGeneratingWalkableArea = false;
-  int walkableRadius = 40;
+  int walkableRadius = 50;
 
   // We only want to scan part of the screen area that has distinctive features
   // such as a minimap
@@ -261,7 +261,8 @@ class CartographySystem : public ECS::System {
     auto x = std::max(0, playerLocation.x - offset);
     auto y = std::max(0, playerLocation.y - offset);
     cv::Mat areaOfInterest =
-        cropArea(mapped.clone(), x, y, mapped.cols - x, mapped.rows - y);
+        // TODO: the width and height here is wrong !! make it work in a similar how we crop images for localization
+        cropArea(mapped.clone(), x, y, (mapped.cols - x) / 2, (mapped.rows - y)/2);
 
     // Find where nextSmaller is in areaOfInterest
     auto templateMatchResult = templateMatch(areaOfInterest, nextSmaller);
