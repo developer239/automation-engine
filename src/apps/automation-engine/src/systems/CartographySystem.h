@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../services/PathFinder.h"
 #include "../structs/Position.h"
 #include "../structs/Size.h"
 #include "ScreenSystem.h"
@@ -36,6 +37,7 @@ class CartographySystem : public ECS::System {
   bool isLocalizing = false;
 
   bool isGeneratingWalkableArea = false;
+  bool isShowingWalkableArea = false;
   int walkableRadius = 50;
 
   // We only want to scan part of the screen area that has distinctive features
@@ -69,12 +71,20 @@ class CartographySystem : public ECS::System {
   // x, y coordinates of the player in the map image
   cv::Point playerLocation;
 
-  cv::Point debugPathFindingTarget;
+  cv::Point pathFindingTarget;
+
+  std::vector<cv::Point> path;
 
   explicit CartographySystem(
       std::optional<Devices::Screen>& screen, bool& isRunning
   )
       : screen(screen), isRunning(isRunning){};
+
+  void findPath() {
+    auto finder = new PathFinder();
+    path =
+        finder->findPathAStar(walkableMask, playerLocation, pathFindingTarget);
+  }
 
   void projectWalkableAreaOntoScreenshot() {
     // Ensure there's a valid screen available
@@ -128,11 +138,11 @@ class CartographySystem : public ECS::System {
     cv::circle(
         screenshot,
         {
-            debugPathFindingTarget.x - x,
-            debugPathFindingTarget.y - y,
+            pathFindingTarget.x - x,
+            pathFindingTarget.y - y,
         },
-        walkableRadius,
-        cv::Scalar(255, 255, 0),
+        walkableRadius * 2,
+        cv::Scalar(0, 0, 255),
         -1
     );
   }
@@ -261,8 +271,15 @@ class CartographySystem : public ECS::System {
     auto x = std::max(0, playerLocation.x - offset);
     auto y = std::max(0, playerLocation.y - offset);
     cv::Mat areaOfInterest =
-        // TODO: the width and height here is wrong !! make it work in a similar how we crop images for localization
-        cropArea(mapped.clone(), x, y, (mapped.cols - x) / 2, (mapped.rows - y)/2);
+        // TODO: the width and height here is wrong !! make it work in a similar
+        // how we crop images for localization
+        cropArea(
+            mapped.clone(),
+            x,
+            y,
+            (mapped.cols - x) / 2,
+            (mapped.rows - y) / 2
+        );
 
     // Find where nextSmaller is in areaOfInterest
     auto templateMatchResult = templateMatch(areaOfInterest, nextSmaller);
@@ -362,6 +379,9 @@ class CartographySystem : public ECS::System {
 
     if (isGeneratingWalkableArea) {
       generateWalkableArea();
+    }
+
+    if (isShowingWalkableArea || isGeneratingWalkableArea) {
       projectWalkableAreaOntoScreenshot();
     }
   }
@@ -499,7 +519,7 @@ class CartographySystem : public ECS::System {
           && relativeMousePos.y > 20) {
         std::cout << "Marking target at: x=" << posRelativeToMap.x
                   << ", y=" << posRelativeToMap.y << std::endl;
-        debugPathFindingTarget = {
+        pathFindingTarget = {
             static_cast<int>(posRelativeToMap.x),
             static_cast<int>(posRelativeToMap.y)};
       }
@@ -554,16 +574,36 @@ class CartographySystem : public ECS::System {
     }
 
     // draw walkable mask on mappedView
-    if (isGeneratingWalkableArea) {
+    if (isGeneratingWalkableArea || isShowingWalkableArea) {
       cv::Mat walkableMaskBGR;
       cv::cvtColor(walkableMask, walkableMaskBGR, cv::COLOR_GRAY2BGR);
       mappedView = mappedView + walkableMaskBGR;
+
+      cv::circle(
+          mappedView,
+          cv::Point(pathFindingTarget.x, pathFindingTarget.y),
+          walkableRadius * 2,
+          cv::Scalar(0, 0, 255),
+          -1
+      );
+
+      if(!path.empty()) {
+        for (auto& point : path) {
+          cv::circle(
+              mappedView,
+              cv::Point(point.x, point.y),
+              walkableRadius/2,
+              cv::Scalar(255, 0, 255),
+              -1
+          );
+        }
+      }
     }
 
     if (isGeneratingWalkableArea) {
       cv::circle(
           mappedView,
-          cv::Point(debugPathFindingTarget.x, debugPathFindingTarget.y),
+          cv::Point(pathFindingTarget.x, pathFindingTarget.y),
           10,
           cv::Scalar(255, 255, 0),
           10,

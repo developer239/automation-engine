@@ -24,6 +24,10 @@ class CartographyMapperWindow : public IGUISystemWindow {
 
     ROI& region = cartographySystem.regionToScan;
 
+    if (ImGui::Button("Find path")) {
+      cartographySystem.findPath();
+    }
+
     if (ImGui::Button("Open Map File Dialog")) {
       ImGuiFileDialog::Instance()->OpenDialog(
           "ChooseFileDlgKeyMap",
@@ -131,6 +135,18 @@ class CartographyMapperWindow : public IGUISystemWindow {
       ImGui::Text("Not generating walkable area");
       if (ImGui::Button("Start generating walkable area")) {
         cartographySystem.isGeneratingWalkableArea = !cartographySystem.isGeneratingWalkableArea;
+      }
+    }
+
+    if (cartographySystem.isShowingWalkableArea) {
+      ImGui::Text("Is showing walkable area");
+      if (ImGui::Button("Stop showing walkable area")) {
+        cartographySystem.isShowingWalkableArea = !cartographySystem.isShowingWalkableArea;
+      }
+    } else {
+      ImGui::Text("Not showing walkable area");
+      if (ImGui::Button("Start showing walkable area")) {
+        cartographySystem.isShowingWalkableArea = !cartographySystem.isShowingWalkableArea;
       }
     }
 
