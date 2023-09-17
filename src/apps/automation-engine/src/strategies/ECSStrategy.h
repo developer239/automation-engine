@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include "core/AssetStore.h"
 #include "core/IStrategy.h"
 #include "core/Renderer.h"
@@ -13,6 +14,8 @@
 
 #include "../components/TextLabelComponent.h"
 #include "../events/KeyPressedEvent.h"
+#include "../layout/CartographyMappedViewWindow.h"
+#include "../layout/CartographyMapperWindow.h"
 #include "../layout/FPSWindow.h"
 #include "../layout/ImageStreamWindow.h"
 #include "../layout/ImageStreamWindowControlsWindow.h"
@@ -20,12 +23,13 @@
 #include "../layout/LoggingWindow.h"
 #include "../layout/ManageEntitiesWindow.h"
 #include "../layout/MemoryWindow.h"
+#include "../services/ParallelTaskManager.h"
+#include "../systems/CartographySystem.h"
 #include "../systems/Detection/DetectContoursSystem.h"
 #include "../systems/Detection/DetectObjectsSystem.h"
 #include "../systems/Detection/DetectTextSystem.h"
 #include "../systems/Detection/InstanceSegmentationSystem.h"
 #include "../systems/GUISystem/GUISystem.h"
-#include "../systems/OdometerSystem.h"
 #include "../systems/RenderBoundingBoxSystem.h"
 #include "../systems/RenderEditableComponentsGUISystem.h"
 #include "../systems/RenderSegmentMaskSystem.h"
@@ -55,7 +59,7 @@ class ECSStrategy : public Core::IStrategy {
     ECS::Registry::Instance().AddSystem<DetectObjectsSystem>();
     ECS::Registry::Instance().AddSystem<InstanceSegmentationSystem>();
     ECS::Registry::Instance().AddSystem<RenderSegmentMaskSystem>();
-    ECS::Registry::Instance().AddSystem<OdometerSystem>();
+    ECS::Registry::Instance().AddSystem<CartographySystem>(screen, isRunning);
 
     //
     // Initialize windows
@@ -81,12 +85,24 @@ class ECSStrategy : public Core::IStrategy {
         GUISystemLayoutNodePosition::LEFT_TOP
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<ManageEntitiesWindow>(screen),
+        GUISystemLayoutNodePosition::LEFT_TOP
+    );
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
         std::make_unique<LoadScriptWindow>(isRunning),
+        GUISystemLayoutNodePosition::LEFT_TOP
+    );
+
+    ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
+        std::make_unique<CartographyMapperWindow>(
+            ECS::Registry::Instance().GetSystem<CartographySystem>(),
+            screen
+        ),
         GUISystemLayoutNodePosition::LEFT_MID
     );
     ECS::Registry::Instance().GetSystem<GUISystem>().AddWindow(
-        std::make_unique<ManageEntitiesWindow>(screen),
-        GUISystemLayoutNodePosition::LEFT_BOTTOM
+        std::make_unique<CartographyMappedViewWindow>(screen),
+        GUISystemLayoutNodePosition::RIGHT_TOP
     );
 
     //
@@ -103,7 +119,6 @@ class ECSStrategy : public Core::IStrategy {
 
   void OnUpdate(Core::Window& window, Core::Renderer& renderer) override {
     if (screen.has_value()) {
-      ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
       ECS::Registry::Instance().GetSystem<DetectContoursSystem>().Update(screen
       );
       ECS::Registry::Instance().GetSystem<DetectTextSystem>().Update(screen);
@@ -111,31 +126,34 @@ class ECSStrategy : public Core::IStrategy {
       ECS::Registry::Instance().GetSystem<InstanceSegmentationSystem>().Update(
           screen
       );
-    }
-
-    if (screen.has_value()) {
-      // TODO: create a generic way to throttle system updates and system renders
-//      static auto lastTime = 0;
-//      auto currentTime = SDL_GetTicks();
-//
-//      if (currentTime - lastTime > 50) {
-//        lastTime = currentTime;
-        ECS::Registry::Instance().GetSystem<OdometerSystem>().Update(screen);
-//      }
-
       ECS::Registry::Instance().GetSystem<ScriptingSystem>().Update();
+
+      screenSystemTaskManager.Execute([this]() {
+        std::lock_guard<std::mutex> lock(screenMutex);
+        ECS::Registry::Instance().GetSystem<ScreenSystem>().Update(screen);
+        // Mapping needs to happen in the same thread so that it has access to
+        // the correct scree frame Localisation needs to happen in a separate
+        // thread because it is slow and it is better to get the information
+        // later and have a small lag than to block the thread
+        ECS::Registry::Instance().GetSystem<CartographySystem>().Update();
+      });
     }
+
     ECS::Registry::Instance().Update();
   }
 
   void OnRender(Core::Window& window, Core::Renderer& renderer) override {
     if (screen.has_value()) {
-      ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
-          screen
-      );
-      ECS::Registry::Instance().GetSystem<RenderSegmentMaskSystem>().Render(
-          screen
-      );
+      screenSystemTaskManager.Execute([this]() {
+        std::lock_guard<std::mutex> lock(screenMutex);
+
+        ECS::Registry::Instance().GetSystem<RenderBoundingBoxSystem>().Render(
+            screen
+        );
+        ECS::Registry::Instance().GetSystem<RenderSegmentMaskSystem>().Render(
+            screen
+        );
+      });
     }
 
     ECS::Registry::Instance().GetSystem<GUISystem>().Render(renderer);
@@ -156,5 +174,9 @@ class ECSStrategy : public Core::IStrategy {
 
  private:
   std::optional<Devices::Screen> screen;
+  std::mutex screenMutex;
+
   bool isRunning;
+
+  ParallelTaskManager screenSystemTaskManager;
 };

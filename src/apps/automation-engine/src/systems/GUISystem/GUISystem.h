@@ -121,7 +121,7 @@ class GUISystem : public ECS::System {
     );
 
     ImGui::DockBuilderGetNode(rightTopNode)->LocalFlags |=
-        ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoDockingSplitMe |
+        ImGuiDockNodeFlags_NoDockingSplitMe |
         ImGuiDockNodeFlags_NoDockingOverMe;
     ImGui::DockBuilderGetNode(rightBottomNode)->LocalFlags |=
         ImGuiDockNodeFlags_NoDockingSplitMe |
