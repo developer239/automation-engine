@@ -4,6 +4,7 @@
 #include "../structs/Position.h"
 #include "../structs/Size.h"
 #include "ScreenSystem.h"
+#include "devices/Mouse.h"
 #include "devices/Screen.h"
 #include "ecs/System.h"
 
@@ -74,6 +75,8 @@ class CartographySystem : public ECS::System {
   cv::Point pathFindingTarget;
 
   std::vector<cv::Point> path;
+  bool isNavigating;
+  int navigationCounter = 0;
 
   explicit CartographySystem(
       std::optional<Devices::Screen>& screen, bool& isRunning
@@ -84,6 +87,108 @@ class CartographySystem : public ECS::System {
     auto finder = new PathFinder();
     path =
         finder->findPathAStar(walkableMask, playerLocation, pathFindingTarget);
+  }
+
+  void movePlayerToTarget() {
+    if (path.empty()) {
+      return;
+    }
+
+    // Ensure there's a valid screen available
+    if (!screen.has_value() || screen->latestScreenshot.empty()) {
+      return;  // exit if the screen or screenshot is not available
+    }
+
+    cv::Mat& screenshot = screen->latestScreenshot;
+
+    // Calculate the bounding rectangle for the cropped region
+    int x = playerLocation.x - screenshot.cols / 2;
+    int y = playerLocation.y - screenshot.rows / 2;
+    int width = screenshot.cols;
+    int height = screenshot.rows;
+
+    // Ensure the bounding rectangle is within the bounds of the walkableMask
+    if (x < 0) {
+      width += x;  // reduce the width by the overflow amount
+      x = 0;
+    }
+    if (y < 0) {
+      height += y;  // reduce the height by the overflow amount
+      y = 0;
+    }
+    if (x + width > walkableMask.cols) {
+      width = walkableMask.cols - x;
+    }
+    if (y + height > walkableMask.rows) {
+      height = walkableMask.rows - y;
+    }
+
+    if(path.size() > 5) {
+      Devices::Mouse::Instance().Move(path[10].x - x, path[10].y - y);
+      Devices::Mouse::Instance().Click(kCGMouseButtonLeft, true);
+    } else {
+      isNavigating = false;
+    }
+  }
+
+  void projectPathOntoScreenshot() {
+    // Ensure there's a valid screen available
+    if (!screen.has_value() || screen->latestScreenshot.empty()) {
+      return;  // exit if the screen or screenshot is not available
+    }
+
+    cv::Mat& screenshot = screen->latestScreenshot;
+
+    // Calculate the bounding rectangle for the cropped region
+    int x = playerLocation.x - screenshot.cols / 2;
+    int y = playerLocation.y - screenshot.rows / 2;
+    int width = screenshot.cols;
+    int height = screenshot.rows;
+
+    // Ensure the bounding rectangle is within the bounds of the walkableMask
+    if (x < 0) {
+      width += x;  // reduce the width by the overflow amount
+      x = 0;
+    }
+    if (y < 0) {
+      height += y;  // reduce the height by the overflow amount
+      y = 0;
+    }
+    if (x + width > walkableMask.cols) {
+      width = walkableMask.cols - x;
+    }
+    if (y + height > walkableMask.rows) {
+      height = walkableMask.rows - y;
+    }
+
+    // Project the cropped region onto the screenshot
+    for (auto pathPart : path) {
+      if (pathPart.x >= x && pathPart.x <= x + width && pathPart.y >= y &&
+          pathPart.y <= y + height) {
+        cv::circle(
+            screenshot,
+            cv::Point{
+                pathPart.x - x,
+                pathPart.y - y,
+            },
+            walkableRadius / 2,
+            cv::Scalar(255, 0, 255),
+            -1
+        );
+      }
+    }
+
+    // project pathfinding target onto screenshot
+    cv::circle(
+        screenshot,
+        {
+            pathFindingTarget.x - x,
+            pathFindingTarget.y - y,
+        },
+        walkableRadius * 2,
+        cv::Scalar(0, 0, 255),
+        -1
+    );
   }
 
   void projectWalkableAreaOntoScreenshot() {
@@ -133,18 +238,6 @@ class CartographySystem : public ECS::System {
         }
       }
     }
-
-    // project pathfinding target onto screenshot
-    cv::circle(
-        screenshot,
-        {
-            pathFindingTarget.x - x,
-            pathFindingTarget.y - y,
-        },
-        walkableRadius * 2,
-        cv::Scalar(0, 0, 255),
-        -1
-    );
   }
 
   void generateWalkableArea() {
@@ -364,6 +457,12 @@ class CartographySystem : public ECS::System {
       ));
     }
 
+    if (isNavigating && isRunning) {
+      findPath();
+
+      movePlayerToTarget();
+    }
+
     if (isRunning && isMapping) {
       if (map.empty()) {
         setMap(scannedRegion);
@@ -382,7 +481,8 @@ class CartographySystem : public ECS::System {
     }
 
     if (isShowingWalkableArea || isGeneratingWalkableArea) {
-      projectWalkableAreaOntoScreenshot();
+      // projectWalkableAreaOntoScreenshot();
+      projectPathOntoScreenshot();
     }
   }
 
@@ -587,12 +687,12 @@ class CartographySystem : public ECS::System {
           -1
       );
 
-      if(!path.empty()) {
+      if (!path.empty()) {
         for (auto& point : path) {
           cv::circle(
               mappedView,
               cv::Point(point.x, point.y),
-              walkableRadius/2,
+              walkableRadius / 2,
               cv::Scalar(255, 0, 255),
               -1
           );

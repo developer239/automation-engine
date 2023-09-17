@@ -27,6 +27,17 @@ class CartographyMapperWindow : public IGUISystemWindow {
     if (ImGui::Button("Find path")) {
       cartographySystem.findPath();
     }
+    if (cartographySystem.isNavigating) {
+      ImGui::Text("Navigating");
+      if (ImGui::Button("Stop navigating")) {
+        cartographySystem.isNavigating = !cartographySystem.isNavigating;
+      }
+    } else {
+      ImGui::Text("Not navigating");
+      if (ImGui::Button("Start navigating")) {
+        cartographySystem.isNavigating = !cartographySystem.isNavigating;
+      }
+    }
 
     if (ImGui::Button("Open Map File Dialog")) {
       ImGuiFileDialog::Instance()->OpenDialog(
@@ -53,9 +64,9 @@ class CartographyMapperWindow : public IGUISystemWindow {
       ImGuiFileDialog::Instance()->Close();
     }
 
-    if (ImGui::Button("Save Mapped as PNG")) {
-      SaveMappedAsPNG();
-    }
+//    if (ImGui::Button("Save Mapped as PNG")) {
+//      SaveMappedAsPNG();
+//    }
 
     if (ImGui::Button("Open Walkable File Dialog")) {
       ImGuiFileDialog::Instance()->OpenDialog(
@@ -84,9 +95,9 @@ class CartographyMapperWindow : public IGUISystemWindow {
       ImGuiFileDialog::Instance()->Close();
     }
 
-    if (ImGui::Button("Save Walkable as PNG")) {
-      SaveWalkableAreaAsPNG();
-    }
+//    if (ImGui::Button("Save Walkable as PNG")) {
+//      SaveWalkableAreaAsPNG();
+//    }
 
     if (ImGui::Button("Clear Map")) {
       cartographySystem.map = cv::Mat();
