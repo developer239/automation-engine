@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../services/ParallelTaskManager.h"
 #include "../services/PathFinder.h"
 #include "../structs/Position.h"
 #include "../structs/Size.h"
@@ -458,9 +459,10 @@ class CartographySystem : public ECS::System {
     }
 
     if (isNavigating && isRunning) {
-      findPath();
-
-      movePlayerToTarget();
+      pathingTaskManager.Execute([this]() {
+        findPath();
+        movePlayerToTarget();
+      });
     }
 
     if (isRunning && isMapping) {
@@ -739,6 +741,7 @@ class CartographySystem : public ECS::System {
  private:
   std::optional<Devices::Screen>& screen;
   bool& isRunning;
+  ParallelTaskManager pathingTaskManager;
 
   SDL_Texture* texture{};
 

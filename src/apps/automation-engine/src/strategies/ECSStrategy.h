@@ -178,7 +178,5 @@ class ECSStrategy : public Core::IStrategy {
 
   bool isRunning;
 
-  ParallelTaskManager cartographyTaskManager;
   ParallelTaskManager screenSystemTaskManager;
-  ParallelTaskManager drawDebugDataTaskManger;
 };
