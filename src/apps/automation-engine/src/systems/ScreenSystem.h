@@ -48,6 +48,7 @@ class ScreenSystem : public ECS::System {
   // TODO: support multiple textures 🤦‍♂️
   SDL_Texture* texture{};
 
+  // TODO: create generic helper
   void cvMatrixAsSDLTexture(std::optional<Devices::Screen> screen, Core::Renderer& renderer) {
     texture = SDL_CreateTexture(
         renderer.Get().get(),

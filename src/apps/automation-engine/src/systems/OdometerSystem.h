@@ -218,7 +218,7 @@ class OdometerSystem : public ECS::System {
       }
 
       //
-      // Update minimap
+      // Update captured
       // Calculate the new position based on the displacement
       cv::Point newPosition(
           odometerComponent.currentPosition.x - (horizontal_displacement),
@@ -227,7 +227,7 @@ class OdometerSystem : public ECS::System {
 
       odometerComponent.path.push_back(newPosition);
       odometerComponent.currentPosition = newPosition;
-      odometerComponent.minimap.setTo(cv::Scalar(0, 0, 0));
+      odometerComponent.captured.setTo(cv::Scalar(0, 0, 0));
 
       DrawMinimapAroundCurrentPosition(odometerComponent);
 
@@ -235,11 +235,11 @@ class OdometerSystem : public ECS::System {
         cv::Rect roi(
             0,
             0,
-            odometerComponent.minimap.cols,
-            odometerComponent.minimap.rows
+            odometerComponent.captured.cols,
+            odometerComponent.captured.rows
         );
         cv::Mat destinationROI = screen->latestScreenshot(roi);
-        odometerComponent.minimap.copyTo(destinationROI);
+        odometerComponent.captured.copyTo(destinationROI);
       }
 
       prevFrame = currentFrame;
